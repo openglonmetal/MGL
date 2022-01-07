@@ -1,0 +1,381 @@
+/*
+ * Copyright (C) Michael Larson on 1/6/2022
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * glm_params.h
+ * MGL
+ *
+ */
+
+#ifndef glm_params_h
+#define glm_params_h
+
+#include <GL/glcorearb.h>
+
+#include "glm_limits.h"
+
+typedef struct GLMHints_t {
+    GLuint line_smooth_hint;
+    GLuint polygon_smooth_hint;
+    GLuint texture_compression_hint;
+    GLuint fragment_shader_derivative_hint;
+} GLMHints;
+
+typedef struct GLMCaps_t {
+    GLboolean blend;
+    GLboolean multisample;
+    GLboolean sample_alpha_to_coverage;
+    GLboolean sample_alpha_to_one;
+    GLboolean sample_coverage;
+    GLboolean rasterizer_discard;
+    GLboolean framebuffer_srgb;
+    GLboolean depth_clamp;
+    GLboolean texture_cube_map_seamless;
+    GLboolean sample_mask;
+    GLboolean sample_shading;
+    GLboolean debug_output_synchronous;
+    GLboolean debug_output;
+    GLboolean line_smooth;
+    GLboolean polygon_smooth;
+    GLboolean cull_face;
+    GLboolean depth_test;
+    GLboolean stencil_test;
+    GLboolean dither;
+    GLboolean scissor_test;
+    GLboolean point_smooth;
+    GLboolean line_stipple;
+    GLboolean polygon_stipple;
+    GLboolean lighting;
+    GLboolean color_material;
+    GLboolean fog;
+    GLboolean normalize;
+    GLboolean alpha_test;
+    GLboolean texture_gen_s;
+    GLboolean texture_gen_t;
+    GLboolean texture_gen_r;
+    GLboolean texture_gen_q;
+    GLboolean auto_normal;
+    GLboolean color_logic_op;
+    GLboolean polygon_offset_point;
+    GLboolean polygon_offset_line;
+    GLboolean polygon_offset_fill;
+    GLboolean index_logic_op;
+    GLboolean normal_array;
+    GLboolean color_array;
+    GLboolean index_array;
+    GLboolean texture_coord_array;
+    GLboolean edge_flag_array;
+    GLboolean program_point_size;
+    GLboolean primitive_restart;
+    GLboolean primitive_restart_fixed_index;
+    
+    GLboolean clip_distances[MAX_CLIP_DISTANCES];
+
+    // local enables
+    GLboolean use_color_mask[MAX_COLOR_ATTACHMENTS];
+} GLMCaps;
+
+typedef struct GLMParams_t {
+    GLfloat point_size;
+    GLuint point_size_range;
+    GLuint point_size_granularity;
+    GLfloat line_width;
+    GLuint line_width_range;
+    GLuint line_width_granularity;
+    GLuint polygon_mode;
+    GLuint cull_face_mode;
+    GLuint front_face;
+    GLdouble depth_range[2];
+    GLboolean depth_writemask;
+    GLdouble depth_clear_value;
+    GLuint depth_func;
+    GLuint stencil_clear_value;
+    GLuint stencil_func;
+    GLuint stencil_value_mask;
+    GLuint stencil_fail;
+    GLuint stencil_pass_depth_fail;
+    GLuint stencil_pass_depth_pass;
+    GLuint stencil_ref;
+    GLuint stencil_writemask;
+    GLuint viewport;
+    GLuint blend_dst;
+    GLuint blend_src;
+    GLuint logic_op_mode;
+    GLuint draw_buffer;
+    GLuint read_buffer;
+    GLuint scissor_box[4];
+    GLuint color_clear_value;
+    GLboolean color_writemask[MAX_COLOR_ATTACHMENTS][4];
+    GLuint max_texture_size;
+    GLuint max_viewport_dims;
+    GLuint subpixel_bits;
+    GLuint current_color;
+    GLuint current_index;
+    GLuint current_normal;
+    GLuint current_raster_color;
+    GLuint current_raster_index;
+    GLuint current_raster_texture_coords;
+    GLuint current_raster_position;
+    GLuint current_raster_position_valid;
+    GLuint current_raster_distance;
+    GLuint line_stipple_pattern;
+    GLuint line_stipple_repeat;
+    GLuint list_mode;
+    GLuint max_list_nesting;
+    GLuint list_base;
+    GLuint list_index;
+    GLuint edge_flag;
+    GLuint shade_model;
+    GLuint color_material_face;
+    GLuint color_material_parameter;
+    GLuint accum_clear_value;
+    GLuint matrix_mode;
+    GLuint modelview_stack_depth;
+    GLuint projection_stack_depth;
+    GLuint texture_stack_depth;
+    GLuint modelview_matrix;
+    GLuint projection_matrix;
+    GLuint attrib_stack_depth;
+    GLuint alpha_test_func;
+    GLuint alpha_test_ref;
+    GLuint logic_op;
+    GLuint aux_buffers;
+    GLuint index_clear_value;
+    GLuint index_writemask;
+    GLuint index_mode;
+    GLuint rgba_mode;
+    GLuint render_mode;
+    GLuint pixel_map_i_to_i_size;
+    GLuint pixel_map_s_to_s_size;
+    GLuint pixel_map_i_to_r_size;
+    GLuint pixel_map_i_to_g_size;
+    GLuint pixel_map_i_to_b_size;
+    GLuint pixel_map_i_to_a_size;
+    GLuint pixel_map_r_to_r_size;
+    GLuint pixel_map_g_to_g_size;
+    GLuint pixel_map_b_to_b_size;
+    GLuint pixel_map_a_to_a_size;
+    GLuint zoom_x;
+    GLuint zoom_y;
+    GLuint max_eval_order;
+    GLuint max_lights;
+    GLuint max_clip_planes;
+    GLuint max_pixel_map_table;
+    GLuint max_attrib_stack_depth;
+    GLuint max_modelview_stack_depth;
+    GLuint max_name_stack_depth;
+    GLuint max_projection_stack_depth;
+    GLuint max_texture_stack_depth;
+    GLuint index_bits;
+    GLuint red_bits;
+    GLuint green_bits;
+    GLuint blue_bits;
+    GLuint alpha_bits;
+    GLuint depth_bits;
+    GLuint stencil_bits;
+    GLuint accum_red_bits;
+    GLuint accum_green_bits;
+    GLuint accum_blue_bits;
+    GLuint accum_alpha_bits;
+    GLuint name_stack_depth;
+    GLuint map1_grid_domain;
+    GLuint map1_grid_segments;
+    GLuint map2_grid_domain;
+    GLuint map2_grid_segments;
+    GLuint polygon_offset_units;
+    GLuint polygon_offset_factor;
+    GLuint texture_binding_1d;
+    GLuint texture_binding_2d;
+    GLuint client_attrib_stack_depth;
+    GLuint max_client_attrib_stack_depth;
+    GLuint feedback_buffer_size;
+    GLuint feedback_buffer_type;
+    GLuint selection_buffer_size;
+    GLuint vertex_array_size;
+    GLuint vertex_array_type;
+    GLuint vertex_array_stride;
+    GLuint normal_array_type;
+    GLuint normal_array_stride;
+    GLuint color_array_size;
+    GLuint color_array_type;
+    GLuint color_array_stride;
+    GLuint index_array_type;
+    GLuint index_array_stride;
+    GLuint texture_coord_array_size;
+    GLuint texture_coord_array_type;
+    GLuint texture_coord_array_stride;
+    GLuint edge_flag_array_stride;
+    GLuint texture_binding_3d;
+    GLuint max_3d_texture_size;
+    GLuint max_elements_vertices;
+    GLuint max_elements_indices;
+    GLuint smooth_point_size_range;
+    GLuint smooth_point_size_granularity;
+    GLuint smooth_line_width_range;
+    GLuint smooth_line_width_granularity;
+    GLuint aliased_line_width_range;
+    GLuint aliased_point_size_range;
+    GLuint active_texture;
+    GLuint sample_coverage_value;
+    GLuint sample_coverage_invert;
+    GLuint texture_binding_cube_map;
+    GLuint max_cube_map_texture_size;
+    GLuint num_compressed_texture_formats;
+    GLuint compressed_texture_formats;
+    GLuint array_buffer_binding;
+    GLuint element_array_buffer_binding;
+
+    GLfloat blend_color[4];
+    GLuint blend_dst_rgb[MAX_COLOR_ATTACHMENTS];
+    GLuint blend_src_rgb[MAX_COLOR_ATTACHMENTS];
+    GLuint blend_dst_alpha[MAX_COLOR_ATTACHMENTS];
+    GLuint blend_src_alpha[MAX_COLOR_ATTACHMENTS];
+    GLuint blend_equation_rgb[MAX_COLOR_ATTACHMENTS];
+    GLuint blend_equation_alpha[MAX_COLOR_ATTACHMENTS];
+
+    GLuint stencil_back_func;
+    GLuint stencil_back_fail;
+    GLuint stencil_back_pass_depth_fail;
+    GLuint stencil_back_pass_depth_pass;
+
+    GLuint max_texture_lod_bias;
+    GLuint max_draw_buffers;
+    GLuint max_vertex_attribs;
+    GLuint max_texture_image_units;
+    GLuint max_fragment_uniform_components;
+    GLuint max_vertex_uniform_components;
+    GLuint max_varying_floats;
+    GLuint max_vertex_texture_image_units;
+    GLuint max_combined_texture_image_units;
+    GLuint current_program;
+    GLuint stencil_back_ref;
+    GLuint stencil_back_value_mask;
+    GLuint stencil_back_writemask;
+    GLuint pixel_pack_buffer_binding;
+    GLuint pixel_unpack_buffer_binding;
+    GLuint max_clip_distances;
+    GLuint major_version;
+    GLuint minor_version;
+    GLuint num_extensions;
+    GLuint context_flags;
+    GLuint max_array_texture_layers;
+    GLuint min_program_texel_offset;
+    GLuint max_program_texel_offset;
+    GLuint max_varying_components;
+    GLuint texture_binding_1d_array;
+    GLuint texture_binding_2d_array;
+    GLuint max_renderbuffer_size;
+    GLuint draw_framebuffer_binding;
+    GLuint renderbuffer_binding;
+    GLuint read_framebuffer_binding;
+    GLuint max_color_attachments;
+    GLuint vertex_array_binding;
+    GLuint max_texture_buffer_size;
+    GLuint texture_binding_buffer;
+    GLuint texture_binding_rectangle;
+    GLuint max_rectangle_texture_size;
+    GLuint primitive_restart_index;
+    GLuint uniform_buffer_binding;
+    GLuint uniform_buffer_start;
+    GLuint uniform_buffer_size;
+    GLuint max_vertex_uniform_blocks;
+    GLuint max_geometry_uniform_blocks;
+    GLuint max_fragment_uniform_blocks;
+    GLuint max_combined_uniform_blocks;
+    GLuint max_uniform_buffer_bindings;
+    GLuint max_uniform_block_size;
+    GLuint max_combined_vertex_uniform_components;
+    GLuint max_combined_geometry_uniform_components;
+    GLuint max_combined_fragment_uniform_components;
+    GLuint uniform_buffer_offset_alignment;
+    GLuint max_geometry_texture_image_units;
+    GLuint max_geometry_uniform_components;
+    GLuint max_vertex_output_components;
+    GLuint max_geometry_input_components;
+    GLuint max_geometry_output_components;
+    GLuint max_fragment_input_components;
+    GLuint context_profile_mask;
+    GLuint provoking_vertex;
+    GLuint max_server_wait_timeout;
+    GLuint max_sample_mask_words;
+    GLuint texture_binding_2d_multisample;
+    GLuint texture_binding_2d_multisample_array;
+    GLuint max_color_texture_samples;
+    GLuint max_depth_texture_samples;
+    GLuint max_integer_samples;
+    GLuint max_dual_source_draw_buffers;
+    GLuint sampler_binding;
+    GLuint max_tess_control_uniform_blocks;
+    GLuint max_tess_evaluation_uniform_blocks;
+    GLuint shader_compiler;
+    GLuint shader_binary_formats;
+    GLuint num_shader_binary_formats;
+    GLuint max_vertex_uniform_vectors;
+    GLuint max_varying_vectors;
+    GLuint max_fragment_uniform_vectors;
+    GLuint num_program_binary_formats;
+    GLuint program_binary_formats;
+    GLuint program_pipeline_binding;
+    GLuint max_viewports;
+    GLuint viewport_subpixel_bits;
+    GLuint viewport_bounds_range;
+    GLuint layer_provoking_vertex;
+    GLuint viewport_index_provoking_vertex;
+    GLuint min_map_buffer_alignment;
+    GLuint max_vertex_atomic_counters;
+    GLuint max_tess_control_atomic_counters;
+    GLuint max_tess_evaluation_atomic_counters;
+    GLuint max_geometry_atomic_counters;
+    GLuint max_fragment_atomic_counters;
+    GLuint max_combined_atomic_counters;
+    GLuint max_element_index;
+    GLuint max_compute_uniform_blocks;
+    GLuint max_compute_texture_image_units;
+    GLuint max_compute_uniform_components;
+    GLuint max_compute_atomic_counter_buffers;
+    GLuint max_compute_atomic_counters;
+    GLuint max_combined_compute_uniform_components;
+    GLuint max_compute_work_group_invocations;
+    GLint max_compute_work_group_count[3];
+    GLint max_compute_work_group_size[3];
+    GLuint dispatch_indirect_buffer_binding;
+    GLuint max_debug_group_stack_depth;
+    GLuint debug_group_stack_depth;
+    GLuint max_label_length;
+    GLuint max_uniform_locations;
+    GLuint max_framebuffer_width;
+    GLuint max_framebuffer_height;
+    GLuint max_framebuffer_layers;
+    GLuint max_framebuffer_samples;
+    GLuint shader_storage_buffer_binding;
+    GLuint shader_storage_buffer_start;
+    GLuint shader_storage_buffer_size;
+    GLuint max_vertex_shader_storage_blocks;
+    GLuint max_geometry_shader_storage_blocks;
+    GLuint max_tess_control_shader_storage_blocks;
+    GLuint max_tess_evaluation_shader_storage_blocks;
+    GLuint max_fragment_shader_storage_blocks;
+    GLuint max_compute_shader_storage_blocks;
+    GLuint max_combined_shader_storage_blocks;
+    GLuint max_shader_storage_buffer_bindings;
+    GLuint shader_storage_buffer_offset_alignment;
+    GLuint texture_buffer_offset_alignment;
+    GLuint vertex_binding_divisor;
+    GLuint vertex_binding_offset;
+    GLuint vertex_binding_stride;
+    GLuint max_vertex_attrib_relative_offset;
+    GLuint max_vertex_attrib_bindings;
+} GLMParams;
+
+#endif /* glm_params_h */
