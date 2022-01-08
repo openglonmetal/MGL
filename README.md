@@ -1,9 +1,9 @@
 # MGL
-OpenGL 4.6 on Metal
+# OpenGL 4.6 on Metal
 
 This is a start for porting OpenGL 4.6 on top of Metal, most of it is functional and has been tested. The tests are functional, not coverage tests so they test the functionality of a path not all the possible permutations.
 
-So far the following work
+## So far the following parts of OpenGL work
 
 Vertex Arrays
 Buffers
@@ -21,26 +21,33 @@ Drawbuffers
 Most of the draw calls
 Elements / Instancing and such
 
-I modified a version of GLFW to work with MGL, it replaces the default MacOS OpenGL contexts.
+## GLFW support
+I modified a version of GLFW to work with MGL, it replaces the default MacOS OpenGL contexts. The changes are included in the repository and should build correctly with the MGL xcode project.
 
+## Mapping OpenGL onto Metal
 I mapped as much of the functionality of Metal I could into OpenGL 4.6, it's surprising how much I was able to map directly from OpenGL state to Metal. But I suppose Metal evolved to meet market requirements and since OpenGL was in place the same features existed just in another form.
 
+Not all of the functionality for OpenGL is available, but I didn't build this for conformance I just wanted to program OpenGL on the MacOS platform.
 
+## Parsing the OpenGL 4.6 XML spec
 In the beginning I used ezxml to parse the gl.xml file for all the enums and functions, then printed out one giant file with all the functions. I then used the same parser to create the dispatch tables and data structures.
 
+## OpenGL functions and how they work
 Each OpenGL function starts in gl_core.c
 
+```C
 void glTexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const void *pixels)
 {
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_image2D(ctx, target, level, internalformat, width, height, border, format, type, pixels);
 }
+```
 
 glTexImage2D calls into a dispatch table which lands on a mgl equivalent 
 
-void mglTexImage2D(GLMContext ctx, GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const void *pixels)
-{
+```C
+void mglTexImage2D(GLMContext ctx, GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const void *pixels) {
     Texture *tex;
     GLuint face;
     GLboolean is_array;
@@ -105,17 +112,28 @@ void mglTexImage2D(GLMContext ctx, GLenum target, GLint level, GLint internalfor
 
     createTextureLevel(ctx, tex, face, level, is_array, internalformat, width, height, 1, format, type, (void *)pixels, proxy);
 }
+```
 
-The mgl function checks input parameters then modifies the OpenGL state and marks it dirty.
+The mgl function checks input parameters then modifies the OpenGL state and marks it dirty. I use macros for error checking parameters... because I got sick of writing.
 
+```C
+if (expr == false) {
+  set error
+  return;
+}
+```
+
+## Common use of code for most OpenGL calls
 Most functions are like mglTexImage2D, there a lot of common entry points which check parameters then call a function like createTextureLevel() which is used by all the TexImage calls to do the actual work.
 
+## OpenGL state translated to Metal using glDrawArrays as an example 
 All state changes are evaluated on direct commands, these are commands that will issue a command to the GPU for things like drawing primitives, copying data or executing compute kernels.
 
 Looking at glDrawArrays..
 
 glDrawArrays lands on mglDrawArrays which does parameter testing and calls the Objective C interface through a jump table in the context. This lands you in MGLRenderere.m
 
+```C
 void mglDrawArrays(GLMContext ctx, GLenum mode, GLint first, GLsizei count)
 {
     ERROR_CHECK_RETURN(check_draw_modes(mode), GL_INVALID_ENUM);
@@ -128,17 +146,21 @@ void mglDrawArrays(GLMContext ctx, GLenum mode, GLint first, GLsizei count)
 
     ctx->mtl_funcs.mtlDrawArrays(ctx, mode, first, count);
 }
+```
 
 Which lands you in Objective C land, we do a C interface call to Objecitve C here
 
+```C
 void mtlDrawArrays(GLMContext glm_ctx, GLenum mode, GLint first, GLsizei count)
 {
     // Call the Objective-C method using Objective-C syntax
     [(__bridge id) glm_ctx->mtl_funcs.mtlObj mtlDrawArrays: glm_ctx mode: mode first: first count: count];
 }
+```
 
 And now we speak Objective C
 
+```C
 -(void) mtlDrawArrays: (GLMContext) ctx mode:(GLenum) mode first: (GLint) first count: (GLsizei) count
 {
     MTLPrimitiveType primitiveType;
@@ -152,13 +174,16 @@ And now we speak Objective C
                               vertexStart: first
                               vertexCount: count];
 }
+```
 
+## processGLState does all the state mapping from OpenGL to Metal
 On GL calls the OpenGL state is processed for any dirty state in processGLState, you have to do this before each draw command to ensure changed state is captured into Metal.
 
-State is transferred from OpenGL to Metal state using a Metal command queue with a MTLRenderCommandEncoder. Occationally a new MTLRenderCommandEncoder will need to be build if the state changes need to modifie the MTLRenderPipelineState so neRenderEncoder is called to create a new encoder with the current OpenGL state.
+State is transferred from OpenGL to Metal state using a Metal command queue with a MTLRenderCommandEncoder. Occasionally a new MTLRenderCommandEncoder will need to be built if the state changes need to modify the MTLRenderPipelineState so neRenderEncoder is called to create a new encoder with the current OpenGL state.
 
 Most of the work is done in MGLRenderer.m, at first it can look like a giant piece of code. But it's simple.
 
+# binding buffers and textures from shader layouts
 You have to bind all the buffers and textures to Metal, there are mapping operations you need to do to transfer OpenGL buffers / textures to Metal. Since all of this is driven by the GLSL shader in 4.5 which requires you to map your bindings and locations
 
 An example vertex shader defines a vertex buffer object at location 0 and a uniform buffer at binding 0.  These are not the same location, but relative to the type.
@@ -190,12 +215,7 @@ So internal to processGLState the vertex buffer array is taken apart, buffers an
 Once you walk a glDrawArrays call through processGLState, you will get a jist of how this all works.
 
 
-
-
-
-
-
-
+## Grabbing the SPIRV sources and building
 
 There is an Xcode project build most of this, but you will need to clone a bunch of external projects from GitHub.
 
@@ -233,10 +253,10 @@ make install
 
 Once installed in /usr/local the Xcode project should be able to build all the required dependencies for MGL.
 
-
+## Where to start
 Start by building test_mgl_glfw, this is a chunk of test code I used to get most of the functionality up and running.
   
-  
+## Contributing
 If you want to contribute that would be great, it's all written in C.. in the same style all of the OpenGL framework from Apple was written in. If you don't like the coding style, don't change it. Just follow the same coding style and put your efforts into testing and functionality.
   
 
