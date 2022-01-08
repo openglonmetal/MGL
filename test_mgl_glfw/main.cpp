@@ -674,6 +674,10 @@ int test_draw_range_elements(GLFWwindow* window, int width, int height)
 
     GLuint indices[] = {3, 4, 5};
 
+    GLuint vao = 0;
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+
     glGenBuffers(1, &elem_vbo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elem_vbo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, 3 * sizeof(GLuint), indices, GL_STATIC_DRAW);
@@ -682,15 +686,11 @@ int test_draw_range_elements(GLFWwindow* window, int width, int height)
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, 9 * 3 * sizeof(GLfloat), points, GL_STATIC_DRAW);
 
-    GLuint vao = 0;
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-
     glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elem_vbo);
+    glVertexArrayElementBuffer(vao, elem_vbo);
 
     GLuint vs = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vs, 1, &vertex_shader, NULL);
@@ -1706,7 +1706,7 @@ int test_textures(GLFWwindow* window, int width, int height, int mipmap, int use
         if (use_gen_mipmap)
         {
 
-            glTexImage2D(GL_TEXTURE_2D, 0, 0, texsize, texsize, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, texsize, texsize, 0, GL_RGBA, GL_UNSIGNED_BYTE,
                          genTexturePixels(GL_RGBA, GL_UNSIGNED_INT_8_8_8_8, 0x8, texsize, texsize));
 
             glGenerateMipmap(GL_TEXTURE_2D);
@@ -2609,7 +2609,7 @@ int main(int argc, const char * argv[])
     // test_1D_array_textures(window, width, height);
     // test_2D_textures(window, width, height);
     // test_3D_textures(window, width, height);
-    // test_2D_array_textures(window, width, height);
+    test_2D_array_textures(window, width, height);
     // test_textures(window, width, height, 0, 0);
     // test_textures(window, width, height, 0, 0, 0, GL_NEAREST, GL_NEAREST);
     // test_textures(window, width, height, 0, 0, 0, GL_LINEAR, GL_LINEAR);
@@ -2617,7 +2617,7 @@ int main(int argc, const char * argv[])
     // test_textures(window, width, height, 1, 1, 8, GL_LINEAR_MIPMAP_NEAREST);
     // test_framebuffer(window, width, height);
     // test_readpixels(window, width, height);
-    test_compute_shader(window, width, height);
+    // test_compute_shader(window, width, height);
 
     glfwTerminate();
 

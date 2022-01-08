@@ -833,7 +833,7 @@ MTLVertexFormat glTypeSizeToMtlType(GLuint type, GLuint size, bool normalized)
                 if (tex_type == MTLTextureType3D)
                 {
                     // ogl considers an image a "row".. metal must be different
-                    bytesPerRow = tex->faces[face].levels[level].pitch / height;
+                    bytesPerRow = tex->faces[face].levels[level].pitch;
                     assert(bytesPerRow);
 
                     bytesPerImage = bytesPerRow * height;
