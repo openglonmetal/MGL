@@ -205,15 +205,15 @@ clone_external.sh
 
 Run this and all the external repositories will be downloaded.
 
-drwxr-xr-x  68 developer  staff  2176 Jan  7 15:06 SPIRV-Cross
-drwxr-xr-x  19 developer  staff   608 Jan  7 15:07 SPIRV-Headers
-drwxr-xr-x  35 developer  staff  1120 Jan  7 15:10 SPIRV-Tools
--rwxr-xr-x   1 developer  staff   503 Jan  7 15:17 clone_external.sh
-drwxr-xr-x  13 developer  staff   416 Jan  7 14:58 ezxml
-drwxr-xr-x  17 developer  staff   544 Dec 19 16:54 glew
-drwxr-xr-x  15 developer  staff   480 Jan  7 15:06 glfw
-drwxr-xr-x  16 developer  staff   512 Dec 21 13:59 glm
-drwxr-xr-x  43 developer  staff  1376 Jan  7 15:12 glslang
+// drwxr-xr-x  68 developer  staff  2176 Jan  7 15:06 SPIRV-Cross
+// drwxr-xr-x  19 developer  staff   608 Jan  7 15:07 SPIRV-Headers
+// drwxr-xr-x  35 developer  staff  1120 Jan  7 15:10 SPIRV-Tools
+// -rwxr-xr-x   1 developer  staff   503 Jan  7 15:17 clone_external.sh
+// drwxr-xr-x  13 developer  staff   416 Jan  7 14:58 ezxml
+// drwxr-xr-x  17 developer  staff   544 Dec 19 16:54 glew
+// drwxr-xr-x  15 developer  staff   480 Jan  7 15:06 glfw
+// drwxr-xr-x  16 developer  staff   512 Dec 21 13:59 glm
+// drwxr-xr-x  43 developer  staff  1376 Jan  7 15:12 glslang
 
 You will need to build the following
 SPIRV-Cross
