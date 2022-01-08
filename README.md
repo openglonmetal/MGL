@@ -30,7 +30,10 @@ I mapped as much of the functionality of Metal I could into OpenGL 4.6, it's sur
 Not all of the functionality for OpenGL is available, but I didn't build this for conformance I just wanted to program OpenGL on the MacOS platform.
 
 ## Parsing the OpenGL 4.6 XML spec
-In the beginning I used ezxml to parse the gl.xml file for all the enums and functions, then printed out one giant file with all the functions. I then used the same parser to create the dispatch tables and data structures.
+In the beginning I used ezxml to parse the gl.xml file for all the enums and functions, then printed out one giant file with all the functions. I then used the same parser to create the dispatch tables and data structures. As each functional part was built I separated blocks of functions into these functions like buffers / textures / shaders / programs.
+
+## SPIRV to Metal
+I really couldn't have done this project without all the SPIRV support from Khronos, once I found out I could translate GLSL into Metal using some of the SPIRV tools this project became a reality. There are some parts in GLSL that Metal just doesn't support like Geometry Shaders, I think the way forward on support for Geometry Shaders is to translate the vertex and geometry shaders into LLVM from SPIRV then execute the results from processing them on the CPU through a passthrough vertex shader in the pipeline. Some parts of the GLSL spec probably won't map to Metal but more testing and exposure to developers will show what works and what doesn't/
 
 ## OpenGL functions and how they work
 Each OpenGL function starts in gl_core.c
@@ -177,11 +180,11 @@ And now we speak Objective C
 ```
 
 ## processGLState does all the state mapping from OpenGL to Metal
-On GL calls the OpenGL state is processed for any dirty state in processGLState, you have to do this before each draw command to ensure changed state is captured into Metal.
+On OpenGL drawing calls the OpenGL state is processed for any dirty state in processGLState, you have to do this before each draw command to ensure changed state is captured into Metal.
 
 State is transferred from OpenGL to Metal state using a Metal command queue with a MTLRenderCommandEncoder. Occasionally a new MTLRenderCommandEncoder will need to be built if the state changes need to modify the MTLRenderPipelineState so neRenderEncoder is called to create a new encoder with the current OpenGL state.
 
-Most of the work is done in MGLRenderer.m, at first it can look like a giant piece of code. But it's simple.
+Most of the work is done in MGLRenderer.m, at first it can look like a giant piece of code. But it's simple once you figure out the mapping process.
 
 # binding buffers and textures from shader layouts
 You have to bind all the buffers and textures to Metal, there are mapping operations you need to do to transfer OpenGL buffers / textures to Metal. Since all of this is driven by the GLSL shader in 4.5 which requires you to map your bindings and locations
@@ -255,11 +258,17 @@ Once installed in /usr/local the Xcode project should be able to build all the r
 
 ## Where to start
 Start by building test_mgl_glfw, this is a chunk of test code I used to get most of the functionality up and running.
+
+## Performance
+I really don't know what the performance comaprison is, how much is in overhead or in the driver. I wrote most of this as a functional exercise knowing that once it reached some level of functional coverage I would go back and address the performance issue. But I didn't write this without thinking about performance issues as I implemented the code.
   
 ## Contributing
 If you want to contribute that would be great, it's all written in C.. in the same style all of the OpenGL framework from Apple was written in. If you don't like the coding style, don't change it. Just follow the same coding style and put your efforts into testing and functionality.
   
-
+## Future
+I would like to implement OpenCL directly into this framework, its much simpler mapping from OpenCL to Metal and there is zero state to deal with so you should be able to use all the buffers / textures and other resources directly on top of a OpenGL context.
+ 
+## Questions?
 You can reach me at sandstormsoftware@gmail.com for more information, it would be great to see this used by others and developed into a full fledged project anyone can use.
   
 Cheers
