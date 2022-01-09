@@ -5,21 +5,21 @@ This is a start for porting OpenGL 4.6 on top of Metal, most of it is functional
 
 ## So far the following parts of OpenGL work
 
-Vertex Arrays
-Buffers
-Textures
-Programs
-  Shaders
-    Vertex
-    Fragment
-    Compute
-Samplers
-Alpha Blending
-Depth and Stencil Testing
-Framebuffer Objects
-Drawbuffers
-Most of the draw calls
-Elements / Instancing and such
+- Vertex Arrays
+- Buffers
+- Textures
+- Programs
+  - Shaders
+    - Vertex
+    - Fragment
+    - Compute
+- Samplers
+- Alpha Blending
+- Depth and Stencil Testing
+- Framebuffer Objects
+- Drawbuffers
+- Most of the draw calls
+- Elements / Instancing and such
 
 ## GLFW support
 I modified a version of GLFW to work with MGL, it replaces the default MacOS OpenGL contexts. The changes are included in the repository and should build correctly with the MGL xcode project.
@@ -211,7 +211,7 @@ Each binding point in OpenGL is a 2D array one for each type, like GL_ARRAY_BUFF
 
 Indexes an array like
 
-buffers[GL_ARRAY_BUFFER].buffer = vbo
+    buffers[GL_ARRAY_BUFFER].buffer = vbo
 
 So internal to processGLState the vertex buffer array is taken apart, buffers and attributes mapped then we walk through uniforms / textures through their binding points in the GL state and map these to Metal state.
 
@@ -224,10 +224,13 @@ There is an Xcode project build most of this, but you will need to clone a bunch
 
 In MGL/external there is a file
 
+```
 clone_external.sh
+```
 
 Run this and all the external repositories will be downloaded.
 
+```
 SPIRV-Cross
 SPIRV-Headers
 SPIRV-Tools
@@ -235,24 +238,30 @@ ezxml
 glfw
 glm
 glslang
+```
 
 You will need to build the following
+
+```
 SPIRV-Cross
 SPIRV-Headers
 SPIRV-Tools
 glslang
 glm
+```
 
 Each is distributed by Khronos with a CMake style build
 
 For each of the projects above build you will need to do the following
 
+```
 cd <Project>
 mkdir build
 cd build
 cmake ..
 make
 make install
+```
 
 Once installed in /usr/local the Xcode project should be able to build all the required dependencies for MGL.
 
