@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		FF33414C278BDD2000FDBD91 /* Fixed_ResourceLimits.h in Headers */ = {isa = PBXBuildFile; fileRef = FF33414B278BDD2000FDBD91 /* Fixed_ResourceLimits.h */; };
 		FF480DC32772A60200BBF7C7 /* pch_source.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FF480DAB2772A60200BBF7C7 /* pch_source.cpp */; };
 		FF480DC42772A60200BBF7C7 /* spirv_optimizer_options.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FF480DAC2772A60200BBF7C7 /* spirv_optimizer_options.cpp */; };
 		FF480DC52772A60200BBF7C7 /* spirv_reducer_options.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FF480DAD2772A60200BBF7C7 /* spirv_reducer_options.cpp */; };
@@ -345,6 +346,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		FF33414B278BDD2000FDBD91 /* Fixed_ResourceLimits.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Fixed_ResourceLimits.h; sourceTree = "<group>"; };
 		FF480DAB2772A60200BBF7C7 /* pch_source.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pch_source.cpp; path = "external/SPIRV-Tools/source/pch_source.cpp"; sourceTree = SOURCE_ROOT; };
 		FF480DAC2772A60200BBF7C7 /* spirv_optimizer_options.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = spirv_optimizer_options.cpp; path = "external/SPIRV-Tools/source/spirv_optimizer_options.cpp"; sourceTree = SOURCE_ROOT; };
 		FF480DAD2772A60200BBF7C7 /* spirv_reducer_options.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = spirv_reducer_options.cpp; path = "external/SPIRV-Tools/source/spirv_reducer_options.cpp"; sourceTree = SOURCE_ROOT; };
@@ -935,6 +937,7 @@
 		FF7B7AB827728C3100C2028F /* include */ = {
 			isa = PBXGroup;
 			children = (
+				FF33414B278BDD2000FDBD91 /* Fixed_ResourceLimits.h */,
 				FF7B7AB927728C3100C2028F /* error.h */,
 				FF7B7ABA27728C3100C2028F /* utils.h */,
 				FF7B7ABB27728C3100C2028F /* gltypes.h */,
@@ -1206,6 +1209,7 @@
 				FF480EF02772A9A800BBF7C7 /* SymbolTable.h in Headers */,
 				FF7B7ACC27728C3100C2028F /* MGLRenderer.h in Headers */,
 				FF480EDE2772A9A800BBF7C7 /* ScanContext.h in Headers */,
+				FF33414C278BDD2000FDBD91 /* Fixed_ResourceLimits.h in Headers */,
 				FF480F022772A9A800BBF7C7 /* PpContext.h in Headers */,
 				FF480F072772A9A800BBF7C7 /* reflection.h in Headers */,
 				FF480EDA2772A9A800BBF7C7 /* parseVersions.h in Headers */,
@@ -1930,6 +1934,7 @@
 					"$(SRCROOT)/external/SPIRV-Tools/build",
 					"$(SRCROOT)/external/glslang/build/include",
 					"$(SRCROOT)/external/glslang/",
+					"$(SRCROOT)/MGL/include",
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"/usr/local/lib/**",
@@ -1973,6 +1978,7 @@
 					"$(SRCROOT)/external/SPIRV-Tools/build",
 					"$(SRCROOT)/external/glslang/build/include",
 					"$(SRCROOT)/external/glslang/",
+					"$(SRCROOT)/MGL/include",
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"/usr/local/lib/**",
