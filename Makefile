@@ -92,6 +92,9 @@ lib: $(build_dir)/libglfw.dylib
 test: $(test_exe)
 	$(test_exe)
 
+dbg: $(test_exe)
+	lldb -o run $(test_exe)
+
 $(mgl_lib): $(mgl_objs) $(mgl_arc_objs)
 	@mkdir -p $(dir $@)
 	$(CXX) -dynamiclib -o $@ $^ $(LIBS)
