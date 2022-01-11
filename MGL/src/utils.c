@@ -18,19 +18,18 @@
  *
  */
 
+#include <math.h>
+
 #include "utils.h"
 
 #include "mgl.h"
 
 GLuint ilog2(GLuint val)
 {
-    uint32_t retval;
-    __asm {
-        bsr eax, val
-        mov retval, eax
-    }
+    if (val == 0)
+        return 0;
     
-    return retval;
+    return (GLuint)floor(log2(val));
 }
 
 GLfloat clamp(GLfloat a, GLfloat min, GLfloat max)

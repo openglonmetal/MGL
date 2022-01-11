@@ -20,9 +20,11 @@
 #define GL_DEPTH_COMPONENT                0x1902
 #define GL_FLOAT                          0x1406
 
+
 GLMContext createGLMContext(GLenum format, GLenum type,
-                            GLenum depth_format, GLenum depth_type,
-                            GLenum stencil_format, GLenum stencil_type);
+                        GLenum depth_format, GLenum depth_type,
+                        GLenum stencil_format, GLenum stencil_type);
+
 void MGLsetCurrentContext(GLMContext ctx);
 void MGLswapBuffers(GLMContext ctx);
 

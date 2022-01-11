@@ -35,7 +35,10 @@ extern "C" {
 
 GLuint sizeForFormatType(GLenum format, GLenum type);
 GLuint bicountForFormatType(GLenum format, GLenum type, GLenum component);
+
 GLMContext MGLgetCurrentContext(void);
+void MGLsetCurrentContext(GLMContext ctx);
+void MGLswapBuffers(GLMContext ctx);
 void MGLget(GLMContext ctx, GLenum param, GLuint *data);
 
 #ifdef __cplusplus

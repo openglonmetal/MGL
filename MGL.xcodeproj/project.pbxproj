@@ -242,6 +242,9 @@
 		FFA1EB712782851500EEE5AD /* compute.c in Sources */ = {isa = PBXBuildFile; fileRef = FFA1EB702782851500EEE5AD /* compute.c */; };
 		FFA83047276F9EBF003F1EA0 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FFA83046276F9EBF003F1EA0 /* main.cpp */; };
 		FFA83092277026C5003F1EA0 /* gl.xml in CopyFiles */ = {isa = PBXBuildFile; fileRef = FFA83091277026B6003F1EA0 /* gl.xml */; };
+		FFFA8F52278D038F002505EF /* cocoa_time.h in Headers */ = {isa = PBXBuildFile; fileRef = FFFA8F4F278D038F002505EF /* cocoa_time.h */; };
+		FFFA8F53278D038F002505EF /* cocoa_platform.h in Headers */ = {isa = PBXBuildFile; fileRef = FFFA8F50278D038F002505EF /* cocoa_platform.h */; };
+		FFFA8F54278D038F002505EF /* cocoa_joystick.h in Headers */ = {isa = PBXBuildFile; fileRef = FFFA8F51278D038F002505EF /* cocoa_joystick.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -609,8 +612,10 @@
 		FFA83046276F9EBF003F1EA0 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		FFA8308027700A5A003F1EA0 /* pixel_pack.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pixel_pack.cpp; sourceTree = "<group>"; };
 		FFA83091277026B6003F1EA0 /* gl.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = gl.xml; path = "external/OpenGL-Registry/xml/gl.xml"; sourceTree = SOURCE_ROOT; };
-		FFA83097277026E1003F1EA0 /* libezxml.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libezxml.a; path = external/ezxml/libezxml.a; sourceTree = "<group>"; };
 		FFA830B32770292D003F1EA0 /* metal_pixel_utils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = metal_pixel_utils.cpp; sourceTree = "<group>"; };
+		FFFA8F4F278D038F002505EF /* cocoa_time.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cocoa_time.h; sourceTree = "<group>"; };
+		FFFA8F50278D038F002505EF /* cocoa_platform.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cocoa_platform.h; sourceTree = "<group>"; };
+		FFFA8F51278D038F002505EF /* cocoa_joystick.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cocoa_joystick.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -835,6 +840,9 @@
 		FF4810312772B48900BBF7C7 /* src */ = {
 			isa = PBXGroup;
 			children = (
+				FFFA8F51278D038F002505EF /* cocoa_joystick.h */,
+				FFFA8F50278D038F002505EF /* cocoa_platform.h */,
+				FFFA8F4F278D038F002505EF /* cocoa_time.h */,
 				FF4810322772B48900BBF7C7 /* mgl_context.m */,
 				FF4810392772B48900BBF7C7 /* internal.h */,
 				FF4810372772B48900BBF7C7 /* monitor.c */,
@@ -1159,7 +1167,6 @@
 				FF7B788E27717FA400C2028F /* libMachineIndependent.a */,
 				FF7B788727717F8200C2028F /* libglslang-default-resource-limits.a */,
 				FF7B787D27717EF700C2028F /* libspirv-cross-glsl.a */,
-				FFA83097277026E1003F1EA0 /* libezxml.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -1173,8 +1180,11 @@
 			files = (
 				FF4810A62772B48900BBF7C7 /* platform.h in Headers */,
 				FF48106F2772B48900BBF7C7 /* glfw3.h in Headers */,
+				FFFA8F52278D038F002505EF /* cocoa_time.h in Headers */,
+				FFFA8F54278D038F002505EF /* cocoa_joystick.h in Headers */,
 				FF4810702772B48900BBF7C7 /* glfw3native.h in Headers */,
 				FF4810782772B48900BBF7C7 /* internal.h in Headers */,
+				FFFA8F53278D038F002505EF /* cocoa_platform.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

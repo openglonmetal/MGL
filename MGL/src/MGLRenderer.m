@@ -21,8 +21,8 @@
 #import <Foundation/Foundation.h>
 #import <Metal/Metal.h>
 
-@import simd;
-@import MetalKit;
+#import <simd/simd.h>
+#import <MetalKit/MetalKit.h>
 
 #include <mach/mach_vm.h>
 #include <mach/mach_init.h>
@@ -1703,7 +1703,7 @@ MTLVertexFormat glTypeSizeToMtlType(GLuint type, GLuint size, bool normalized)
     {
         GLuint mgl_drawbuffer;
         id<MTLTexture> texture, depth_texture, stencil_texture;
-
+        
         switch(ctx->state.draw_buffer)
         {
             case GL_FRONT: mgl_drawbuffer = _FRONT; break;

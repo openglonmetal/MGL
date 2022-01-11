@@ -339,13 +339,12 @@ char *parseSPIRVShaderToMetal(GLMContext ctx, Program *ptr, int stage)
         {
             printf("res_type: %s ID: %u, BaseTypeID: %u, TypeID: %u, Name: %s ", res_name[res_type], list[i].id, list[i].base_type_id, list[i].type_id,
                    list[i].name);
-            printf("Set: %u, Binding: %u Location: %d Index: %d, Uniform: %d, UniformId: %d\n",
+            printf("Set: %u, Binding: %u Location: %d Index: %d, Uniform: %d\n",
                    spvc_compiler_get_decoration(compiler_msl, list[i].id, SpvDecorationDescriptorSet),
                    spvc_compiler_get_decoration(compiler_msl, list[i].id, SpvDecorationBinding),
                    spvc_compiler_get_decoration(compiler_msl, list[i].id, SpvDecorationLocation),
                    spvc_compiler_get_decoration(compiler_msl, list[i].id, SpvDecorationIndex),
-                   spvc_compiler_get_decoration(compiler_msl, list[i].id, SpvDecorationUniform),
-                   spvc_compiler_get_decoration(compiler_msl, list[i].id, SpvDecorationUniformId));
+                   spvc_compiler_get_decoration(compiler_msl, list[i].id, SpvDecorationUniform));
 
             ptr->spirv_resources_list[stage][res_type].list[i]._id = list[i].id;
             ptr->spirv_resources_list[stage][res_type].list[i].base_type_id = list[i].base_type_id;
