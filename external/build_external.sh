@@ -26,5 +26,5 @@ cd glfw
 mkdir build
 cd build
 cmake ..
-make
+make glfw
 cd ../..
