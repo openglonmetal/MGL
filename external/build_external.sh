@@ -22,3 +22,9 @@ cd build
 cmake ..
 make
 cd ../..
+cd glfw
+mkdir build
+cd build
+cmake ..
+make
+cd ../..
