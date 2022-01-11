@@ -1,13 +1,29 @@
-#
-# MGL toplevel Makefile
-#
-# Stéphane Conversy
-#
-
-build_dir := build
+# first, with brew installed, do 'make install-pkgdeps'
+# then configure here
 
 # Find SDK path via xcode-select, backwards compatible with Xcode vers < 4.5
-SDK_ROOT = $(shell xcode-select -p)/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk
+# on M1 monterey, comment out the following line
+#SDK_ROOT = $(shell xcode-select -p)/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk
+
+# with installed spirv_headers and spirv_cross
+spirv_headers_include_path := /usr/local/include
+spirv_cross_include_path := /usr/local/include/spirv
+spirv_cross_1_2_include_path := /usr/local/include/spirv/1.2
+spirv_cross_config_include_path := external/SPIRV-Cross
+spirv_cross_lib_path := /usr/local/lib
+
+# with uninstalled spirv_headers and spirv_cross
+# uncomment the following lines 
+spirv_headers_path := ../SPIRV-Headers/include/spirv/1.2
+spirv_cross_include_path := ../SPIRV-Cross
+spirv_cross_lib_path := ../SPIRV-Cross/build
+
+# build dir
+build_dir := build
+
+
+# --
+# no need to tweak after this line, hopefully
 
 mgl_srcs_c := $(wildcard MGL/src/*.c)
 mgl_srcs_objc := $(wildcard MGL/src/*.m)
@@ -31,7 +47,7 @@ glfw_srcs_objc := $(addprefix glfw/src/,cocoa_init.m cocoa_joystick.m cocoa_moni
 glfw_objs := $(glfw_srcs_c:.c=.o) $(glfw_srcs_objc:.m=.o)
 glfw_objs := $(addprefix $(build_dir)/,$(glfw_objs))
 deps += $(glfw_objs:.o=.d)
-$(glfw_objs): CFLAGS += -D_GLFW_COCOA -arch x86_64 -gfull -isysroot $(SDK_ROOT) 
+$(glfw_objs): CFLAGS += -D_GLFW_COCOA
 #$(build_dir)/libglfw.dylib: LIBS += -L$(build_dir) -lMGL
 glfw_lib := $(build_dir)/libglfw.dylib
 $(glfw_lib): $(mgl_lib)
@@ -48,28 +64,22 @@ $(test_objs): CFLAGS+=-Iglfw/include
 
 brew_prefix := $(shell brew --prefix)
 
-spirv_headers_include_path := /usr/local/include
-spirv_cross_include_path := /usr/local/include/spirv
-spirv_cross_1_2_include_path := /usr/local/include/spirv/1.2
-spirv_cross_config_include_path := external/SPIRV-Cross
-spirv_cross_lib_path := /usr/local/lib
-
-#spirv_headers_path := ../SPIRV-Headers/include/spirv/1.2
-#spirv_cross_include_path := ../SPIRV-Cross
-#spirv_cross_lib_path := ../SPIRV-Cross/build
 
 CFLAGS += -gfull -Og
+CFLAGS += -arch $(shell uname -m)
 CFLAGS += -I$(spirv_headers_include_path)
 CFLAGS += -I$(spirv_cross_include_path)
 CFLAGS += -I$(spirv_cross_1_2_include_path)
 CFLAGS += -I$(spirv_cross_config_include_path)
 CFLAGS += -I$(brew_prefix)/opt/glslang/include/glslang/Include
 CFLAGS += -I$(brew_prefix)/include # GL
-CFLAGS += -isysroot $(SDK_ROOT)
 CFLAGS += $(shell pkg-config --cflags SPIRV-Tools)
 CFLAGS += $(shell pkg-config --cflags glm)
 CFLAGS += -IMGL/include -IMGL/SPIRV/SPIRV-Cross
 CFLAGS += -DENABLE_OPT=0 -DSPIRV_CROSS_C_API_MSL=1 -DSPIRV_CROSS_C_API_GLSL=1 -DSPIRV_CROSS_C_API_CPP=1 -DSPIRV_CROSS_C_API_REFLECT=1
+ifneq ($(SDK_ROOT),)
+CFLAGS += -isysroot $(SDK_ROOT)
+endif
 
 LIBS += -L$(spirv_cross_lib_path) -lspirv-cross-core
 LIBS += -L$(brew_prefix)/opt/glslang/lib -lglslang -lMachineIndependent -lGenericCodeGen -lOGLCompiler -lOSDependent -lglslang-default-resource-limits -lSPIRV
@@ -119,6 +129,7 @@ install-pkgdeps:
 	brew install glm glslang spirv-tools
 	(cd .. && git clone --depth 1 https://github.com/KhronosGroup/SPIRV-Headers)
 	(cd .. && git clone --depth 1 https://github.com/KhronosGroup/SPIRV-Cross)
+	(cd ../SPIRV-Cross && mkdir -p build && cd build && cmake .. && make)
 
 test-make:
 	@echo $(glfw_objs)
