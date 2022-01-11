@@ -21,7 +21,7 @@
 #ifndef pixel_utils_h
 #define pixel_utils_h
 
-#include <GL/glcorearb.h>
+#include "glcorearb.h"
 
 typedef enum MTLPixelFormat_t MTLPixelFormat;
 

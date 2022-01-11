@@ -21,7 +21,7 @@
 #ifndef hash_table_h
 #define hash_table_h
 
-#include <GL/glcorearb.h>
+#include "glcorearb.h"
 
 typedef struct {
     GLuint name;

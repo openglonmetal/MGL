@@ -21,7 +21,7 @@
 #ifndef shaders_h
 #define shaders_h
 
-#include <GL/glcorearb.h>
+#include "glcorearb.h"
 #include "glm_context.h"
 
 Shader *findShader(GLMContext ctx, GLuint shader);

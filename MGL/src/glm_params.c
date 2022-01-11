@@ -19,7 +19,7 @@
  */
 
 #include <assert.h>
-#include <GL/glcorearb.h>
+#include "glcorearb.h"
 
 #include "glm_context.h"
 

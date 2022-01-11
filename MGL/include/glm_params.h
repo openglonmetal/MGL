@@ -21,7 +21,7 @@
 #ifndef glm_params_h
 #define glm_params_h
 
-#include <GL/glcorearb.h>
+#include "glcorearb.h"
 
 #include "glm_limits.h"
 

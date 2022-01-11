@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include <GL/glcorearb.h>
+#include "glcorearb.h"
 
 #include "gltypes.h"
 

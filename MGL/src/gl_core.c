@@ -8,7 +8,7 @@
 // October 2021
 //
 
-#include <GL/glcorearb.h>
+#include "glcorearb.h"
 
 #include "glm_context.h"
 

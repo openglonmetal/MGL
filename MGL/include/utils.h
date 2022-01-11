@@ -21,7 +21,7 @@
 #ifndef utils_h
 #define utils_h
 
-#include <GL/glcorearb.h>
+#include "glcorearb.h"
 
 #ifndef MAX
 #define MAX(_A_, _B_)   (_A_ > _B_ ? _A_ : _B_)

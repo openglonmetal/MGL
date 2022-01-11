@@ -21,7 +21,7 @@
 #ifndef enums_h
 #define enums_h
 
-#include <GL/glcorearb.h>
+#include "glcorearb.h"
 
 #include "glm_context.h"
 
