@@ -21,6 +21,15 @@
 #ifndef MGLRenderer_h
 #define MGLRenderer_h
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+void CppCreateMGLRendererAndBindToContext (void *window, void *glm_ctx);
+#ifdef __cplusplus
+};
+#endif
+
+
 #ifdef __OBJC__
 
 #ifndef __GLM_CONTEXT_

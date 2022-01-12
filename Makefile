@@ -26,6 +26,10 @@ build_dir ?= build
 # --
 # no need to tweak after this line, hopefully
 
+brew_prefix := $(shell brew --prefix)
+
+# mgl
+
 mgl_srcs_c := $(wildcard MGL/src/*.c)
 mgl_srcs_objc := $(wildcard MGL/src/*.m)
 mgl_srcs_cpp := $(wildcard MGL/SPIRV/SPIRV-Cross/*.cpp)
@@ -41,6 +45,13 @@ deps += $(mgl_arc_objs:.o=.d)
 
 mgl_lib := $(build_dir)/libmgl.dylib
 
+$(mgl_lib): $(mgl_objs) $(mgl_arc_objs)
+	@mkdir -p $(dir $@)
+	$(CXX) -dynamiclib -o $@ $^ $(LIBS)
+	# loading dynamic library requires this
+	ln -fs $(mgl_lib) .
+
+# glfw
 
 glfw_srcs_c := $(addprefix glfw/src/,cocoa_time.c posix_module.c posix_thread.c)
 glfw_srcs_c += $(addprefix glfw/src/,context.c init.c input.c monitor.c platform.c vulkan.c window.c egl_context.c osmesa_context.c null_init.c null_monitor.c null_window.c null_joystick.c)
@@ -53,6 +64,11 @@ $(glfw_objs): CFLAGS += -D_GLFW_COCOA
 glfw_lib := $(build_dir)/libglfw.dylib
 $(glfw_lib): $(mgl_lib)
 
+$(glfw_lib): $(glfw_objs)
+	@mkdir -p $(dir $@)
+	$(CC) -dynamiclib -o $@ $^ -L$(build_dir) -lmgl
+
+# test
 
 test_srcs_cpp := $(wildcard test_mgl_glfw/*.cpp)
 test_objs := $(test_srcs_cpp:.cpp=.o)
@@ -60,10 +76,15 @@ test_deps := $(test_objs:.o=.d)
 test_objs := $(addprefix $(build_dir)/,$(test_objs))
 deps += $(test_objs:.o=.d)
 test_exe := $(build_dir)/test
-$(test_exe): $(glfw_lib) $(mgl_lib)
-$(test_objs): CFLAGS+=-Iglfw/include
+#$(test_exe): $(glfw_lib) $(mgl_lib)
+#$(test_objs): CFLAGS+=-Iglfw/include
+$(test_exe): $(mgl_lib)
+$(test_objs): CFLAGS += $(shell pkg-config --cflags glfw3)
 
-brew_prefix := $(shell brew --prefix)
+$(test_exe): $(test_objs)
+	@mkdir -p $(dir $@)
+	$(CXX) -o $@ $^ -L$(build_dir) -lmgl $(shell pkg-config --libs glfw3)
+
 
 
 CFLAGS += -gfull -Og
@@ -96,19 +117,8 @@ test: $(test_exe)
 dbg: $(test_exe)
 	lldb -o run $(test_exe)
 
-$(mgl_lib): $(mgl_objs) $(mgl_arc_objs)
-	@mkdir -p $(dir $@)
-	$(CXX) -dynamiclib -o $@ $^ $(LIBS)
-	# loading dynamic library requires this
-	ln -fs $(mgl_lib) .
 
-$(glfw_lib): $(glfw_objs)
-	@mkdir -p $(dir $@)
-	$(CC) -dynamiclib -o $@ $^ -L$(build_dir) -lmgl
-
-$(test_exe): $(test_objs)
-	@mkdir -p $(dir $@)
-	$(CXX) -o $@ $^ -L$(build_dir) -lglfw -lmgl
+# generic rules
 
 $(build_dir)/%.o: %.c
 	@mkdir -p $(dir $@)
