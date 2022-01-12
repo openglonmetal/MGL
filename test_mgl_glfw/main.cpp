@@ -2616,7 +2616,7 @@ int main(int argc, const char * argv[])
     }	
 
     GLMContext glm_ctx = createGLMContext(GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, GL_DEPTH_COMPONENT, GL_FLOAT, 0, 0);
-    CppCreateMGLRendererAndBindToContext (glfwGetCocoaWindow (window), glm_ctx);
+    void * renderer = CppCreateMGLRendererAndBindToContext (glfwGetCocoaWindow (window), glm_ctx); // FIXME should do something later with the renderer
     MGLsetCurrentContext(glm_ctx);
     glfwSetWindowUserPointer(window, glm_ctx);
 
