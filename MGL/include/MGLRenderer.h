@@ -48,7 +48,13 @@ GLenum mtlPixelFormatForGLFormatType(GLenum gl_format, GLenum gl_type);
 
 #endif // #ifdef __OBJC__
 
-
+#ifdef __cplusplus
+extern "C" {
+#endif
+void* CppCreateMGLRendererAndBindToContext (void *window, void *glm_ctx);
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif /* MGLRenderer_h */

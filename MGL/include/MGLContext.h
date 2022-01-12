@@ -18,6 +18,7 @@ GLMContext createGLMContext(GLenum format, GLenum type,
                             GLenum stencil_format, GLenum stencil_type);
 
 void MGLsetCurrentContext(GLMContext ctx);
+void MGLswapBuffers(GLMContext ctx);
 
 enum {
     MGL_PIXEL_FORMAT,
