@@ -140,7 +140,7 @@ clean:
 	rm -rf $(build_dir)
 
 install-pkgdeps:
-	brew install glm glslang spirv-tools
+	brew install glm glslang spirv-tools glfw3
 	(cd .. && git clone --depth 1 https://github.com/KhronosGroup/SPIRV-Headers)
 	(cd .. && git clone --depth 1 https://github.com/KhronosGroup/SPIRV-Cross)
 	(cd ../SPIRV-Cross && mkdir -p build && cd build && cmake .. && make)
