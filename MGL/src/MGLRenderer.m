@@ -3851,6 +3851,26 @@ void mtlMultiDrawElementsIndirect(GLMContext glm_ctx, GLenum mode, GLenum type, 
     glm_ctx->mtl_funcs.mtlDispatchComputeIndirect = mtlDispatchComputeIndirect;
 }
 
+//MGLRenderer *renderer
+void*
+CppCreateMGLRendererAndBindToContext (void *window, void *glm_ctx)
+{
+    assert (window);
+    assert (glm_ctx);
+    MGLRenderer *renderer = [[MGLRenderer alloc] init];
+    assert (renderer);
+    NSWindow * w = /*(__bridge NSWindow *)*/ CFBridgingRelease( window );
+    assert (w);
+    NSView *view = [[NSView alloc] initWithFrame:NSMakeRect(100, 100, 100, 100)];
+    assert (view);
+    [view setWantsLayer:YES];
+    //assert(w.contentView);
+    //[w.contentView addSubview:view];
+    [w setContentView:view];
+    [renderer createMGLRendererAndBindToContext: glm_ctx view: view];
+    return  (__bridge void *)(renderer);
+}
+
 - (void) createMGLRendererAndBindToContext: (GLMContext) glm_ctx view: (NSView *) view
 {
     ctx = glm_ctx;

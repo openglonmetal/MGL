@@ -32,8 +32,17 @@
 #include <GL/glcorearb.h>
 
 #include <GLFW/glfw3.h>
+#define GLFW_EXPOSE_NATIVE_COCOA
 #include <GLFW/glfw3native.h>
-#include <GL/utils.h>
+//#include <GL/utils.h>
+
+extern "C" {
+#include "MGLContext.h"
+}
+#include "MGLRenderer.h"
+#define SWAP_BUFFERS MGLswapBuffers((GLMContext) glfwGetWindowUserPointer(window));
+
+//#define SWAP_BUFFERS glfwSwapBuffers(window);
 
 // change main.c to main.cpp to use glm...
 #include <glm/glm.hpp>
@@ -42,7 +51,7 @@ using glm::mat4;
 using glm::vec3;
 #include <glm/gtc/matrix_transform.hpp>
 
-extern "C" int sizeForFormatType(GLenum format, GLenum type, GLenum internalformat);
+//extern "C" int sizeForFormatType(GLenum format, GLenum type, GLenum internalformat);
 
 #define GLSL(version, shader) "#version " #version "\n" #shader
 
@@ -179,7 +188,7 @@ void *gen3DTexturePixels(GLenum format, GLenum type, GLuint repeat, GLuint width
     assert(format == GL_RGBA);
     assert(type == GL_UNSIGNED_BYTE);
 
-    pixel_size = sizeForFormatType(format, type, 0);
+    pixel_size = sizeForFormatType(format, type);//, 0);
 
     buffer_size = pixel_size * width;
     buffer_size *= height;
@@ -275,6 +284,11 @@ void HSVtoRGB(float H, float S,float V, float *r, float *g, float *b)
     }
 }
 
+#ifndef MIN
+#define MIN(a,b) ((a)<(b)?(a):(b))
+#define MAX(a,b) ((a)>(b)?(a):(b))
+#endif
+
 float clamp(float a, float min, float max)
 {
     a = MAX(a, min);
@@ -290,7 +304,7 @@ void *genTexturePixels(GLenum format, GLenum type, GLuint repeat, GLuint width, 
     void    *buffer;
     uint8_t *ptr;
 
-    pixel_size = sizeForFormatType(format, type, 0);
+    pixel_size = sizeForFormatType(format, type);//, 0);
 
     buffer_size = pixel_size * width;
 
@@ -499,7 +513,7 @@ int test_clear(GLFWwindow* window, int width, int height)
     glClearColor(0.5, 0.2, 0.2, 0.0);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    glfwSwapBuffers(window);
+    SWAP_BUFFERS;
 
     return 0;
 }
@@ -563,7 +577,7 @@ int test_draw_arrays(GLFWwindow* window, int width, int height)
 
     glDrawArrays(GL_TRIANGLES, 0, 3);
 
-    glfwSwapBuffers(window);
+    SWAP_BUFFERS;
 
     return 0;
 }
@@ -637,7 +651,7 @@ int test_draw_elements(GLFWwindow* window, int width, int height)
 
     glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
 
-    glfwSwapBuffers(window);
+    SWAP_BUFFERS;
 
     return 0;
 }
@@ -718,7 +732,7 @@ int test_draw_range_elements(GLFWwindow* window, int width, int height)
 
     glDrawRangeElements(GL_TRIANGLES, 3, 5, 3, GL_UNSIGNED_INT, 0);
 
-    glfwSwapBuffers(window);
+    SWAP_BUFFERS;
 
     return 0;
 }
@@ -792,7 +806,7 @@ int test_draw_arrays_instanced(GLFWwindow* window, int width, int height)
 
     glDrawArraysInstanced(GL_TRIANGLES, 0, 3, 4);
 
-    glfwSwapBuffers(window);
+    SWAP_BUFFERS;
 
     return 0;
 }
@@ -864,7 +878,7 @@ int test_uniform_buffer(GLFWwindow* window, int width, int height)
 
     glDrawArrays(GL_TRIANGLES, 0, 3);
 
-    glfwSwapBuffers(window);
+    SWAP_BUFFERS;
 
     return 0;
 }
@@ -961,7 +975,7 @@ int test_1D_textures(GLFWwindow* window, int width, int height)
 
         glDrawArrays(GL_LINE_STRIP, 0, 4);
 
-        glfwSwapBuffers(window);
+        SWAP_BUFFERS;
 
         angle += (M_PI / 180);
 
@@ -1155,7 +1169,7 @@ int test_2D_textures(GLFWwindow* window, int width, int height)
 
         //sync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
 
-        glfwSwapBuffers(window);
+        SWAP_BUFFERS;
 
         angle += (M_PI / 180);
 
@@ -1385,7 +1399,7 @@ int test_3D_textures(GLFWwindow* window, int width, int height)
 
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
-        glfwSwapBuffers(window);
+        SWAP_BUFFERS;
 
         angle += (M_PI / 360);
 
@@ -1574,7 +1588,7 @@ int test_2D_array_textures(GLFWwindow* window, int width, int height)
 
         glDrawElementsInstanced(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_SHORT, 0, _2d_array_depth);
 
-        glfwSwapBuffers(window);
+        SWAP_BUFFERS;
 
         angle += (M_PI / 360);
 
@@ -1751,7 +1765,7 @@ int test_textures(GLFWwindow* window, int width, int height, int mipmap, int use
 
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-        glfwSwapBuffers(window);
+        SWAP_BUFFERS;
 
         //glBindBuffer(GL_UNIFORM_BUFFER, mat_ubo);
         //glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(mat4), &mvp[0][0]);
@@ -1996,7 +2010,7 @@ int test_framebuffer(GLFWwindow* window, int width, int height)
 
         glDrawArrays(GL_TRIANGLES, 0, 3);
 
-        glfwSwapBuffers(window);
+        SWAP_BUFFERS;
 
         angle += (M_PI / 180);
 
@@ -2535,7 +2549,7 @@ int test_compute_shader(GLFWwindow* window, int width, int height)
 
         glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_SHORT, 0);
 
-        glfwSwapBuffers(window);
+        SWAP_BUFFERS;
 
         angle += (M_PI / 360) * 0.25;
 
@@ -2572,31 +2586,47 @@ int test_compute_shader(GLFWwindow* window, int width, int height)
     return 0;
 }
 
+void error_callback(int error_code, const char* description)
+{
+    fprintf(stderr, "%s\n", description);
+    //exit(EXIT_FAILURE);
+}
+
 int main(int argc, const char * argv[])
 {
+    glfwSetErrorCallback (error_callback);
+
     if (!glfwInit())
         exit(EXIT_FAILURE);
 
-
     glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_TRUE);
-    glfwWindowHint(GLFW_WIN32_KEYBOARD_MENU, GLFW_TRUE);
+    //glfwWindowHint(GLFW_WIN32_KEYBOARD_MENU, GLFW_TRUE);
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GL_TRUE);
 
     // force MGL
-    glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_NATIVE_CONTEXT_API);
-    glfwWindowHint(GLFW_DEPTH_BITS, 32);
+    //glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_NATIVE_CONTEXT_API);
+    //glfwWindowHint(GLFW_DEPTH_BITS, 32);
+
+    fprintf(stderr, "creating window...\n");
 
     GLFWwindow* window = glfwCreateWindow(600, 600, "MGL Test", NULL, NULL);
     if (!window)
     {
         glfwTerminate();
         exit(EXIT_FAILURE);
-    }
+    }	
 
-    glfwMakeContextCurrent(window);
+    GLMContext glm_ctx = createGLMContext(GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, GL_DEPTH_COMPONENT, GL_FLOAT, 0, 0);
+    void * renderer = CppCreateMGLRendererAndBindToContext (glfwGetCocoaWindow (window), glm_ctx); // FIXME should do something later with the renderer
+    MGLsetCurrentContext(glm_ctx);
+    glfwSetWindowUserPointer(window, glm_ctx);
+
+    //glfwMakeContextCurrent(window);
     glfwSwapInterval(0);
 
     glfwGetError(NULL);
@@ -2604,6 +2634,8 @@ int main(int argc, const char * argv[])
     int width, height;
 
     glfwGetWindowSize(window, &width, &height);
+
+    fprintf(stderr, "setup complete. testing...\n");
 
     // test_clear(window, width, height);
     // test_draw_arrays(window, width, height);
