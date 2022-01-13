@@ -1408,21 +1408,6 @@ void mglVertexAttrib4usv(GLMContext ctx, GLuint index, const GLushort *v)
         assert(0);
 }
 
-void mglVertexAttribBinding(GLMContext ctx, GLuint attribindex, GLuint bindingindex)
-{
-        assert(0);
-}
-
-void mglVertexAttribDivisor(GLMContext ctx, GLuint index, GLuint divisor)
-{
-        assert(0);
-}
-
-void mglVertexAttribFormat(GLMContext ctx, GLuint attribindex, GLint size, GLenum type, GLboolean normalized, GLuint relativeoffset)
-{
-        assert(0);
-}
-
 void mglVertexAttribI1i(GLMContext ctx, GLuint index, GLint x)
 {
         assert(0);
@@ -1523,16 +1508,6 @@ void mglVertexAttribI4usv(GLMContext ctx, GLuint index, const GLushort *v)
         assert(0);
 }
 
-void mglVertexAttribIFormat(GLMContext ctx, GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset)
-{
-        assert(0);
-}
-
-void mglVertexAttribIPointer(GLMContext ctx, GLuint index, GLint size, GLenum type, GLsizei stride, const void *pointer)
-{
-        assert(0);
-}
-
 void mglVertexAttribL1d(GLMContext ctx, GLuint index, GLdouble x)
 {
         assert(0);
@@ -1573,16 +1548,6 @@ void mglVertexAttribL4dv(GLMContext ctx, GLuint index, const GLdouble *v)
         assert(0);
 }
 
-void mglVertexAttribLFormat(GLMContext ctx, GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset)
-{
-        assert(0);
-}
-
-void mglVertexAttribLPointer(GLMContext ctx, GLuint index, GLint size, GLenum type, GLsizei stride, const void *pointer)
-{
-        assert(0);
-}
-
 void mglVertexAttribP1ui(GLMContext ctx, GLuint index, GLenum type, GLboolean normalized, GLuint value)
 {
         assert(0);
@@ -1619,11 +1584,6 @@ void mglVertexAttribP4ui(GLMContext ctx, GLuint index, GLenum type, GLboolean no
 }
 
 void mglVertexAttribP4uiv(GLMContext ctx, GLuint index, GLenum type, GLboolean normalized, const GLuint *value)
-{
-        assert(0);
-}
-
-void mglVertexBindingDivisor(GLMContext ctx, GLuint bindingindex, GLuint divisor)
 {
         assert(0);
 }

@@ -176,6 +176,11 @@ void mglDeleteSamplers(GLMContext ctx, GLsizei count, const GLuint *samplers)
 
             deleteHashElement(&ctx->state.sampler_table, sampler);
 
+            if (ptr->mtl_data)
+            {
+                ctx->mtl_funcs.mtlDeleteMTLObj(ctx, ptr->mtl_data);
+            }
+
             free(ptr);
         }
     }

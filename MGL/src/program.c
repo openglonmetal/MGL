@@ -113,7 +113,7 @@ void mglDeleteProgram(GLMContext ctx, GLuint program)
 
     if (ptr->mtl_data)
     {
-        assert(0);
+        ctx->mtl_funcs.mtlDeleteMTLObj(ctx, ptr->mtl_data);
     }
 
     // ptr->spirv_program and such

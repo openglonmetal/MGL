@@ -27,6 +27,7 @@
 #define TEXTURE_UNITS 128
 #define TEX_OBJ_RES_NAME    0xcafebeef  // for tex objects.. renderbuffers
 #define MAX_CLIP_DISTANCES  8
+#define MAX_VERTEX_BUFFER_BINDINGS 64
 
 
 #endif /* glm_limits_h */

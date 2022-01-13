@@ -151,6 +151,20 @@ GLuint mglCreateShader(GLMContext ctx, GLenum type)
 {
     GLuint shader;
 
+    switch(type)
+    {
+        case GL_VERTEX_SHADER:
+        case GL_FRAGMENT_SHADER:
+        case GL_GEOMETRY_SHADER:
+        case GL_COMPUTE_SHADER:
+        case GL_TESS_CONTROL_SHADER:
+        case GL_TESS_EVALUATION_SHADER:
+            break;
+
+        default:
+            ERROR_RETURN(GL_INVALID_ENUM);
+    }
+
     shader = getNewName(&STATE(shader_table));
 
     getShader(ctx, type, shader);
@@ -164,12 +178,7 @@ void mglDeleteShader(GLMContext ctx, GLuint shader)
 
     ptr = findShader(ctx, shader);
 
-    if (!ptr)
-    {
-        assert(0);
-
-        return;
-    }
+    ERROR_CHECK_RETURN(ptr, GL_INVALID_VALUE);
 
     deleteHashElement(&STATE(shader_table), shader);
 
@@ -180,7 +189,7 @@ void mglDeleteShader(GLMContext ctx, GLuint shader)
 
     if (ptr->mtl_data)
     {
-        assert(0);
+        ctx->mtl_funcs.mtlDeleteMTLObj(ctx, ptr->mtl_data);
     }
 
     free((void *)ptr->mtl_shader_type_name);
@@ -189,11 +198,7 @@ void mglDeleteShader(GLMContext ctx, GLuint shader)
 
 GLboolean mglIsShader(GLMContext ctx, GLuint shader)
 {
-    GLboolean ret = 0;
-
-    // Unimplemented function
-    assert(0);
-    return ret;
+    return isShader(ctx, shader);
 }
 
 void mglShaderSource(GLMContext ctx, GLuint shader, GLsizei count, const GLchar *const*string, const GLint *length)
@@ -202,40 +207,45 @@ void mglShaderSource(GLMContext ctx, GLuint shader, GLsizei count, const GLchar 
     char *src;
     Shader *ptr;
 
-    if (isShader(ctx, shader) == GL_FALSE) {
-        assert(0);
+    ERROR_CHECK_RETURN(isShader(ctx, shader), GL_INVALID_VALUE);
+    ERROR_CHECK_RETURN(count >= 0, GL_INVALID_VALUE);
 
-        return;
-    }
+    ptr = findShader(ctx, shader);
 
-    assert(count);
-    assert(string);
+    ERROR_CHECK_RETURN(ptr, GL_INVALID_VALUE);
 
     // calculate storage
-    if (length) {
+    if (length)
+    {
         len = 0;
-        for(int i=0; i<count; i++) {
+        for(int i=0; i<count; i++)
+        {
             len += length[i];
         }
 
-        assert(len);
+        ERROR_CHECK_RETURN(len, GL_INVALID_VALUE);
 
         src = (char *)malloc(len);
+        ERROR_CHECK_RETURN(src, GL_OUT_OF_MEMORY);
 
         *src = 0;
-        if (length) {
-            for(int i=0; i<count; i++) {
+        if (length)
+        {
+            for(int i=0; i<count; i++)
+            {
                 strncat(src, string[i], length[i]);
             }
         }
-    } else {
-        assert(*string);
+    }
+    else
+    {
+        ERROR_CHECK_RETURN(string, GL_INVALID_VALUE);
 
         src = strdup(*string);
         len = strlen(src);
-    }
 
-    ptr = findShader(ctx, shader);
+        ERROR_CHECK_RETURN(len, GL_INVALID_VALUE);
+    }
 
     ptr->src_len = len;
     ptr->src = src;
@@ -249,14 +259,11 @@ void mglCompileShader(GLMContext ctx, GLuint shader)
     glslang_shader_t *glsl_shader;
     int err;
 
+    ERROR_CHECK_RETURN(isShader(ctx, shader), GL_INVALID_VALUE);
+
     ptr = findShader(ctx, shader);
 
-    if (!ptr) {
-
-        assert(0);
-
-        return;
-    }
+    ERROR_CHECK_RETURN(ptr, GL_INVALID_OPERATION);
 
     initGLSLInput(ctx, ptr->type, ptr->src, &glsl_input);
 
@@ -268,6 +275,12 @@ void mglCompileShader(GLMContext ctx, GLuint shader)
         return;
     }
 
+    if (ptr->log)
+    {
+        free(ptr->log);
+        ptr->log = NULL;
+    }
+
     err = glslang_shader_preprocess(glsl_shader, &glsl_input);
     if (!err)
     {
@@ -275,7 +288,27 @@ void mglCompileShader(GLMContext ctx, GLuint shader)
         printf("glslang_shader_get_preprocessed_code:\n%s\n", glslang_shader_get_preprocessed_code(glsl_shader));
         printf("glslang_shader_get_info_log:\n%s\n", glslang_shader_get_info_log(glsl_shader));
         printf("glslang_shader_get_info_debug_log:\n%s\n", glslang_shader_get_info_debug_log(glsl_shader));
-        assert(0);
+
+        size_t len;
+
+        len = 1024;
+        len += strlen(glslang_shader_get_preprocessed_code(glsl_shader));
+        len += strlen(glslang_shader_get_info_log(glsl_shader));
+        len += strlen(glslang_shader_get_info_debug_log(glsl_shader));
+
+        ptr->log = (char *)malloc(len);
+
+        ptr->log[0] = 0;
+
+        snprintf(ptr->log, len,
+                "glslang_shader_preprocess failed err: %d\n"
+                "glslang_shader_get_preprocessed_code:\n%s\n"
+                "glslang_shader_get_info_log:%s\n"
+                "glslang_shader_get_info_debug_log:\n%s\n",
+                err,
+                glslang_shader_get_preprocessed_code(glsl_shader),
+                glslang_shader_get_preprocessed_code(glsl_shader),
+                glslang_shader_get_info_log(glsl_shader));
 
         return;
     }
@@ -287,7 +320,27 @@ void mglCompileShader(GLMContext ctx, GLuint shader)
         printf("glslang_shader_get_preprocessed_code:\n%s\n", glslang_shader_get_preprocessed_code(glsl_shader));
         printf("glslang_shader_get_info_log:\n%s\n", glslang_shader_get_info_log(glsl_shader));
         printf("glslang_shader_get_info_debug_log:\n%s\n", glslang_shader_get_info_debug_log(glsl_shader));
-        assert(0);
+
+        size_t len;
+
+        len = 1024;
+        len += strlen(glslang_shader_get_preprocessed_code(glsl_shader));
+        len += strlen(glslang_shader_get_info_log(glsl_shader));
+        len += strlen(glslang_shader_get_info_debug_log(glsl_shader));
+
+        ptr->log = (char *)malloc(len);
+
+        ptr->log[0] = 0;
+
+        snprintf(ptr->log, len,
+                "glslang_shader_preprocess failed err: %d\n"
+                "glslang_shader_get_preprocessed_code:\n%s\n"
+                "glslang_shader_get_info_log:%s\n"
+                "glslang_shader_get_info_debug_log:\n%s\n",
+                err,
+                glslang_shader_get_preprocessed_code(glsl_shader),
+                glslang_shader_get_preprocessed_code(glsl_shader),
+                glslang_shader_get_info_log(glsl_shader));
 
         return;
     }
@@ -301,36 +354,104 @@ void mglCompileShader(GLMContext ctx, GLuint shader)
 
 void mglGetShaderiv(GLMContext ctx, GLuint shader, GLenum pname, GLint *params)
 {
-    // Unimplemented function
-    assert(0);
+    Shader *ptr;
+
+    ptr = findShader(ctx, shader);
+
+    ERROR_CHECK_RETURN(ptr, GL_INVALID_VALUE);
+
+    switch(pname)
+    {
+        case GL_SHADER_TYPE:
+            switch(ptr->glm_type)
+            {
+                case _VERTEX_SHADER: *params = GL_VERTEX_SHADER; break;
+                case _FRAGMENT_SHADER: *params = GL_FRAGMENT_SHADER; break;
+                case _GEOMETRY_SHADER: *params = GL_GEOMETRY_SHADER; break;
+                case _COMPUTE_SHADER: *params = GL_COMPUTE_SHADER; break;
+                case _TESS_CONTROL_SHADER: *params = GL_TESS_CONTROL_SHADER; break;
+                case _TESS_EVALUATION_SHADER: *params = GL_TESS_EVALUATION_SHADER; break;
+                default:
+                    assert(0);
+            }
+            break;
+
+        case GL_DELETE_STATUS:
+            *params = GL_FALSE;
+            break;
+
+        case GL_COMPILE_STATUS:
+            if (ptr->log)
+            {
+                *params = GL_FALSE;
+            }
+            else
+            {
+                *params = GL_TRUE;
+            }
+            break;
+
+        case GL_INFO_LOG_LENGTH:
+            *params = (GLint)strlen(ptr->log);
+            break;
+
+        case GL_SHADER_SOURCE_LENGTH:
+            *params = (GLint)ptr->src_len;
+            break;
+
+        default:
+            ERROR_RETURN(GL_INVALID_ENUM);
+            break;
+    }
 }
 
 void mglGetShaderInfoLog(GLMContext ctx, GLuint shader, GLsizei bufSize, GLsizei *length, GLchar *infoLog)
 {
-    // Unimplemented function
-    assert(0);
+    Shader *ptr;
+
+    ptr = findShader(ctx, shader);
+
+    ERROR_CHECK_RETURN(ptr, GL_INVALID_VALUE);
+
+    if (ptr->log)
+    {
+        if (length)
+        {
+            *length = (GLsizei)strlen(ptr->log);
+        }
+
+        if (infoLog)
+        {
+            if (bufSize >= strlen(ptr->log))
+            {
+                memcpy(infoLog, ptr->log, strlen(ptr->log));
+            }
+        }
+    }
 }
 
 void mglGetShaderSource(GLMContext ctx, GLuint shader, GLsizei bufSize, GLsizei *length, GLchar *source)
 {
-    // Unimplemented function
-    assert(0);
-}
+    Shader *ptr;
 
-void mglGetVertexAttribdv(GLMContext ctx, GLuint index, GLenum pname, GLdouble *params)
-{
-    // Unimplemented function
-    assert(0);
-}
+    ptr = findShader(ctx, shader);
 
-void mglGetVertexAttribfv(GLMContext ctx, GLuint index, GLenum pname, GLfloat *params)
-{
-    // Unimplemented function
-    assert(0);
-}
+    ERROR_CHECK_RETURN(ptr, GL_INVALID_VALUE);
 
-void mglGetVertexAttribiv(GLMContext ctx, GLuint index, GLenum pname, GLint *params)
-{
-    // Unimplemented function
-    assert(0);
+    if (ptr->src)
+    {
+        if (length)
+        {
+            *length = (GLsizei)ptr->src_len;
+        }
+
+        if (source)
+        {
+            if (bufSize >= strlen(ptr->log))
+            {
+                memcpy(source, ptr->src, ptr->src_len);
+            }
+        }
+    }
+
 }

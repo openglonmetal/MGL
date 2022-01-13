@@ -145,6 +145,24 @@ enum {
 #define DIRTY_RENDBUF       0x1
 #define DIRTY_RENDBUF_TEX   (DIRTY_RENDBUF << 1)
 
+#define DIRTY_VAO_BUFFER_BASE  0x1
+#define DIRTY_VAO_ATTRIB       (DIRTY_VAO_BUFFER_BASE << 1)
+
+typedef struct {
+    uint  count;
+    uint  instanceCount;
+    uint  first;
+    uint  baseInstance;
+} DrawArraysIndirectCommand;
+
+typedef struct {
+    uint  count;
+    uint  instanceCount;
+    uint  first;
+    int  baseVertex;
+    uint  baseInstance;
+} DrawElementsIndirectCommand;
+
 typedef struct BufferData_t {
     GLuint          dirty_bits;
     size_t          buffer_size;
@@ -290,8 +308,10 @@ typedef struct VertexAttrib_t {
     GLenum  type;
     GLuint  normalized;
     GLuint  stride;
-    GLuint  relativeoffset;
-    const void *ptr;
+    GLuint  divisor;
+    GLintptr  relativeoffset;
+    GLintptr  base_plus_relative_offset;
+    GLuint  buffer_bindingindex;
 } VertexAttrib;
 
 typedef struct VertexElementArray_t {
@@ -301,12 +321,20 @@ typedef struct VertexElementArray_t {
     const void *ptr;
 } VertexElementArray;
 
+typedef struct BufferBinding_t {
+    Buffer  *buffer;
+    GLintptr offset;
+    GLsizei stride;
+    GLuint divisor;
+} BufferBinding;
+
 typedef struct VertexArray_t {
     GLuint dirty_bits;
     unsigned name;
     unsigned enabled_attribs;
     VertexAttrib attrib[MAX_ATTRIBS];
     VertexElementArray element_array;
+    BufferBinding buffer_bindings[MAX_BINDABLE_BUFFERS];
     void *mtl_data;
 } VertexArray;
 
@@ -320,6 +348,7 @@ typedef struct Shader_t {
     const char *src;
     glslang_shader_t *compiled_glsl_shader;
     const char *entry_point;
+    char *log;
     void *mtl_data;
 } Shader;
 
@@ -543,8 +572,7 @@ struct GLMMetalFuncs {
     void *mtlObj;
     void *mtlView;
 
-    void (*mtlDeleteMTLBuffer)(GLMContext glm_ctx, void *buf);
-    void (*mtlDeleteMTLTexture)(GLMContext glm_ctx, void *tex);
+    void (*mtlDeleteMTLObj)(GLMContext glm_ctx, void *obj);
 
     void (*mtlGetSync)(GLMContext glm_ctx, Sync *sync);
     void (*mtlWaitForSync)(GLMContext glm_ctx, Sync *sync);
@@ -563,20 +591,37 @@ struct GLMMetalFuncs {
     void (*mtlGenerateMipmaps)(GLMContext glm_ctx, Texture *tex);
     void (*mtlTexSubImage)(GLMContext glm_ctx, Texture *tex, Buffer *buf, size_t src_offset, size_t src_pitch, size_t src_image_size, size_t src_size, GLuint slice, GLuint level, size_t width, size_t height, size_t depth, size_t xoffset, size_t yoffset, size_t zoffset);
 
+    // draw arrays / elements
     void (*mtlDrawArrays)(GLMContext ctx, GLenum mode, GLint first, GLsizei count);
     void (*mtlDrawElements)(GLMContext ctx, GLenum mode, GLsizei count, GLenum type, const void *indices);
     void (*mtlDrawRangeElements)(GLMContext ctx, GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const void *indices);
+
+    // draw arrays / elements instanced
     void (*mtlDrawArraysInstanced)(GLMContext ctx, GLenum mode, GLint first, GLsizei count, GLsizei instancecount);
     void (*mtlDrawElementsInstanced)(GLMContext ctx, GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei instancecount);
+
+    // draw arrays / elements base vertex
     void (*mtlDrawElementsBaseVertex)(GLMContext ctx, GLenum mode, GLsizei count, GLenum type, const void *indices, GLint basevertex);
     void (*mtlDrawRangeElementsBaseVertex)(GLMContext ctx, GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const void *indices, GLint basevertex);
     void (*mtlDrawElementsInstancedBaseVertex)(GLMContext ctx, GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei instancecount, GLint basevertex);
-    void (*mtlMultiDrawElementsBaseVertex)(GLMContext ctx, GLenum mode, const GLsizei *count, GLenum type, const void *const*indices, GLsizei drawcount, const GLint *basevertex);
+
+    // draw arrays / elements intanced base vertex
     void (*mtlDrawArraysIndirect)(GLMContext ctx, GLenum mode, const void *indirect);
     void (*mtlDrawElementsIndirect)(GLMContext ctx, GLenum mode, GLenum type, const void *indirect);
+
     void (*mtlDrawArraysInstancedBaseInstance)(GLMContext ctx, GLenum mode, GLint first, GLsizei count, GLsizei instancecount, GLuint baseinstance);
     void (*mtlDrawElementsInstancedBaseInstance)(GLMContext ctx, GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei instancecount, GLuint baseinstance);
+    // ?? running out of names here.
     void (*mtlDrawElementsInstancedBaseVertexBaseInstance)(GLMContext ctx, GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei instancecount, GLint basevertex, GLuint baseinstance);
+
+    // multi calls of many of the above
+    void (*mtlMultiDrawArrays)(GLMContext ctx, GLenum mode, const GLint *first, const GLsizei *count, GLsizei drawcount);
+    void (*mtlMultiDrawElements)(GLMContext ctx, GLenum mode, const GLsizei *count, GLenum type, const void *const*indices, GLsizei drawcount);
+    void (*mtlMultiDrawElementsBaseVertex)(GLMContext ctx, GLenum mode, const GLsizei *count, GLenum type, const void *const*indices, GLsizei drawcount, const GLint *basevertex);
+
+    void (*mtlMultiDrawArraysIndirect)(GLMContext ctx, GLenum mode, const void *indirect, GLsizei drawcount, GLsizei stride);
+    void (*mtlMultiDrawElementsIndirect)(GLMContext ctx, GLenum mode, GLenum type, const void *indirect, GLsizei drawcount, GLsizei stride);
+
 
     void (*mtlDispatchCompute)(GLMContext ctx, GLuint num_groups_x, GLuint num_groups_y, GLuint num_groups_z);
     void (*mtlDispatchComputeIndirect)(GLMContext ctx, GLintptr indirect);

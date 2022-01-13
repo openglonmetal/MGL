@@ -408,7 +408,7 @@ void mglDeleteBuffers(GLMContext ctx, GLsizei n, const GLuint *buffers)
                 if (ptr->data.mtl_data)
                 {
                     // the mtl buffer has a deallocator for the vm allocate
-                    ctx->mtl_funcs.mtlDeleteMTLBuffer(ctx, ptr->data.mtl_data);
+                    ctx->mtl_funcs.mtlDeleteMTLObj(ctx, ptr->data.mtl_data);
                 }
                 else
                 {
@@ -493,7 +493,7 @@ void mglBindBuffer(GLMContext ctx, GLenum target, GLuint buffer)
     if (buffer)
     {
         ptr = getBuffer(ctx, target, buffer);
-        assert(ptr);
+        ERROR_CHECK_RETURN(ptr, GL_INVALID_VALUE);
     }
     else
     {
@@ -501,6 +501,15 @@ void mglBindBuffer(GLMContext ctx, GLenum target, GLuint buffer)
     }
 
     index = bufferIndexFromTarget(ctx, target);
+
+    // binding to the current vao is implied.. I think
+    if (target == GL_ELEMENT_ARRAY_BUFFER)
+    {
+        if (ctx->state.vao)
+        {
+            ctx->state.vao->element_array.buffer = ptr;
+        }
+    }
 
     if (STATE(buffers[index]) != ptr)
     {
@@ -626,7 +635,7 @@ kern_return_t initBufferData(GLMContext ctx, Buffer *ptr, GLsizeiptr size, const
         if (ptr->data.mtl_data)
         {
             // the mtl buffer has a deallocator for the vm allocate
-            ctx->mtl_funcs.mtlDeleteMTLBuffer(ctx, ptr->data.mtl_data);
+            ctx->mtl_funcs.mtlDeleteMTLObj(ctx, ptr->data.mtl_data);
         }
         else
         {

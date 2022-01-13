@@ -359,6 +359,11 @@ void mglDeleteTextures(GLMContext ctx, GLsizei n, const GLuint *textures)
                     ctx->state.dirty_bits |= DIRTY_IMAGE_UNIT_STATE;
                 }
             }
+
+            if (tex->mtl_data)
+            {
+                ctx->mtl_funcs.mtlDeleteMTLObj(ctx, tex->mtl_data);
+            }
         }
     }
 }
@@ -526,7 +531,7 @@ void invalidateTexture(GLMContext ctx, Texture *tex)
 {
     if (tex->mtl_data)
     {
-        ctx->mtl_funcs.mtlDeleteMTLTexture(ctx, tex->mtl_data);
+        ctx->mtl_funcs.mtlDeleteMTLObj(ctx, tex->mtl_data);
     }
 
     for(int face=0; face<_CUBE_MAP_MAX_FACE; face++)
