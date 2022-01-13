@@ -2051,12 +2051,15 @@ MTLVertexFormat glTypeSizeToMtlType(GLuint type, GLuint size, bool normalized)
             mapped_buffer_index = [self getVertexBufferIndexWithAttributeSet: i];
 
             vertexDescriptor.attributes[i].bufferIndex = mapped_buffer_index;
-            vertexDescriptor.attributes[i].offset = 0;
+            vertexDescriptor.attributes[i].offset = ctx->state.vao->attrib[i].base_plus_relative_offset;
             vertexDescriptor.attributes[i].format = format;
 
             assert(VAO_ATTRIB_STATE(i).stride); // find these issues
             vertexDescriptor.layouts[mapped_buffer_index].stride = VAO_ATTRIB_STATE(i).stride;
-            vertexDescriptor.layouts[mapped_buffer_index].stepRate = 1;
+            if (ctx->state.vao->attrib[i].divisor)
+                vertexDescriptor.layouts[mapped_buffer_index].stepRate = ctx->state.vao->attrib[i].divisor;
+            else
+                vertexDescriptor.layouts[mapped_buffer_index].stepRate = 1;
             vertexDescriptor.layouts[mapped_buffer_index].stepFunction = MTLVertexStepFunctionPerVertex;
         }
 
@@ -2064,6 +2067,9 @@ MTLVertexFormat glTypeSizeToMtlType(GLuint type, GLuint size, bool normalized)
         if ((VAO_STATE(enabled_attribs) >> (i+1)) == 0)
             break;
     }
+
+    // clear all dirty bits as they have been translated into a vertex descriptor
+    ctx->state.vao->dirty_bits = 0;
 
     return vertexDescriptor;
 }
@@ -2687,67 +2693,27 @@ void mtlDispatchComputeIndirect(GLMContext glm_ctx, GLintptr indirect)
 }
 
 
--(bool) processElementBuffer
+-(bool) processBuffer:(Buffer*)buffer
 {
-    // check all the buffers for metal objects
-    Buffer *gl_buffer = VAO_STATE(element_array.buffer);
-
-    if (gl_buffer == NULL)
+    if (buffer == NULL)
     {
-        NSLog(@"Error: processElementBuffer failed\n");
+        NSLog(@"Error: processBuffer failed\n");
 
         return false;
     }
 
-    if (gl_buffer->data.dirty_bits)
+    if (buffer->data.mtl_data == NULL)
     {
-        if (gl_buffer->data.dirty_bits & DIRTY_BUFFER_ADDR)
+        if (buffer->data.dirty_bits)
         {
-            if (gl_buffer->data.mtl_data == NULL)
-            {
-                id <MTLBuffer> buffer = [self createMTLBufferFromGLMBuffer: gl_buffer];
-
-                [buffer didModifyRange: NSMakeRange(0, gl_buffer->data.buffer_size)];
-
-                gl_buffer->data.mtl_data = (void *)CFBridgingRetain(buffer);
-
-                assert(gl_buffer->data.mtl_data);
-
-                // clear dirty bits
-                gl_buffer->data.dirty_bits = 0;
-            }
+            buffer->data.mtl_data = (void *)CFBridgingRetain([self createMTLBufferFromGLMBuffer:buffer]);
         }
-        else if (gl_buffer->data.dirty_bits & DIRTY_BUFFER_DATA)
+
+        if (buffer->data.mtl_data == NULL)
         {
-            id<MTLBuffer> buffer = (__bridge id<MTLBuffer>)(gl_buffer->data.mtl_data);
-
-            assert(buffer);
-
-            [buffer didModifyRange: NSMakeRange(0, gl_buffer->data.buffer_size)];
-
-            // clear dirty bits if not mapped as coherent
-            // this will cause us to keep loading the buffer and keep the GPU
-            // contents in check for EVERY drawing operation
-            if (gl_buffer->access & GL_MAP_COHERENT_BIT)
-            {
-                [buffer didModifyRange: NSMakeRange(gl_buffer->mapped_offset, gl_buffer->mapped_length)];
-
-                gl_buffer->data.dirty_bits = DIRTY_BUFFER_DATA;
-            }
-            else
-            {
-                [buffer didModifyRange: NSMakeRange(gl_buffer->mapped_offset, gl_buffer->mapped_length)];
-
-                gl_buffer->data.dirty_bits = 0;
-            }
-        }
-        else
-        {
-            NSLog(@"Error: processElementBuffer failed\n");
+            NSLog(@"Error: processBuffer failed\n");
 
             return false;
-
-            assert(0);
         }
     }
 
@@ -2776,40 +2742,20 @@ void mtlDispatchComputeIndirect(GLMContext glm_ctx, GLintptr indirect)
     [self newCommandBufferAndRenderEncoder];
 }
 
-#pragma mark C interface to mtlDeleteMTLBuffer
--(void) mtlDeleteMTLBuffer:(GLMContext) glm_ctx buffer: (void *)buffer
+#pragma mark C interface to mtlDeleteMTLObj
+-(void) mtlDeleteMTLObj:(GLMContext) glm_ctx buffer: (void *)obj
 {
-    RETURN_ON_FAILURE([self processGLState: false]);
-
     [self flushCommandBuffer: false];
 
     // this should release it to the GC
-    CFBridgingRelease(buffer);
+    CFBridgingRelease(obj);
 }
 
-void mtlDeleteMTLBuffer (GLMContext glm_ctx, void *buf)
+void mtlDeleteMTLObj (GLMContext glm_ctx, void *obj)
 {
     // Call the Objective-C method using Objective-C syntax
-    [(__bridge id) glm_ctx->mtl_funcs.mtlObj mtlDeleteMTLBuffer: glm_ctx buffer: buf];
+    [(__bridge id) glm_ctx->mtl_funcs.mtlObj mtlDeleteMTLObj: glm_ctx buffer: obj];
 }
-
-#pragma mark C interface to mtlDeleteMTLTexture
--(void) mtlDeleteMTLTexture:(GLMContext) glm_ctx tex: (void *)tex
-{
-    RETURN_ON_FAILURE([self processGLState: false]);
-
-    [self flushCommandBuffer: false];
-
-    // this should release it to the GC
-    CFBridgingRelease(tex);
-}
-
-void mtlDeleteMTLTexture (GLMContext glm_ctx, void *tex)
-{
-    // Call the Objective-C method using Objective-C syntax
-    [(__bridge id) glm_ctx->mtl_funcs.mtlObj mtlDeleteMTLTexture: glm_ctx tex: tex];
-}
-
 
 #pragma mark C interface to mtlGetSync
 -(void) mtlGetSync:(GLMContext) glm_ctx sync: (Sync *)sync
@@ -3220,6 +3166,13 @@ Buffer *getElementBuffer(GLMContext ctx)
     return gl_element_buffer;
 }
 
+Buffer *getIndirectBuffer(GLMContext ctx)
+{
+    Buffer *gl_indirect_buffer = ctx->state.buffers[_DRAW_INDIRECT_BUFFER];
+
+    return gl_indirect_buffer;
+}
+
 #pragma mark C interface to mtlDrawArrays
 -(void) mtlDrawArrays: (GLMContext) ctx mode:(GLenum) mode first: (GLint) first count: (GLsizei) count
 {
@@ -3255,12 +3208,11 @@ void mtlDrawArrays(GLMContext glm_ctx, GLenum mode, GLint first, GLsizei count)
     indexType = getMTLIndexType(type);
     assert(indexType != 0xFFFFFFFF);
 
-    if ([self processElementBuffer] == false)
-        return;
-
-    // check all the buffers for metal objects
     Buffer *gl_element_buffer = getElementBuffer(ctx);
     assert(gl_element_buffer);
+
+    if ([self processBuffer: gl_element_buffer] == false)
+        return;
 
     id <MTLBuffer>indexBuffer = (__bridge id<MTLBuffer>)(gl_element_buffer->data.mtl_data);
     assert(indexBuffer);
@@ -3290,22 +3242,29 @@ void mtlDrawElements(GLMContext glm_ctx, GLenum mode, GLsizei count, GLenum type
     indexType = getMTLIndexType(type);
     assert(indexType != 0xFFFFFFFF);
 
-    if ([self processElementBuffer] == false)
-        return;
-
     Buffer *gl_element_buffer = getElementBuffer(ctx);
     assert(gl_element_buffer);
 
+    if ([self processBuffer: gl_element_buffer] == false)
+        return;
+
     id <MTLBuffer>indexBuffer = (__bridge id<MTLBuffer>)(gl_element_buffer->data.mtl_data);
     assert(indexBuffer);
+
+    // indexBufferOffset is a byte offset
+    switch(indexType)
+    {
+        case MTLIndexTypeUInt16: start <<= 1; break;
+        case MTLIndexTypeUInt32: start <<= 2; break;
+    }
 
     // for now lets just ignore the range data and use drawIndexedPrimitives
     //
     // in the future it would be an idea to use temp buffers for large buffers that would wire
     // to much memory down.. like a million point galaxy drawing
     //
-    [_currentRenderEncoder drawIndexedPrimitives:primitiveType indexCount:count indexType:indexType
-                                     indexBuffer:indexBuffer indexBufferOffset:0 instanceCount:1];
+    [_currentRenderEncoder drawIndexedPrimitives:primitiveType indexCount:end - count indexType:indexType
+                                     indexBuffer:indexBuffer indexBufferOffset:start instanceCount:1];
 }
 
 void mtlDrawRangeElements(GLMContext glm_ctx, GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const void *indices)
@@ -3347,11 +3306,11 @@ void mtlDrawArraysInstanced(GLMContext glm_ctx, GLenum mode, GLint first, GLsize
     indexType = getMTLIndexType(type);
     assert(indexType != 0xFFFFFFFF);
 
-    if ([self processElementBuffer] == false)
-        return;
-
     Buffer *gl_element_buffer = getElementBuffer(ctx);
     assert(gl_element_buffer);
+
+    if ([self processBuffer: gl_element_buffer] == false)
+        return;
 
     id <MTLBuffer>indexBuffer = (__bridge id<MTLBuffer>)(gl_element_buffer->data.mtl_data);
     assert(indexBuffer);
@@ -3372,103 +3331,487 @@ void mtlDrawElementsInstanced(GLMContext glm_ctx, GLenum mode, GLsizei count, GL
 
 
 #pragma mark C interface to mtlDrawElementsBaseVertex
--(void) mtlDrawElementsBaseVertex: (GLMContext) ctx mode:(GLenum) mode first: (GLint) first count: (GLsizei) count type: (GLenum) type indices:(const void *)indices basevertex:(GLint) basevertex
+-(void) mtlDrawElementsBaseVertex: (GLMContext) glm_ctx mode:(GLenum) mode count: (GLsizei) count type: (GLenum) type indices:(const void *)indices basevertex:(GLint) basevertex
 {
+    MTLPrimitiveType primitiveType;
+    MTLIndexType indexType;
+
+    RETURN_ON_FAILURE([self processGLState: true]);
+
+    primitiveType = getMTLPrimitiveType(mode);
+    assert(primitiveType != 0xFFFFFFFF);
+
+    indexType = getMTLIndexType(type);
+    assert(indexType != 0xFFFFFFFF);
+
+    Buffer *gl_element_buffer = getElementBuffer(ctx);
+    assert(gl_element_buffer);
+
+    if ([self processBuffer: gl_element_buffer] == false)
+        return;
+
+    id <MTLBuffer>indexBuffer = (__bridge id<MTLBuffer>)(gl_element_buffer->data.mtl_data);
+    assert(indexBuffer);
+
+    [_currentRenderEncoder drawIndexedPrimitives: primitiveType indexCount:count indexType: indexType indexBuffer:indexBuffer indexBufferOffset:0 instanceCount:1 baseVertex:basevertex baseInstance:0];
 }
 
-void mtlDrawElementsBaseVertex(GLMContext ctx, GLenum mode, GLsizei count, GLenum type, const void *indices, GLint basevertex)
+void mtlDrawElementsBaseVertex(GLMContext glm_ctx, GLenum mode, GLsizei count, GLenum type, const void *indices, GLint basevertex)
 {
+    [(__bridge id) glm_ctx->mtl_funcs.mtlObj mtlDrawElementsBaseVertex: glm_ctx mode: mode count: count type: type indices: indices basevertex: basevertex];
 }
 
 
 #pragma mark C interface to mtlDrawRangeElementsBaseVertex
--(void) mtlDrawRangeElementsBaseVertex: (GLMContext) ctx mode:(GLenum) mode start: (GLuint) start end: (GLuint) end type: (GLenum) type indices:(const void *)indices basevertex:(GLint) basevertex
+-(void) mtlDrawRangeElementsBaseVertex: (GLMContext) glm_ctx mode:(GLenum) mode start: (GLuint) start end: (GLuint) end type: (GLenum) type indices:(const void *)indices basevertex:(GLint) basevertex
 {
+    MTLPrimitiveType primitiveType;
+    MTLIndexType indexType;
+
+    RETURN_ON_FAILURE([self processGLState: true]);
+
+    primitiveType = getMTLPrimitiveType(mode);
+    assert(primitiveType != 0xFFFFFFFF);
+
+    indexType = getMTLIndexType(type);
+    assert(indexType != 0xFFFFFFFF);
+
+    Buffer *gl_element_buffer = getElementBuffer(ctx);
+    assert(gl_element_buffer);
+
+    if ([self processBuffer: gl_element_buffer] == false)
+        return;
+
+    id <MTLBuffer>indexBuffer = (__bridge id<MTLBuffer>)(gl_element_buffer->data.mtl_data);
+    assert(indexBuffer);
+
+    // indexBufferOffset is a byte offset
+    switch(indexType)
+    {
+        case MTLIndexTypeUInt16: start <<= 1; break;
+        case MTLIndexTypeUInt32: start <<= 2; break;
+    }
+
+    [_currentRenderEncoder drawIndexedPrimitives: primitiveType indexCount:end - start indexType: indexType indexBuffer:indexBuffer indexBufferOffset:start instanceCount:1 baseVertex:basevertex baseInstance:0];
 }
 
-void mtlDrawRangeElementsBaseVertex(GLMContext ctx, GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const void *indices, GLint basevertex)
+void mtlDrawRangeElementsBaseVertex(GLMContext glm_ctx, GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const void *indices, GLint basevertex)
 {
+    [(__bridge id) glm_ctx->mtl_funcs.mtlObj mtlDrawRangeElementsBaseVertex:glm_ctx mode:mode start: start end: end type: type indices: indices basevertex:basevertex];
 }
 
 
 #pragma mark C interface to mtlDrawElementsInstancedBaseVertex
--(void) mtlDrawElementsInstancedBaseVertex: (GLMContext) ctx mode:(GLenum) mode start: (GLuint) start end: (GLuint) end type: (GLenum) type indices:(const void *)indices instancecount:(GLsizei) instancecount basevertex:(GLint) basevertex
+-(void) mtlDrawElementsInstancedBaseVertex: (GLMContext) glm_ctx mode:(GLenum) mode count:(GLuint)count type: (GLenum) type indices:(const void *)indices instancecount:(GLsizei) instancecount basevertex:(GLint) basevertex
 {
+    MTLPrimitiveType primitiveType;
+    MTLIndexType indexType;
+
+    RETURN_ON_FAILURE([self processGLState: true]);
+
+    primitiveType = getMTLPrimitiveType(mode);
+    assert(primitiveType != 0xFFFFFFFF);
+
+    indexType = getMTLIndexType(type);
+    assert(indexType != 0xFFFFFFFF);
+
+    Buffer *gl_element_buffer = getElementBuffer(ctx);
+    assert(gl_element_buffer);
+
+    if ([self processBuffer: gl_element_buffer] == false)
+        return;
+
+    id <MTLBuffer>indexBuffer = (__bridge id<MTLBuffer>)(gl_element_buffer->data.mtl_data);
+    assert(indexBuffer);
+
+    [_currentRenderEncoder drawIndexedPrimitives: primitiveType indexCount:count indexType: indexType indexBuffer:indexBuffer indexBufferOffset:0 instanceCount:instancecount baseVertex:basevertex baseInstance:0];
 }
 
-void mtlDrawElementsInstancedBaseVertex(GLMContext ctx, GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei instancecount, GLint basevertex)
+void mtlDrawElementsInstancedBaseVertex(GLMContext glm_ctx, GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei instancecount, GLint basevertex)
 {
+    [(__bridge id) glm_ctx->mtl_funcs.mtlObj mtlDrawElementsInstancedBaseVertex:glm_ctx mode:mode count:count type:type indices:indices instancecount:instancecount basevertex:basevertex];
 }
-
-
-#pragma mark C interface to mtlMultiDrawElementsBaseVertex
--(void) mtlMultiDrawElementsBaseVertex: (GLMContext) ctx mode:(GLenum) mode count: (const GLsizei *) count type: (GLenum) type indices:(const void *)indices drawcount:(GLsizei) drawcount basevertex:(const GLint *) basevertex
-{
-}
-
-void mtlMultiDrawElementsBaseVertex(GLMContext ctx, GLenum mode, const GLsizei *count, GLenum type, const void *const*indices, GLsizei drawcount, const GLint *basevertex)
-{
-}
-
 
 #pragma mark C interface to mtlDrawArraysIndirect
--(void) mtlDrawArraysIndirect: (GLMContext) ctx mode:(GLenum) mode indirect: (const void *) indirect
+-(void) mtlDrawArraysIndirect: (GLMContext) glm_ctx mode:(GLenum) mode indirect: (const void *) indirect
 {
+    MTLPrimitiveType primitiveType;
+
+    RETURN_ON_FAILURE([self processGLState: true]);
+
+    primitiveType = getMTLPrimitiveType(mode);
+    assert(primitiveType != 0xFFFFFFFF);
+
+    Buffer *gl_indirect_buffer = getIndirectBuffer(ctx);
+    assert(gl_indirect_buffer);
+
+    if ([self processBuffer: gl_indirect_buffer] == false)
+        return;
+
+    id <MTLBuffer>indirectBuffer = (__bridge id<MTLBuffer>)(gl_indirect_buffer->data.mtl_data);
+    assert(indirectBuffer);
+
+    [_currentRenderEncoder drawPrimitives:primitiveType indirectBuffer:indirectBuffer indirectBufferOffset:(DrawArraysIndirectCommand *)indirect - (DrawArraysIndirectCommand *)NULL];
 }
 
-void mtlDrawArraysIndirect(GLMContext ctx, GLenum mode, const void *indirect)
+void mtlDrawArraysIndirect(GLMContext glm_ctx, GLenum mode, const void *indirect)
 {
+    [(__bridge id) glm_ctx->mtl_funcs.mtlObj mtlDrawArraysIndirect:glm_ctx mode:mode indirect:indirect];
 }
 
 
 #pragma mark C interface to mtlDrawElementsIndirect
--(void) mtlDrawElementsIndirect: (GLMContext) ctx mode:(GLenum) mode first: (GLint) first count: (GLsizei) count type: (GLenum) type indices:(const void *)indices
+-(void) mtlDrawElementsIndirect: (GLMContext) glm_ctx mode:(GLenum) mode type:(GLenum) type indirect: (const void *) indirect
 {
+    MTLPrimitiveType primitiveType;
+    MTLIndexType indexType;
+
+    RETURN_ON_FAILURE([self processGLState: true]);
+
+    primitiveType = getMTLPrimitiveType(mode);
+    assert(primitiveType != 0xFFFFFFFF);
+
+    // get element buffer
+    indexType = getMTLIndexType(type);
+    assert(indexType != 0xFFFFFFFF);
+
+    Buffer *gl_element_buffer = getElementBuffer(ctx);
+    assert(gl_element_buffer);
+
+    if ([self processBuffer: gl_element_buffer] == false)
+        return;
+
+    id <MTLBuffer>indexBuffer = (__bridge id<MTLBuffer>)(gl_element_buffer->data.mtl_data);
+    assert(indexBuffer);
+
+    // get indirect buffer
+    Buffer *gl_indirect_buffer = getIndirectBuffer(ctx);
+    assert(gl_indirect_buffer);
+
+    if ([self processBuffer: gl_indirect_buffer] == false)
+        return;
+
+    id <MTLBuffer>indirectBuffer = (__bridge id<MTLBuffer>)(gl_indirect_buffer->data.mtl_data);
+    assert(indirectBuffer);
+
+    // draw indexed primitive
+    [_currentRenderEncoder drawIndexedPrimitives:primitiveType indexType:indexType indexBuffer: indexBuffer indexBufferOffset:0 indirectBuffer:indirectBuffer indirectBufferOffset:(DrawElementsIndirectCommand *)indirect - (DrawElementsIndirectCommand *)NULL];
 }
 
-void mtlDrawElementsIndirect(GLMContext ctx, GLenum mode, GLenum type, const void *indirect)
+void mtlDrawElementsIndirect(GLMContext glm_ctx, GLenum mode, GLenum type, const void *indirect)
 {
+    [(__bridge id) glm_ctx->mtl_funcs.mtlObj mtlDrawElementsIndirect:glm_ctx mode:mode type:type indirect:indirect];
 }
 
 
 #pragma mark C interface to mtlDrawArraysInstancedBaseInstance
--(void) mtlDrawArraysInstancedBaseInstance: (GLMContext) ctx mode:(GLenum) mode first: (GLint) first count: (GLsizei) count instancecount:(GLsizei) instancecount baseinstance:(GLuint) baseinstance
+-(void) mtlDrawArraysInstancedBaseInstance: (GLMContext) glm_ctx mode:(GLenum) mode first: (GLint) first count: (GLsizei) count instancecount:(GLsizei) instancecount baseinstance:(GLuint) baseinstance
 {
+    MTLPrimitiveType primitiveType;
+
+    RETURN_ON_FAILURE([self processGLState: true]);
+
+    primitiveType = getMTLPrimitiveType(mode);
+    assert(primitiveType != 0xFFFFFFFF);
+
+    [_currentRenderEncoder drawPrimitives:primitiveType vertexStart:first vertexCount:count instanceCount:instancecount baseInstance:baseinstance];
 }
 
-void mtlDrawArraysInstancedBaseInstance(GLMContext ctx, GLenum mode, GLint first, GLsizei count, GLsizei instancecount, GLuint baseinstance)
+void mtlDrawArraysInstancedBaseInstance(GLMContext glm_ctx, GLenum mode, GLint first, GLsizei count, GLsizei instancecount, GLuint baseinstance)
 {
+    [(__bridge id) glm_ctx->mtl_funcs.mtlObj mtlDrawArraysInstancedBaseInstance:glm_ctx mode:mode first:first count:count instancecount:instancecount baseinstance:baseinstance];
 }
 
 
 #pragma mark C interface to mtlDrawElementsInstancedBaseInstance
--(void) mtlDrawElementsInstancedBaseInstance: (GLMContext) ctx mode:(GLenum) mode  count: (GLsizei) count type:(GLenum) type indices:(const void *)indices instancecount:(GLsizei) instancecount baseinstance:(GLuint) baseinstance
+-(void) mtlDrawElementsInstancedBaseInstance: (GLMContext) glm_ctx mode:(GLenum) mode  count: (GLsizei) count type:(GLenum) type indices:(const void *)indices instancecount:(GLsizei) instancecount baseinstance:(GLuint) baseinstance
 {
+    MTLPrimitiveType primitiveType;
+    MTLIndexType indexType;
+
+    RETURN_ON_FAILURE([self processGLState: true]);
+
+    primitiveType = getMTLPrimitiveType(mode);
+    assert(primitiveType != 0xFFFFFFFF);
+
+    indexType = getMTLIndexType(type);
+    assert(indexType != 0xFFFFFFFF);
+
+    Buffer *gl_element_buffer = getElementBuffer(ctx);
+    assert(gl_element_buffer);
+
+    if ([self processBuffer: gl_element_buffer] == false)
+        return;
+
+    id <MTLBuffer>indexBuffer = (__bridge id<MTLBuffer>)(gl_element_buffer->data.mtl_data);
+    assert(indexBuffer);
+
+    // for now lets just ignore the range data and use drawIndexedPrimitives
+    //
+    // in the future it would be an idea to use temp buffers for large buffers that would wire
+    // to much memory down.. like a million point galaxy drawing
+    //
+    [_currentRenderEncoder drawIndexedPrimitives:primitiveType indexCount:count indexType:indexType indexBuffer:indexBuffer indexBufferOffset:0 instanceCount:instancecount baseVertex:0 baseInstance:baseinstance];
 }
 
-void mtlDrawElementsInstancedBaseInstance(GLMContext ctx, GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei instancecount, GLuint baseinstance)
+void mtlDrawElementsInstancedBaseInstance(GLMContext glm_ctx, GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei instancecount, GLuint baseinstance)
 {
+    [(__bridge id) glm_ctx->mtl_funcs.mtlObj mtlDrawElementsInstancedBaseInstance:glm_ctx mode:mode count:count type:type indices:indices instancecount:instancecount baseinstance:baseinstance];
 }
 
 
 #pragma mark C interface to mtlDrawElementsInstancedBaseVertexBaseInstance
--(void) mtlDrawElementsInstancedBaseVertexBaseInstance: (GLMContext) ctx mode:(GLenum) mode count: (GLsizei) count type:(GLenum) type indices:(const void *)indices
+-(void) mtlDrawElementsInstancedBaseVertexBaseInstance: (GLMContext) glm_ctx mode:(GLenum) mode count: (GLsizei) count type:(GLenum) type indices:(const void *)indices
                                                         instancecount:(GLsizei) instancecount basevertex:(GLint) basevertex baseinstance:(GLuint) baseinstance
 {
+    MTLPrimitiveType primitiveType;
+    MTLIndexType indexType;
+
+    RETURN_ON_FAILURE([self processGLState: true]);
+
+    primitiveType = getMTLPrimitiveType(mode);
+    assert(primitiveType != 0xFFFFFFFF);
+
+    indexType = getMTLIndexType(type);
+    assert(indexType != 0xFFFFFFFF);
+
+    Buffer *gl_element_buffer = getElementBuffer(ctx);
+    assert(gl_element_buffer);
+
+    if ([self processBuffer: gl_element_buffer] == false)
+        return;
+
+    id <MTLBuffer>indexBuffer = (__bridge id<MTLBuffer>)(gl_element_buffer->data.mtl_data);
+    assert(indexBuffer);
+
+    // for now lets just ignore the range data and use drawIndexedPrimitives
+    //
+    // in the future it would be an idea to use temp buffers for large buffers that would wire
+    // to much memory down.. like a million point galaxy drawing
+    //
+    [_currentRenderEncoder drawIndexedPrimitives:primitiveType indexCount:count indexType:indexType indexBuffer:indexBuffer indexBufferOffset:0 instanceCount:instancecount baseVertex:basevertex baseInstance:baseinstance];
 }
 
-void mtlDrawElementsInstancedBaseVertexBaseInstance(GLMContext ctx, GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei instancecount, GLint basevertex, GLuint baseinstance)
+void mtlDrawElementsInstancedBaseVertexBaseInstance(GLMContext glm_ctx, GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei instancecount, GLint basevertex, GLuint baseinstance)
 {
+    [(__bridge id) glm_ctx->mtl_funcs.mtlObj mtlDrawElementsInstancedBaseVertexBaseInstance:glm_ctx mode:mode count:count type:type indices:indices instancecount:instancecount basevertex:basevertex baseinstance:baseinstance];
 }
 
+
+#pragma mark C interface to mtlMultiDrawArrays
+-(void) mtlMultiDrawArrays: (GLMContext)glm_ctx mode:(GLenum) mode first:(const GLint *)first count:(const GLsizei *)count drawcount:(GLsizei) drawcount
+{
+    MTLPrimitiveType primitiveType;
+
+    RETURN_ON_FAILURE([self processGLState: true]);
+
+    primitiveType = getMTLPrimitiveType(mode);
+    assert(primitiveType != 0xFFFFFFFF);
+
+    for(int i=0; i<drawcount; i++)
+    {
+         [_currentRenderEncoder drawPrimitives: primitiveType
+                                  vertexStart: first[i]
+                                  vertexCount: count[i]];
+    }
+}
+
+void mtlMultiDrawArrays(GLMContext glm_ctx, GLenum mode, const GLint *first, const GLsizei *count, GLsizei drawcount)
+{
+    [(__bridge id) glm_ctx->mtl_funcs.mtlObj mtlMultiDrawArrays:glm_ctx mode:mode first:first count:count drawcount:drawcount];
+}
+
+
+#pragma mark C interface to mtlMultiDrawElements
+-(void) mtlMultiDrawElements: (GLMContext)glm_ctx mode:(GLenum) mode count:(const GLsizei *)count type:(GLenum)type indices:(const void *const*)indices drawcount:(GLsizei) drawcount
+{
+    MTLPrimitiveType primitiveType;
+    MTLIndexType indexType;
+
+    RETURN_ON_FAILURE([self processGLState: true]);
+
+    primitiveType = getMTLPrimitiveType(mode);
+    assert(primitiveType != 0xFFFFFFFF);
+
+    indexType = getMTLIndexType(type);
+    assert(indexType != 0xFFFFFFFF);
+
+    Buffer *gl_element_buffer = getElementBuffer(ctx);
+    assert(gl_element_buffer);
+
+    if ([self processBuffer: gl_element_buffer] == false)
+        return;
+
+    id <MTLBuffer>indexBuffer = (__bridge id<MTLBuffer>)(gl_element_buffer->data.mtl_data);
+    assert(indexBuffer);
+
+    for(int i=0; i<drawcount; i++)
+    {
+        size_t offset;
+
+        offset = (char *)indices[i] - (char *)NULL;
+
+        [_currentRenderEncoder drawIndexedPrimitives:primitiveType indexCount:count[i] indexType:indexType
+                                     indexBuffer:indexBuffer indexBufferOffset:offset instanceCount:1];
+    }
+}
+
+void mtlMultiDrawElements(GLMContext glm_ctx, GLenum mode, const GLsizei *count, GLenum type, const void *const*indices, GLsizei drawcount)
+{
+    // Call the Objective-C method using Objective-C syntax
+    [(__bridge id) glm_ctx->mtl_funcs.mtlObj mtlMultiDrawElements: glm_ctx mode: mode count: count type: type indices: indices drawcount: drawcount];
+}
+
+
+
+
+#pragma mark C interface to mtlMultiDrawElementsBaseVertex
+-(void) mtlMultiDrawElementsBaseVertex: (GLMContext) glm_ctx mode:(GLenum) mode count: (const GLsizei *) count type: (GLenum) type indices:(const void *const *)indices drawcount:(GLsizei) drawcount basevertex:(const GLint *) basevertex
+{
+    MTLPrimitiveType primitiveType;
+    MTLIndexType indexType;
+
+    RETURN_ON_FAILURE([self processGLState: true]);
+
+    primitiveType = getMTLPrimitiveType(mode);
+    assert(primitiveType != 0xFFFFFFFF);
+
+    indexType = getMTLIndexType(type);
+    assert(indexType != 0xFFFFFFFF);
+
+    // element buffer
+    Buffer *gl_element_buffer = getElementBuffer(ctx);
+    assert(gl_element_buffer);
+
+    if ([self processBuffer: gl_element_buffer] == false)
+        return;
+
+    id <MTLBuffer>indexBuffer = (__bridge id<MTLBuffer>)(gl_element_buffer->data.mtl_data);
+    assert(indexBuffer);
+
+
+    for(int i=0; i<drawcount; i++)
+    {
+        size_t offset;
+
+        offset = (char *)indices[i] - (char *)NULL;
+
+        [_currentRenderEncoder drawIndexedPrimitives:primitiveType indexCount:count[i] indexType:indexType
+                                     indexBuffer:indexBuffer indexBufferOffset:offset instanceCount:count[i] baseVertex:basevertex[i] baseInstance:1];
+    }
+}
+
+void mtlMultiDrawElementsBaseVertex(GLMContext glm_ctx, GLenum mode, const GLsizei *count, GLenum type, const void *const*indices, GLsizei drawcount, const GLint *basevertex)
+{
+    [(__bridge id) glm_ctx->mtl_funcs.mtlObj mtlMultiDrawElementsBaseVertex: glm_ctx mode: mode count: count type: type indices: indices drawcount: drawcount basevertex:basevertex];
+}
+
+
+-(void) mtlMultiDrawArraysIndirect: (GLMContext)glm_ctx mode:(GLenum) mode indirect:(const void *)indirect drawcount:(GLsizei) drawcount stride:(GLsizei)stride
+{
+    MTLPrimitiveType primitiveType;
+
+    RETURN_ON_FAILURE([self processGLState: true]);
+
+    primitiveType = getMTLPrimitiveType(mode);
+    assert(primitiveType != 0xFFFFFFFF);
+
+    Buffer *gl_indirect_buffer = getIndirectBuffer(ctx);
+    assert(gl_indirect_buffer);
+
+    if ([self processBuffer: gl_indirect_buffer] == false)
+        return;
+
+    id <MTLBuffer>indirectBuffer = (__bridge id<MTLBuffer>)(gl_indirect_buffer->data.mtl_data);
+    assert(indirectBuffer);
+
+    for(int i=0; i<drawcount; i++)
+    {
+        size_t offset;
+
+        if (stride)
+        {
+            offset = (DrawArraysIndirectCommand  *)((GLuint *)indirect + i * stride) - (DrawArraysIndirectCommand *)NULL;
+        }
+        else
+        {
+            offset = (DrawArraysIndirectCommand  *)indirect + i - (DrawArraysIndirectCommand *)NULL;
+        }
+
+        [_currentRenderEncoder drawPrimitives:primitiveType indirectBuffer:indirectBuffer indirectBufferOffset:offset];
+    }
+}
+
+void mtlMultiDrawArraysIndirect(GLMContext glm_ctx, GLenum mode, const void *indirect, GLsizei drawcount, GLsizei stride)
+{
+    [(__bridge id) glm_ctx->mtl_funcs.mtlObj mtlMultiDrawArraysIndirect:glm_ctx mode:mode indirect:indirect drawcount:drawcount stride:stride];
+}
+
+
+-(void) mtlMultiDrawElementsIndirect: (GLMContext)glm_ctx mode:(GLenum) mode type:(GLenum)type indirect:(const void *)indirect drawcount:(GLsizei) drawcount stride:(GLsizei)stride
+{
+    MTLPrimitiveType primitiveType;
+    MTLIndexType indexType;
+
+    RETURN_ON_FAILURE([self processGLState: true]);
+
+    primitiveType = getMTLPrimitiveType(mode);
+    assert(primitiveType != 0xFFFFFFFF);
+
+    // get element buffer
+    indexType = getMTLIndexType(type);
+    assert(indexType != 0xFFFFFFFF);
+
+    Buffer *gl_element_buffer = getElementBuffer(ctx);
+    assert(gl_element_buffer);
+
+    if ([self processBuffer: gl_element_buffer] == false)
+        return;
+
+    id <MTLBuffer>indexBuffer = (__bridge id<MTLBuffer>)(gl_element_buffer->data.mtl_data);
+    assert(indexBuffer);
+
+    // get indirect buffer
+    Buffer *gl_indirect_buffer = getIndirectBuffer(ctx);
+    assert(gl_indirect_buffer);
+
+    if ([self processBuffer: gl_indirect_buffer] == false)
+        return;
+
+    id <MTLBuffer>indirectBuffer = (__bridge id<MTLBuffer>)(gl_indirect_buffer->data.mtl_data);
+    assert(indirectBuffer);
+
+    for(int i=0; i<drawcount; i++)
+    {
+        size_t offset;
+
+        if (stride)
+        {
+            offset = (DrawElementsIndirectCommand  *)((GLuint *)indirect + i * stride) - (DrawElementsIndirectCommand *)NULL;
+        }
+        else
+        {
+            offset = (DrawElementsIndirectCommand  *)indirect + i - (DrawElementsIndirectCommand *)NULL;
+        }
+
+        // draw indexed primitive
+        [_currentRenderEncoder drawIndexedPrimitives:primitiveType indexType:indexType indexBuffer: indexBuffer indexBufferOffset:0 indirectBuffer:indirectBuffer indirectBufferOffset:offset];
+    }
+}
+
+void mtlMultiDrawElementsIndirect(GLMContext glm_ctx, GLenum mode, GLenum type, const void *indirect, GLsizei drawcount, GLsizei stride)
+{
+    [(__bridge id) glm_ctx->mtl_funcs.mtlObj mtlMultiDrawElementsIndirect:glm_ctx mode:mode type:type indirect:indirect drawcount:drawcount stride:stride];
+}
 
 #pragma mark C interface to context functions
 
 - (void) bindObjFuncsToGLMContext: (GLMContext) glm_ctx
 {
     glm_ctx->mtl_funcs.mtlObj = (void *)CFBridgingRetain(self);
-    glm_ctx->mtl_funcs.mtlDeleteMTLBuffer = mtlDeleteMTLBuffer;
-    glm_ctx->mtl_funcs.mtlDeleteMTLTexture = mtlDeleteMTLTexture;
+
+    glm_ctx->mtl_funcs.mtlDeleteMTLObj = mtlDeleteMTLObj;
+
     glm_ctx->mtl_funcs.mtlGetSync = mtlGetSync;
     glm_ctx->mtl_funcs.mtlWaitForSync = mtlWaitForSync;
     glm_ctx->mtl_funcs.mtlFlush = mtlFlush;
@@ -3497,6 +3840,12 @@ void mtlDrawElementsInstancedBaseVertexBaseInstance(GLMContext ctx, GLenum mode,
     glm_ctx->mtl_funcs.mtlDrawArraysInstancedBaseInstance = mtlDrawArraysInstancedBaseInstance;
     glm_ctx->mtl_funcs.mtlDrawElementsInstancedBaseInstance = mtlDrawElementsInstancedBaseInstance;
     glm_ctx->mtl_funcs.mtlDrawElementsInstancedBaseVertexBaseInstance = mtlDrawElementsInstancedBaseVertexBaseInstance;
+
+    glm_ctx->mtl_funcs.mtlMultiDrawArrays = mtlMultiDrawArrays;
+    glm_ctx->mtl_funcs.mtlMultiDrawElements = mtlMultiDrawElements;
+    glm_ctx->mtl_funcs.mtlMultiDrawElementsBaseVertex = mtlMultiDrawElementsBaseVertex;
+    glm_ctx->mtl_funcs.mtlMultiDrawArraysIndirect = mtlMultiDrawArraysIndirect;
+    glm_ctx->mtl_funcs.mtlMultiDrawElementsIndirect = mtlMultiDrawElementsIndirect;
 
     glm_ctx->mtl_funcs.mtlDispatchCompute = mtlDispatchCompute;
     glm_ctx->mtl_funcs.mtlDispatchComputeIndirect = mtlDispatchComputeIndirect;
