@@ -421,7 +421,7 @@ GLuint bindVAO(GLuint vao=0)
     }
     else
     {
-        glGenVertexArrays(1, &vao);
+        glCreateVertexArrays(1, &vao);
         glBindVertexArray(vao);
     }
 
@@ -533,7 +533,7 @@ int test_draw_arrays(GLFWwindow* window, int width, int height)
     glBufferData(GL_ARRAY_BUFFER, 9 * sizeof(float), points, GL_STATIC_DRAW);
 
     GLuint vao = 0;
-    glGenVertexArrays(1, &vao);
+    glCreateVertexArrays(1, &vao);
     glBindVertexArray(vao);
     glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -603,11 +603,13 @@ int test_draw_elements(GLFWwindow* window, int width, int height)
     glBufferData(GL_ARRAY_BUFFER, 9 * sizeof(GLfloat), points, GL_STATIC_DRAW);
 
     GLuint vao = 0;
-    glGenVertexArrays(1, &vao);
+    glCreateVertexArrays(1, &vao);
     glBindVertexArray(vao);
     glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+
+    //glVertexArrayElementBuffer(vao, elem_vbo);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elem_vbo);
 
@@ -632,8 +634,6 @@ int test_draw_elements(GLFWwindow* window, int width, int height)
 
     glClearColor(0.2, 0.2, 0.2, 0.0);
     glClear(GL_COLOR_BUFFER_BIT);
-
-    // void glDrawElements(GLenum mode, GLsizei count, GLenum type, const void *indices)
 
     glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
 
@@ -675,7 +675,7 @@ int test_draw_range_elements(GLFWwindow* window, int width, int height)
     GLuint indices[] = {3, 4, 5};
 
     GLuint vao = 0;
-    glGenVertexArrays(1, &vao);
+    glCreateVertexArrays(1, &vao);
     glBindVertexArray(vao);
 
     glGenBuffers(1, &elem_vbo);
@@ -762,7 +762,7 @@ int test_draw_arrays_instanced(GLFWwindow* window, int width, int height)
     glBufferData(GL_ARRAY_BUFFER, 9 * sizeof(float), points, GL_STATIC_DRAW);
 
     GLuint vao = 0;
-    glGenVertexArrays(1, &vao);
+    glCreateVertexArrays(1, &vao);
     glBindVertexArray(vao);
     glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -831,7 +831,7 @@ int test_uniform_buffer(GLFWwindow* window, int width, int height)
     };
 
     GLuint vao = 0;
-    glGenVertexArrays(1, &vao);
+    glCreateVertexArrays(1, &vao);
     glBindVertexArray(vao);
 
     vbo = bindDataToVBO(GL_ARRAY_BUFFER, 9 * sizeof(float), points, GL_STATIC_DRAW);
@@ -926,7 +926,7 @@ int test_1D_textures(GLFWwindow* window, int width, int height)
     mat_ubo = bindDataToVBO(GL_UNIFORM_BUFFER, sizeof(mat4),&rotZ[0][0], GL_STATIC_DRAW);
 
     GLuint vao = 0;
-    glGenVertexArrays(1, &vao);
+    glCreateVertexArrays(1, &vao);
     glBindVertexArray(vao);
 
     bindVBOToAttrib(vbo, 0, 3, GL_FLOAT);
@@ -1085,7 +1085,7 @@ int test_2D_textures(GLFWwindow* window, int width, int height)
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
     GLuint vao = 0;
-    glGenVertexArrays(1, &vao);
+    glCreateVertexArrays(1, &vao);
     glBindVertexArray(vao);
 
     glEnableVertexAttribArray(0);
@@ -1340,14 +1340,16 @@ int test_3D_textures(GLFWwindow* window, int width, int height)
     glNamedBufferStorage(mat_ubo, sizeof(mat4), &mvp[0][0], GL_MAP_WRITE_BIT | GL_DYNAMIC_STORAGE_BIT);
 
     GLuint vao = 0;
-    glGenVertexArrays(1, &vao);
+    glCreateVertexArrays(1, &vao);
 
     glVertexArrayVertexBuffer(vao, 0, vbo, 0, 3 * sizeof(float));
     glVertexArrayAttribFormat(vao, 0, 3, GL_FLOAT, 0, 0);
+    glVertexArrayAttribBinding(vao, 0, 0);
     glEnableVertexArrayAttrib(vao, 0);
 
     glVertexArrayVertexBuffer(vao, 1, tex_vbo, 0, 3 * sizeof(float));
     glVertexArrayAttribFormat(vao, 1, 3, GL_FLOAT, 0, 0);
+    glVertexArrayAttribBinding(vao, 1, 1);
     glEnableVertexArrayAttrib(vao, 1);
 
     glBindVertexArray(vao);
@@ -1499,17 +1501,19 @@ int test_2D_array_textures(GLFWwindow* window, int width, int height)
     glNamedBufferStorage(mat_ubo, sizeof(mat4), &mvp[0][0], GL_MAP_WRITE_BIT | GL_DYNAMIC_STORAGE_BIT);
 
     GLuint vao = 0;
-    glGenVertexArrays(1, &vao);
+    glCreateVertexArrays(1, &vao);
 
     glVertexArrayVertexBuffer(vao, 0, vbo, 0, 2 * sizeof(float));
     glVertexArrayAttribFormat(vao, 0, 2, GL_FLOAT, 0, 0);
+    glVertexArrayAttribBinding(vao, 0, 0);
     glEnableVertexArrayAttrib(vao, 0);
-
-    glVertexArrayElementBuffer(vao, ebo);
 
     glVertexArrayVertexBuffer(vao, 1, tex_vbo, 0, 2 * sizeof(float));
     glVertexArrayAttribFormat(vao, 1, 2, GL_FLOAT, 0, 0);
+    glVertexArrayAttribBinding(vao, 1, 1);
     glEnableVertexArrayAttrib(vao, 1);
+
+    glVertexArrayElementBuffer(vao, ebo);
 
     glBindVertexArray(vao);
 
@@ -1719,7 +1723,7 @@ int test_textures(GLFWwindow* window, int width, int height, int mipmap, int use
 
             for(int i=0; size>0; i++)
             {
-                glTexImage2D(GL_TEXTURE_2D, i, 0, size, size, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+                glTexImage2D(GL_TEXTURE_2D, i, GL_RGBA8, size, size, 0, GL_RGBA, GL_UNSIGNED_BYTE,
                              genTexturePixels(GL_RGBA, GL_UNSIGNED_INT_8_8_8_8, 0x8 >> i, size, size));
 
                 size >>= 1;
@@ -1729,7 +1733,7 @@ int test_textures(GLFWwindow* window, int width, int height, int mipmap, int use
     }
     else
     {
-        glTexImage2D(GL_TEXTURE_2D, 0, 0, texsize, texsize, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, texsize, texsize, 0, GL_RGBA, GL_UNSIGNED_BYTE,
                      genTexturePixels(GL_RGBA, GL_UNSIGNED_INT_8_8_8_8, 0x8, texsize, texsize));
     }
 
@@ -1807,7 +1811,7 @@ GLuint draw_to_framebuffer(GLFWwindow* window, int width, int height)
     );
 
     GLuint vao = 0;
-    glGenVertexArrays(1, &vao);
+    glCreateVertexArrays(1, &vao);
     glBindVertexArray(vao);
 
     bindVBOToAttrib(vbo, 0, 2, GL_FLOAT);
@@ -1950,7 +1954,7 @@ int test_framebuffer(GLFWwindow* window, int width, int height)
     col_att_ubo = bindDataToVBO(GL_UNIFORM_BUFFER, sizeof(float), &att, GL_STATIC_DRAW);
 
     GLuint vao = 0;
-    glGenVertexArrays(1, &vao);
+    glCreateVertexArrays(1, &vao);
     glBindVertexArray(vao);
 
     bindVBOToAttrib(vbo, 0, 3, GL_FLOAT);
@@ -2079,7 +2083,7 @@ int test_readpixels(GLFWwindow* window, int width, int height)
     tex_vbo = bindDataToVBO(GL_ARRAY_BUFFER, 6 * sizeof(float), texcoords, GL_STATIC_DRAW);
 
     GLuint vao = 0;
-    glGenVertexArrays(1, &vao);
+    glCreateVertexArrays(1, &vao);
     glBindVertexArray(vao);
 
     bindVBOToAttrib(vbo, 0, 3, GL_FLOAT);
@@ -2485,16 +2489,18 @@ int test_compute_shader(GLFWwindow* window, int width, int height)
     glNamedBufferStorage(mat_ubo, sizeof(mat4), &mvp[0][0], GL_MAP_WRITE_BIT | GL_DYNAMIC_STORAGE_BIT);
 
     GLuint vao = 0;
-    glGenVertexArrays(1, &vao);
+    glCreateVertexArrays(1, &vao);
 
     glVertexArrayVertexBuffer(vao, 0, vbo, 0, 2 * sizeof(float));
     glVertexArrayAttribFormat(vao, 0, 2, GL_FLOAT, 0, 0);
+    glVertexArrayAttribBinding(vao, 0, 0);
     glEnableVertexArrayAttrib(vao, 0);
 
     glVertexArrayElementBuffer(vao, ebo);
 
     glVertexArrayVertexBuffer(vao, 1, tex_vbo, 0, 2 * sizeof(float));
     glVertexArrayAttribFormat(vao, 1, 2, GL_FLOAT, 0, 0);
+    glVertexArrayAttribBinding(vao, 1, 1);
     glEnableVertexArrayAttrib(vao, 1);
 
     glBindVertexArray(vao);
@@ -2609,7 +2615,7 @@ int main(int argc, const char * argv[])
     // test_1D_array_textures(window, width, height);
     // test_2D_textures(window, width, height);
     // test_3D_textures(window, width, height);
-    test_2D_array_textures(window, width, height);
+    // test_2D_array_textures(window, width, height);
     // test_textures(window, width, height, 0, 0);
     // test_textures(window, width, height, 0, 0, 0, GL_NEAREST, GL_NEAREST);
     // test_textures(window, width, height, 0, 0, 0, GL_LINEAR, GL_LINEAR);
@@ -2617,7 +2623,7 @@ int main(int argc, const char * argv[])
     // test_textures(window, width, height, 1, 1, 8, GL_LINEAR_MIPMAP_NEAREST);
     // test_framebuffer(window, width, height);
     // test_readpixels(window, width, height);
-    // test_compute_shader(window, width, height);
+    test_compute_shader(window, width, height);
 
     glfwTerminate();
 
