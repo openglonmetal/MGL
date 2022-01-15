@@ -149,18 +149,18 @@ enum {
 #define DIRTY_VAO_ATTRIB       (DIRTY_VAO_BUFFER_BASE << 1)
 
 typedef struct {
-    uint  count;
-    uint  instanceCount;
-    uint  first;
-    uint  baseInstance;
+    unsigned int  count;
+    unsigned int  instanceCount;
+    unsigned int  first;
+    unsigned int  baseInstance;
 } DrawArraysIndirectCommand;
 
 typedef struct {
-    uint  count;
-    uint  instanceCount;
-    uint  first;
+    unsigned int  count;
+    unsigned int  instanceCount;
+    unsigned int  first;
     int  baseVertex;
-    uint  baseInstance;
+    unsigned int  baseInstance;
 } DrawElementsIndirectCommand;
 
 typedef struct BufferData_t {
@@ -473,7 +473,8 @@ enum {
     dirtyAlphaState,
     dirtyImageUnit,
     dirtyBufferBase,
-    maxDirtyState
+    maxDirtyState,
+    dirtyAllBit = 31
 };
 
 #define DIRTY_VAO       (0x1 << dirtyVAO)
@@ -491,6 +492,7 @@ enum {
 #define DIRTY_ALPHA_STATE   (0x1 << dirtyAlphaState)
 #define DIRTY_IMAGE_UNIT_STATE   (0x1 << dirtyImageUnit)
 #define DIRTY_BUFFER_BASE_STATE   (0x1 << dirtyBufferBase)
+#define DIRTY_ALL_BIT   ((unsigned)0x1 << dirtyAllBit)    // so we know the dirty all was set.
 #define DIRTY_ALL       (0xFFFFFFFF)
 
 typedef struct {
@@ -571,6 +573,10 @@ typedef struct GLMContextRec_t *GLMContext;
 struct GLMMetalFuncs {
     void *mtlObj;
     void *mtlView;
+
+    void (*mtlBindBuffer)(GLMContext glm_ctx, Buffer *ptr);
+    void (*mtlBindTexture)(GLMContext glm_ctx, Texture *ptr);
+    void (*mtlBindProgram)(GLMContext glm_ctx, Program *ptr);
 
     void (*mtlDeleteMTLObj)(GLMContext glm_ctx, void *obj);
 
@@ -671,6 +677,9 @@ GLuint bicountForFormatType(GLenum format, GLenum type, GLenum component);
 GLMContext MGLgetCurrentContext(void);
 void MGLget(GLMContext ctx, GLenum param, GLuint *data);
 bool pixelConvertToInternalFormat(GLMContext ctx, GLenum internalformat, GLenum format, GLenum type, const void *src, void *dst, size_t len);
+
+bool createTextureLevel(GLMContext ctx, Texture *tex, GLuint face, GLint level, GLboolean is_array, GLint internalformat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, void *pixels, GLboolean proxy);
+
 
 #ifdef __cplusplus
 };
