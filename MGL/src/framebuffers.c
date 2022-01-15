@@ -29,7 +29,6 @@
 
 extern GLuint textureIndexFromTarget(GLMContext ctx, GLenum target);
 extern Texture *newTexObj(GLMContext ctx, GLenum target);
-extern void createTextureLevel(GLMContext ctx, Texture *tex, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *pixels);
 extern Texture *findTexture(GLMContext ctx, GLuint texture);
 
 
@@ -311,8 +310,12 @@ void mglRenderbufferStorage(GLMContext ctx, GLenum target, GLenum internalformat
     tex = newTexObj(ctx, target);
     assert(tex);
 
-    createTextureLevel(ctx, tex, 0, internalformat, width, height, 0, 0, 0, NULL);
+    //bool createTextureLevel(GLMContext ctx, Texture *tex, GLuint face, GLint level, GLboolean is_array, GLint internalformat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, void *pixels, GLboolean proxy)
+    createTextureLevel(ctx, tex, 0, 0, false, internalformat, width, height, 1, 0, 0, NULL, false);
 
+    tex->access = GL_READ_WRITE;
+    tex->is_render_target = true;
+    
     ctx->state.renderbuffer->tex = tex;
 }
 
