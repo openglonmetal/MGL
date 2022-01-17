@@ -19,6 +19,7 @@
  */
 
 #include <assert.h>
+#include <stdio.h>
 
 #include <mach/vm_types.h>
 #include <glslang_c_interface.h>
@@ -35,11 +36,11 @@
 #include "glm_params.h"
 
 // macros because I get tired of write if this and that then return
-#define RETURN_ON_FAILURE(_expr_) if (_expr_ == false) return
-#define RETURN_FALSE_ON_FAILURE(_expr_) if (_expr_ == false) return false
-#define RETURN_FALSE_ON_NULL(_expr_) if (_expr_ == NULL) return false
-#define RETURN_NULL_ON_FAILURE(_expr_) if (_expr_ == false) return NULL
-#define RETURN_ON_NULL(_expr_) if (_expr_ == NULL) return
+#define RETURN_ON_FAILURE(_expr_) if (_expr_ == false) { printf("failure %s:%d\n",__FUNCTION__,__LINE__); return; }
+#define RETURN_FALSE_ON_FAILURE(_expr_) if (_expr_ == false) { printf("failure %s:%d\n",__FUNCTION__,__LINE__); return false; }
+#define RETURN_FALSE_ON_NULL(_expr_) if (_expr_ == NULL) { printf("failure %s:%d\n",__FUNCTION__,__LINE__); return false; }
+#define RETURN_NULL_ON_FAILURE(_expr_) if (_expr_ == false) { printf("failure %s:%d\n",__FUNCTION__,__LINE__); return NULL; }
+#define RETURN_ON_NULL(_expr_) if (_expr_ == NULL) { printf("failure %s:%d\n",__FUNCTION__,__LINE__); return; }
 
 #define STATE(_VAR_)     ctx->state._VAR_
 #define STATE_VAR(_VAR_) ctx->state.var._VAR_
@@ -271,7 +272,7 @@ typedef struct Texture_t {
     GLuint index;
     GLuint mipmapped;
     GLboolean genmipmaps;
-
+    GLboolean mtl_requires_private_storage; // depth, multi sample
     TextureParameter params;
 
     // base level params

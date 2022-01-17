@@ -603,6 +603,7 @@
 		FF7B7AC727728C3100C2028F /* glm_params.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = glm_params.h; sourceTree = "<group>"; };
 		FF7B7AC827728C3100C2028F /* glm_limits.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = glm_limits.h; sourceTree = "<group>"; };
 		FF7B7AF6277290EB00C2028F /* gl_core.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = gl_core.c; sourceTree = "<group>"; };
+		FF86AEA92794DD0A00C51A88 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		FF8F91A72780FBBD00A1E546 /* samplers.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = samplers.c; sourceTree = "<group>"; };
 		FFA1EB702782851500EEE5AD /* compute.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = compute.c; sourceTree = "<group>"; };
 		FFA83000276F97DE003F1EA0 /* libMGL.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libMGL.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1071,6 +1072,7 @@
 		FFA82FF7276F97DE003F1EA0 = {
 			isa = PBXGroup;
 			children = (
+				FF86AEA92794DD0A00C51A88 /* README.md */,
 				FF48102C2772B45A00BBF7C7 /* GLFW */,
 				FF7B77E727710FE100C2028F /* GL */,
 				FF7B784927714BE700C2028F /* spec_parser */,

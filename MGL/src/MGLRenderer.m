@@ -35,6 +35,8 @@
 #import "MGLRenderer.h"
 #import "glm_context.h"
 
+#define TRACE_FUNCTION()    printf("%s\n", __FUNCTION__);
+
 extern void mglDrawBuffer(GLMContext ctx, GLenum buf);
 
 // for resource types SPVC_RESOURCE_TYPE_UNIFORM_BUFFER..
@@ -259,64 +261,54 @@ MTLVertexFormat glTypeSizeToMtlType(GLuint type, GLuint size, bool normalized)
     return MTLVertexFormatInvalid;
 }
 
-#pragma mark buffer objects
-- (id<MTLBuffer>) createMTLBufferFromGLMBuffer:(Buffer *) ptr
+#pragma mark debug code
+void printDirtyBit(unsigned dirty_bits, unsigned dirty_flag, const char *name)
 {
-    MTLResourceOptions options;
+    if (dirty_bits & dirty_flag)
+        printf("%s", name);
+}
 
-    if (ptr->immutable_storage & BUFFER_IMMUTABLE_STORAGE_FLAG)
+void logDirtyBits(GLMContext ctx)
+{
+    if(ctx->state.dirty_bits)
     {
-        if (ptr->storage_flags & GL_CLIENT_STORAGE_BIT)
+        if (ctx->state.dirty_bits & DIRTY_ALL_BIT)
         {
-            options = MTLResourceCPUCacheModeDefaultCache | MTLResourceStorageModeManaged;
-
-            // ways we will only write to this
-            if ((ptr->storage_flags & GL_MAP_READ_BIT) == 0)
-            {
-                options |= MTLResourceCPUCacheModeWriteCombined;
-            }
-
-            id<MTLBuffer> buffer = [_device newBufferWithBytesNoCopy: (void *)(ptr->data.buffer_data)
-                                                         length: ptr->data.buffer_size
-                                                        options: options
-                                                    deallocator: ^(void *pointer, NSUInteger length)
-                                                    {
-                                                        kern_return_t err;
-
-                                                        err = vm_deallocate((vm_map_t) mach_task_self(),
-                                                                            (vm_address_t) pointer,
-                                                                            length);
-
-                                                        assert(err == 0);
-                                                    }];
-
-            assert(buffer);
-
-            return buffer;
+            printDirtyBit(ctx->state.dirty_bits, DIRTY_ALL_BIT, "DIRTY_ALL_BIT set");
         }
         else
         {
-            options = MTLResourceCPUCacheModeDefaultCache;
-
-            // we will only write to this
-            if ((ptr->storage_flags & GL_MAP_READ_BIT) == 0)
-            {
-                options |= MTLResourceCPUCacheModeWriteCombined;
-            }
-
-            id<MTLBuffer> buffer = [_device newBufferWithLength: ptr->data.buffer_size
-                                                        options: options];
-            assert(buffer);
-
-            return buffer;
+            printDirtyBit(ctx->state.dirty_bits, DIRTY_VAO, "DIRTY_VAO ");
+            printDirtyBit(ctx->state.dirty_bits, DIRTY_STATE, "DIRTY_STATE ");
+            printDirtyBit(ctx->state.dirty_bits, DIRTY_BUFFER, "DIRTY_BUFFER ");
+            printDirtyBit(ctx->state.dirty_bits, DIRTY_TEX, "DIRTY_TEX ");
+            printDirtyBit(ctx->state.dirty_bits, DIRTY_TEX_PARAM, "DIRTY_TEX_PARAM ");
+            printDirtyBit(ctx->state.dirty_bits, DIRTY_TEX_BINDING, "DIRTY_TEX_BINDING ");
+            printDirtyBit(ctx->state.dirty_bits, DIRTY_SAMPLER, "DIRTY_SAMPLER ");
+            printDirtyBit(ctx->state.dirty_bits, DIRTY_SHADER, "DIRTY_SHADER ");
+            printDirtyBit(ctx->state.dirty_bits, DIRTY_PROGRAM, "DIRTY_PROGRAM ");
+            printDirtyBit(ctx->state.dirty_bits, DIRTY_FBO, "DIRTY_FBO ");
+            printDirtyBit(ctx->state.dirty_bits, DIRTY_DRAWABLE, "DIRTY_DRAWABLE ");
+            printDirtyBit(ctx->state.dirty_bits, DIRTY_RENDER_STATE, "DIRTY_RENDER_STATE ");
+            printDirtyBit(ctx->state.dirty_bits, DIRTY_ALPHA_STATE, "DIRTY_ALPHA_STATE ");
+            printDirtyBit(ctx->state.dirty_bits, DIRTY_IMAGE_UNIT_STATE, "DIRTY_IMAGE_UNIT_STATE ");
+            printDirtyBit(ctx->state.dirty_bits, DIRTY_BUFFER_BASE_STATE, "DIRTY_BUFFER_BASE_STATE ");
         }
+        printf("\n");
     }
-    else // non immutable buffer
+}
+
+#pragma mark buffer objects
+- (void) bindMTLBuffer:(Buffer *) ptr
+{
+    MTLResourceOptions options;
+
+    if (ptr->storage_flags & GL_CLIENT_STORAGE_BIT)
     {
         options = MTLResourceCPUCacheModeDefaultCache | MTLResourceStorageModeManaged;
 
         // ways we will only write to this
-        if (ptr->usage == GL_DYNAMIC_DRAW)
+        if ((ptr->storage_flags & GL_MAP_READ_BIT) == 0)
         {
             options |= MTLResourceCPUCacheModeWriteCombined;
         }
@@ -327,20 +319,52 @@ MTLVertexFormat glTypeSizeToMtlType(GLuint type, GLuint size, bool normalized)
                                                 deallocator: ^(void *pointer, NSUInteger length)
                                                 {
                                                     kern_return_t err;
-
                                                     err = vm_deallocate((vm_map_t) mach_task_self(),
                                                                         (vm_address_t) pointer,
                                                                         length);
-
                                                     assert(err == 0);
                                                 }];
 
+        ptr->data.mtl_data = (void *)CFBridgingRetain(buffer);
+    }
+    else
+    {
+        // need to figure this out for non-client storage
+        options = MTLResourceCPUCacheModeDefaultCache | MTLResourceStorageModeManaged;
+
+        // we will only write to this
+        if ((ptr->storage_flags & GL_MAP_READ_BIT) == 0)
+        {
+            options |= MTLResourceCPUCacheModeWriteCombined;
+        }
+
+        id<MTLBuffer> buffer = [_device newBufferWithLength: ptr->data.buffer_size
+                                                    options: options];
         assert(buffer);
 
-        return buffer;
-    }
+        // a backing can allocated initially delete it and point the
+        // backing data to the MTL buffer
+        if (ptr->data.buffer_data)
+        {
+            void *data;
 
-    return NULL;
+            data = buffer.contents;
+            memcpy(data, (void *)ptr->data.buffer_data, ptr->data.buffer_size);
+
+            [buffer didModifyRange:NSMakeRange(0, ptr->data.buffer_size)];
+
+            kern_return_t err;
+            err = vm_deallocate((vm_map_t) mach_task_self(),
+                                (vm_address_t) ptr->data.buffer_data,
+                                ptr->data.buffer_size);
+
+            assert(err == 0);
+
+            ptr->data.buffer_data = (vm_address_t)data;
+        }
+
+        ptr->data.mtl_data = (void *)CFBridgingRetain(buffer);
+    }
 }
 
 - (bool) mapGLBuffersToMTLBufferMap:(BufferMapList *)buffer_map stage: (int) stage
@@ -416,23 +440,21 @@ MTLVertexFormat glTypeSizeToMtlType(GLuint type, GLuint size, bool normalized)
         buffer_map->buffers[vao_buffer_start].buf = NULL;
 
         // create attribute map
+        //
+        // we need to cache this mapping, its called on each draw command
+        //
         for(int att=0;att<ctx->state.max_vertex_attribs; att++)
         {
             if (VAO_STATE(enabled_attribs) & (0x1 << att))
             {
-                if (VAO_ATTRIB_STATE(att).buffer == NULL)
-                {
-                    ctx->error_func(ctx, __FUNCTION__, GL_INVALID_OPERATION);
-
-                    return false;
-                }
+                // shouldn't get here, validateVAO should have failed
+                assert(VAO_ATTRIB_STATE(att).buffer);
 
                 // check all the buffers for metal objects
                 Buffer *gl_buffer;
                 Buffer *map_buffer;
 
                 gl_buffer = VAO_ATTRIB_STATE(att).buffer;
-                assert(gl_buffer);
 
                 // check start for map... then check
                 map_buffer = buffer_map->buffers[vao_buffer_start].buf;
@@ -511,13 +533,8 @@ MTLVertexFormat glTypeSizeToMtlType(GLuint type, GLuint size, bool normalized)
     {
         if (ptr->data.mtl_data == NULL)
         {
-            id <MTLBuffer> buffer = [self createMTLBufferFromGLMBuffer: ptr];
-
-            ptr->data.mtl_data = (void *)CFBridgingRetain(buffer);
-
-            assert(ptr->data.mtl_data);
-
-            [buffer didModifyRange: NSMakeRange(0, ptr->data.buffer_size)];
+            [self bindMTLBuffer: ptr];
+            RETURN_FALSE_ON_NULL(ptr->data.mtl_data);
 
             // clear dirty bits
             ptr->data.dirty_bits = 0;
@@ -525,8 +542,19 @@ MTLVertexFormat glTypeSizeToMtlType(GLuint type, GLuint size, bool normalized)
     }
     else if (ptr->data.dirty_bits & DIRTY_BUFFER_DATA)
     {
-        id<MTLBuffer> buffer = (__bridge id<MTLBuffer>)(ptr->data.mtl_data);
+        if (ptr->data.mtl_data == NULL)
+        {
+            [self bindMTLBuffer: ptr];
+            RETURN_FALSE_ON_NULL(ptr->data.mtl_data);
 
+            // clear dirty bits
+            ptr->data.dirty_bits = 0;
+
+            // we had to create a buffer so no need to update data
+            return true;
+        }
+
+        id<MTLBuffer> buffer = (__bridge id<MTLBuffer>)(ptr->data.mtl_data);
         assert(buffer);
 
         // clear dirty bits if not mapped as coherent
@@ -566,7 +594,7 @@ MTLVertexFormat glTypeSizeToMtlType(GLuint type, GLuint size, bool normalized)
         {
             if (gl_buffer->data.dirty_bits)
             {
-                [self updateDirtyBuffer: gl_buffer];
+                RETURN_FALSE_ON_FAILURE([self updateDirtyBuffer: gl_buffer]);;
             }
         }
     }
@@ -689,6 +717,7 @@ MTLVertexFormat glTypeSizeToMtlType(GLuint type, GLuint size, bool normalized)
     {
 //        case GL_TEXTURE_1D: tex_type = MTLTextureType1D; break;
         case GL_TEXTURE_1D: tex_type = MTLTextureType2D; break;
+        case GL_RENDERBUFFER: tex_type = MTLTextureType2D; break;
         case GL_TEXTURE_1D_ARRAY: tex_type = MTLTextureType1DArray; is_array = true; break;
         case GL_TEXTURE_2D: tex_type = MTLTextureType2D; break;
         case GL_TEXTURE_2D_ARRAY: tex_type = MTLTextureType2DArray; is_array = true; break;
@@ -762,8 +791,14 @@ MTLVertexFormat glTypeSizeToMtlType(GLuint type, GLuint size, bool normalized)
 
     tex_desc = [[MTLTextureDescriptor alloc] init];
     tex_desc.textureType = tex_type;
+    tex_desc.pixelFormat = pixelFormat;
     tex_desc.width = width;
     tex_desc.height = height;
+
+    if (tex->mtl_requires_private_storage)
+    {
+        tex_desc.storageMode = MTLStorageModePrivate;
+    }
 
     if (is_array)
     {
@@ -1107,10 +1142,13 @@ MTLVertexFormat glTypeSizeToMtlType(GLuint type, GLuint size, bool normalized)
     {
         int textures_to_be_mapped = count;
 
+        // something is very wrong..
         assert(textures_to_be_mapped < TEXTURE_UNITS);
 
         for (int i=0; textures_to_be_mapped > 0; i++)
         {
+            RETURN_FALSE_ON_FAILURE(i < count);
+
             GLuint spirv_location;
             Texture *ptr;
 
@@ -1168,9 +1206,6 @@ MTLVertexFormat glTypeSizeToMtlType(GLuint type, GLuint size, bool normalized)
 
                 textures_to_be_mapped--;
             }
-
-            // endless loop
-            RETURN_FALSE_ON_FAILURE(i<TEXTURE_UNITS);
         }
     }
 
@@ -1347,6 +1382,8 @@ MTLVertexFormat glTypeSizeToMtlType(GLuint type, GLuint size, bool normalized)
     ptr = ctx->state.program;
     assert(ptr);
 
+    assert(index < ptr->spirv_resources_list[stage][type].count);
+    
     return ptr->spirv_resources_list[stage][type].list[index].location;
 }
 
@@ -1378,7 +1415,7 @@ MTLVertexFormat glTypeSizeToMtlType(GLuint type, GLuint size, bool normalized)
         {
             if (ptr->spirv[i].msl_str)
             {
-                len += strlen(ctx->state.program->spirv[i].msl_str) + 1024;
+                len += strlen(ptr->spirv[i].msl_str) + 1024;
             }
         }
 
@@ -1389,7 +1426,7 @@ MTLVertexFormat glTypeSizeToMtlType(GLuint type, GLuint size, bool normalized)
         {
             if (ptr->spirv[i].msl_str)
             {
-                strcat(src, ctx->state.program->spirv[i].msl_str);
+                strcat(src, ptr->spirv[i].msl_str);
             }
         }
 
@@ -1424,7 +1461,7 @@ MTLVertexFormat glTypeSizeToMtlType(GLuint type, GLuint size, bool normalized)
         ptr->dirty_bits &= ~DIRTY_PROGRAM;
     }
 
-    library = (__bridge id<MTLLibrary>)(ctx->state.program->mtl_data);
+    library = (__bridge id<MTLLibrary>)(ptr->mtl_data);
     assert(library);
 
     // bind mtl functions to shaders
@@ -1439,7 +1476,6 @@ MTLVertexFormat glTypeSizeToMtlType(GLuint type, GLuint size, bool normalized)
                 function = [library newFunctionWithName:[NSString stringWithUTF8String: shader->entry_point]];
                 assert(function);
                 shader->mtl_data = (void *)CFBridgingRetain(function);
-
             }
         }
     }
@@ -1620,6 +1656,12 @@ MTLVertexFormat glTypeSizeToMtlType(GLuint type, GLuint size, bool normalized)
 
 - (bool) newRenderEncoder
 {
+    if (VAO() == NULL)
+        return true;    // not really a failure we just can't setup a new desc
+
+    // end encoding on current render encoder
+    [self endRenderEncoding];
+
     // grab the next drawable from CAMetalLayer
     if (_drawable == NULL)
     {
@@ -1729,7 +1771,7 @@ MTLVertexFormat glTypeSizeToMtlType(GLuint type, GLuint size, bool normalized)
             texture = _drawable.texture;
 
             // sleep mode will return a null texture
-            RETURN_FALSE_ON_FAILURE(texture != NULL);
+            RETURN_FALSE_ON_NULL(texture);
         }
         else if(_drawBuffers[mgl_drawbuffer].drawbuffer)
         {
@@ -1754,7 +1796,6 @@ MTLVertexFormat glTypeSizeToMtlType(GLuint type, GLuint size, bool normalized)
                 depth_texture = [self newDrawBuffer: ctx->depth_format.mtl_pixel_format isDepthStencil:true];
                 _drawBuffers[mgl_drawbuffer].depthbuffer = depth_texture;
             }
-
         }
 
         // attach stencil
@@ -1835,10 +1876,8 @@ MTLVertexFormat glTypeSizeToMtlType(GLuint type, GLuint size, bool normalized)
     assert(_currentRenderEncoder);
     _currentRenderEncoder.label = @"GL Render Encoder";
 
+    // apply all state that isn't included in a renderPassDescriptor into the render encoder
     [self updateCurrentRenderEncoder];
-
-    if (VAO() == NULL)
-        return false;
 
     if ([self bindBuffersToCurrentRenderEncoder] == false)
     {
@@ -1857,7 +1896,7 @@ MTLVertexFormat glTypeSizeToMtlType(GLuint type, GLuint size, bool normalized)
     return true;
 }
 
-- (bool) newCommandBufferAndRenderEncoder
+- (bool) newCommandBuffer
 {
     if (_currentEvent)
     {
@@ -1891,8 +1930,14 @@ MTLVertexFormat glTypeSizeToMtlType(GLuint type, GLuint size, bool normalized)
     _currentCommandBuffer = [_commandQueue commandBuffer];
     assert(_currentCommandBuffer);
 
-    if ([self newRenderEncoder] == false)
-        return false;
+    return true;
+}
+
+- (bool) newCommandBufferAndRenderEncoder
+{
+    RETURN_FALSE_ON_FAILURE([self newCommandBuffer]);
+
+    RETURN_FALSE_ON_FAILURE([self newRenderEncoder]);
 
     return true;
 }
@@ -2054,7 +2099,6 @@ MTLVertexFormat glTypeSizeToMtlType(GLuint type, GLuint size, bool normalized)
             vertexDescriptor.attributes[i].offset = ctx->state.vao->attrib[i].base_plus_relative_offset;
             vertexDescriptor.attributes[i].format = format;
 
-            assert(VAO_ATTRIB_STATE(i).stride); // find these issues
             vertexDescriptor.layouts[mapped_buffer_index].stride = VAO_ATTRIB_STATE(i).stride;
             if (ctx->state.vao->attrib[i].divisor)
                 vertexDescriptor.layouts[mapped_buffer_index].stepRate = ctx->state.vao->attrib[i].divisor;
@@ -2209,7 +2253,7 @@ MTLVertexFormat glTypeSizeToMtlType(GLuint type, GLuint size, bool normalized)
     // depth attachment
     if (fbo->depth.texture)
     {
-        if ([self bindFramebufferTexture: &fbo->depth isDrawBuffer: false])
+        if ([self bindFramebufferTexture: &fbo->depth isDrawBuffer: true] == false)
         {
             printf("Failed Framebuffer Attachment\n");
             return false;
@@ -2219,7 +2263,7 @@ MTLVertexFormat glTypeSizeToMtlType(GLuint type, GLuint size, bool normalized)
     // stencil attachment
     if (fbo->stencil.texture)
     {
-        if ([self bindFramebufferTexture: &fbo->stencil isDrawBuffer: false])
+        if ([self bindFramebufferTexture: &fbo->stencil isDrawBuffer: true] == false)
         {
             printf("Failed Framebuffer Attachment\n");
             return false;
@@ -2227,6 +2271,15 @@ MTLVertexFormat glTypeSizeToMtlType(GLuint type, GLuint size, bool normalized)
     }
 
     return true;
+}
+
+- (void) endRenderEncoding
+{
+    if (_currentRenderEncoder)
+    {
+        [_currentRenderEncoder endEncoding];
+        _currentRenderEncoder = NULL;
+    }
 }
 
 #pragma mark ------------------------------------------------------------------------------------------
@@ -2238,6 +2291,9 @@ MTLVertexFormat glTypeSizeToMtlType(GLuint type, GLuint size, bool normalized)
     assert(_device);
     assert(_commandQueue);
 
+    //logDirtyBits(ctx);
+    
+    // since a clear is embedded into a render encoder
     if (VAO() == NULL)
     {
         if (draw_command)
@@ -2252,21 +2308,23 @@ MTLVertexFormat glTypeSizeToMtlType(GLuint type, GLuint size, bool normalized)
         // for a clear flush sequence...
         if (ctx->state.dirty_bits & DIRTY_STATE)
         {
-            if (_currentRenderEncoder)
-            {
-                [_currentRenderEncoder endEncoding];
-            }
-            
-            [self newRenderEncoder];
+            // end encoding on current render encoder
+            [self endRenderEncoding];
+
+            RETURN_FALSE_ON_FAILURE([self newRenderEncoder]);
         }
 
         return true;
     }
 
-    if (_currentRenderEncoder == NULL)
+    // only draw commands need a functioning render encoder
+    // this can mess up a transition between compute and rendering on a flush
+    // so just return
+    // we may have to create a blank render encoder to safely run compute and
+    // rendering correctly
+    if (draw_command == false)
     {
-        if ([self newRenderEncoder] == false)
-            return false;
+        return true;
     }
 
     if (ctx->state.dirty_bits)
@@ -2280,15 +2338,16 @@ MTLVertexFormat glTypeSizeToMtlType(GLuint type, GLuint size, bool normalized)
                 {
                     if (ctx->state.framebuffer->dirty_bits & DIRTY_FBO_BINDING)
                     {
-                        if([self bindFramebufferAttachmentTextures] == false)
-                        {
-                            return false;
-                        }
+                        RETURN_FALSE_ON_FAILURE([self bindFramebufferAttachmentTextures]);
 
                         ctx->state.framebuffer->dirty_bits &= ~DIRTY_FBO_BINDING;
                     }
                 }
+
+                // dirty FBO state can't be cleared just yet its needed below
             }
+
+            ctx->state.dirty_bits &= ~DIRTY_STATE;
         }
 
         // check for dirty program and vao
@@ -2298,36 +2357,22 @@ MTLVertexFormat glTypeSizeToMtlType(GLuint type, GLuint size, bool normalized)
         // dirty buffer base causes buffers to be remapped to new indexes
         if (ctx->state.dirty_bits & (DIRTY_PROGRAM | DIRTY_VAO | DIRTY_BUFFER_BASE_STATE))
         {
-            RETURN_FALSE_ON_FAILURE(ctx->state.program->linked_glsl_program);
+            // programs are now compiled before execution, we shouldn't get here
+            assert(ctx->state.program->mtl_data);
 
             // figure out vertex shader uniforms / buffer mappings
-            if ([self mapBuffersToMTL] == false)
-            {
-                return false;
-            }
+            RETURN_FALSE_ON_FAILURE([self mapBuffersToMTL]);
 
             ctx->state.dirty_bits &= ~DIRTY_BUFFER_BASE_STATE;
         }
 
         // dirty tex covers all texture modifications
-        if (ctx->state.dirty_bits & DIRTY_TEX)
+        if (ctx->state.dirty_bits & (DIRTY_PROGRAM | DIRTY_TEX | DIRTY_TEX_BINDING | DIRTY_SAMPLER))
         {
-            if ([self bindActiveTexturesToMTL] == false)
-            {
-                return false;
-            }
+            RETURN_FALSE_ON_FAILURE([self bindActiveTexturesToMTL]);
 
-            ctx->state.dirty_bits &= ~DIRTY_TEX;
-        }
-
-        // dirty buffer covers all buffer modifications
-        if (ctx->state.dirty_bits & DIRTY_BUFFER)
-        {
-            // updateDirtyBaseBufferList binds new mtl buffers or updates old ones
-            [self updateDirtyBaseBufferList: &ctx->state.vertex_buffer_map_list];
-            [self updateDirtyBaseBufferList: &ctx->state.fragment_buffer_map_list];
-
-            ctx->state.dirty_bits &= ~DIRTY_BUFFER;
+            // textures / active textures and samplers are all handled in bindActiveTexturesToMTL
+            ctx->state.dirty_bits &= ~(DIRTY_TEX | DIRTY_TEX_BINDING | DIRTY_SAMPLER);
         }
 
         // a dirty vao needs to update the render encoder and buffer list
@@ -2336,29 +2381,45 @@ MTLVertexFormat glTypeSizeToMtlType(GLuint type, GLuint size, bool normalized)
             // we have a dirty VAO, all the renderbuffer bindings are invalid so we need a new renderbuffer
             // with new renderbuffer bindings
 
-            // always end encoding and start a new encoder
-            assert(_currentRenderEncoder);
-            [_currentRenderEncoder endEncoding];
+            // always end encoding and start a new encoder and bind new vertex buffers
+            // end encoding on current render encoder
+            [self endRenderEncoding];
 
             // updateDirtyBaseBufferList binds new mtl buffers or updates old ones
-            [self updateDirtyBaseBufferList: &ctx->state.vertex_buffer_map_list];
-            [self updateDirtyBaseBufferList: &ctx->state.fragment_buffer_map_list];
+            RETURN_FALSE_ON_FAILURE([self updateDirtyBaseBufferList: &ctx->state.vertex_buffer_map_list]);
+            RETURN_FALSE_ON_FAILURE([self updateDirtyBaseBufferList: &ctx->state.fragment_buffer_map_list]);
 
             // get a new renderer encoder
             RETURN_FALSE_ON_FAILURE([self newRenderEncoder]);
+
+            // clear dirty render state
+            ctx->state.dirty_bits &= ~DIRTY_RENDER_STATE;
+        }
+        else if (ctx->state.dirty_bits & DIRTY_BUFFER)
+        {
+            // updateDirtyBaseBufferList binds new mtl buffers or updates old ones
+            RETURN_FALSE_ON_FAILURE([self updateDirtyBaseBufferList: &ctx->state.vertex_buffer_map_list]);
+            RETURN_FALSE_ON_FAILURE([self updateDirtyBaseBufferList: &ctx->state.fragment_buffer_map_list]);
+
+            ctx->state.dirty_bits &= ~DIRTY_BUFFER;
         }
         else if (ctx->state.dirty_bits & DIRTY_RENDER_STATE)
         {
+            if (_currentRenderEncoder == NULL)
+            {
+                RETURN_FALSE_ON_FAILURE([self newRenderEncoder]);
+            }
+
             // a dirty render state may just be something like alpha changes which don't require a new renderbuffer
 
-            // call this since newRenderEncoder will update the renderstate
+            // updateCurrentRenderEncoder will update the renderstate outside of creating a new one
             [self updateCurrentRenderEncoder];
 
             ctx->state.dirty_bits &= ~DIRTY_RENDER_STATE;
         }
 
         // new pipeline / vertex / renderbuffer and pipelinestate descriptor, should probably make this a single dirty bit
-        if (ctx->state.dirty_bits & (DIRTY_PROGRAM | DIRTY_VAO | DIRTY_FBO | DIRTY_ALPHA_STATE))
+        if (ctx->state.dirty_bits & (DIRTY_PROGRAM | DIRTY_VAO | DIRTY_FBO | DIRTY_ALPHA_STATE | DIRTY_RENDER_STATE))
         {
             // create pipeline descriptor
             MTLRenderPipelineDescriptor *pipelineStateDescriptor;
@@ -2396,11 +2457,21 @@ MTLVertexFormat glTypeSizeToMtlType(GLuint type, GLuint size, bool normalized)
             //  went wrong.  (Metal API validation is enabled by default when a debug build is run
             //  from Xcode.)
             NSAssert(_pipelineState, @"Failed to created pipeline state: %@", error);
+            RETURN_FALSE_ON_NULL(_pipelineState);
 
             ctx->state.dirty_bits &= ~(DIRTY_PROGRAM | DIRTY_VAO | DIRTY_FBO);
         }
 
-        ctx->state.dirty_bits = 0;
+        //if (ctx->state.dirty_bits)
+        //    logDirtyBits(ctx);
+
+        // clear all bits when the DIRTY ALL bit is set.. kind of a hack but we want to
+        // check for dirty bits outside of dirty all
+        if (ctx->state.dirty_bits & DIRTY_ALL_BIT)
+            ctx->state.dirty_bits = 0;
+
+        // we missed something
+        //assert(ctx->state.dirty_bits == 0);
     }
 
     // Create a render command encoder.
@@ -2415,7 +2486,7 @@ MTLVertexFormat glTypeSizeToMtlType(GLuint type, GLuint size, bool normalized)
 {
     assert(computeCommandEncoder);
 
-    [self mapGLBuffersToMTLBufferMap: &ctx->state.compute_buffer_map_list stage:_COMPUTE_SHADER];
+    RETURN_FALSE_ON_FAILURE([self mapGLBuffersToMTLBufferMap: &ctx->state.compute_buffer_map_list stage:_COMPUTE_SHADER]);
 
     // dirty buffer covers all buffer modifications
     if (ctx->state.dirty_bits & DIRTY_BUFFER)
@@ -2432,8 +2503,8 @@ MTLVertexFormat glTypeSizeToMtlType(GLuint type, GLuint size, bool normalized)
 
         ptr = ctx->state.compute_buffer_map_list.buffers[i].buf;
 
-        assert(ptr);
-        assert(ptr->data.mtl_data);
+        RETURN_FALSE_ON_NULL(ptr);
+        RETURN_FALSE_ON_NULL(ptr->data.mtl_data);
 
         id<MTLBuffer> buffer = (__bridge id<MTLBuffer>)(ptr->data.mtl_data);
         assert(buffer);
@@ -2491,7 +2562,9 @@ MTLVertexFormat glTypeSizeToMtlType(GLuint type, GLuint size, bool normalized)
                 {
                     case _TEXTURE: ptr = STATE(active_textures[spirv_binding]); break;
                     case _IMAGE_TEXTURE: ptr = STATE(image_units[spirv_binding].tex); break;
-                    default: ptr = NULL;assert(0);
+                    default:
+                        ptr = NULL;
+                        assert(0);
                 }
 
                 if (ptr)
@@ -2556,6 +2629,8 @@ MTLVertexFormat glTypeSizeToMtlType(GLuint type, GLuint size, bool normalized)
         }
     }
 
+    ctx->state.dirty_bits &= ~(DIRTY_TEX_BINDING | DIRTY_SAMPLER | DIRTY_IMAGE_UNIT_STATE);
+
     return true;
 }
 
@@ -2590,11 +2665,11 @@ MTLVertexFormat glTypeSizeToMtlType(GLuint type, GLuint size, bool normalized)
 
     [computeCommandEncoder setComputePipelineState:computePipelineState];
 
-    [self bindBuffersToComputeEncoder: computeCommandEncoder];
+    RETURN_FALSE_ON_FAILURE([self bindBuffersToComputeEncoder: computeCommandEncoder]);
 
     //setTexture:atIndex:
     //setTextures:withRange:
-    [self bindTexturesToComputeEncoder: computeCommandEncoder];
+    RETURN_FALSE_ON_FAILURE([self bindTexturesToComputeEncoder: computeCommandEncoder]);
 
     // setSamplerState:atIndex:
     // setSamplerState:lodMinClamp:lodMaxClamp:atIndex:
@@ -2603,17 +2678,15 @@ MTLVertexFormat glTypeSizeToMtlType(GLuint type, GLuint size, bool normalized)
 
     // [computeCommandEncoder setThreadgroupMemoryLength:atIndex:
 
+    ctx->state.dirty_bits = 0;
+
     return true;
 }
 
 -(void)mtlDispatchCompute:(GLMContext)glm_ctx groupsX:(GLuint)groups_x groupsY:(GLuint)groups_y groupsZ:(GLuint)groups_z
 {
-    //RETURN_ON_FAILURE([self processGLState: false]);
-
-    // always these three in order
-    // end encoding
-    assert(_currentRenderEncoder);
-    [_currentRenderEncoder endEncoding];
+    // end encoding on current render encoder
+    [self endRenderEncoding];
 
     id <MTLComputeCommandEncoder> computeCommandEncoder = [_currentCommandBuffer computeCommandEncoder];
     assert(computeCommandEncoder);
@@ -2672,7 +2745,7 @@ MTLVertexFormat glTypeSizeToMtlType(GLuint type, GLuint size, bool normalized)
 
     glm_ctx->state.dirty_bits = DIRTY_ALL;
 
-    [self newRenderEncoder];
+    //[self newRenderEncoder];
 }
 
 void mtlDispatchCompute(GLMContext glm_ctx, GLuint num_groups_x, GLuint num_groups_y, GLuint num_groups_z)
@@ -2693,28 +2766,24 @@ void mtlDispatchComputeIndirect(GLMContext glm_ctx, GLintptr indirect)
 }
 
 
--(bool) processBuffer:(Buffer*)buffer
+-(bool) processBuffer:(Buffer*)ptr
 {
-    if (buffer == NULL)
+    if (ptr == NULL)
     {
         NSLog(@"Error: processBuffer failed\n");
 
         return false;
     }
 
-    if (buffer->data.mtl_data == NULL)
+    if (ptr->data.mtl_data == NULL)
     {
-        if (buffer->data.dirty_bits)
-        {
-            buffer->data.mtl_data = (void *)CFBridgingRetain([self createMTLBufferFromGLMBuffer:buffer]);
-        }
+        [self bindMTLBuffer: ptr];
+        RETURN_FALSE_ON_NULL(ptr->data.mtl_data);
+    }
 
-        if (buffer->data.mtl_data == NULL)
-        {
-            NSLog(@"Error: processBuffer failed\n");
-
-            return false;
-        }
+    if (ptr->data.dirty_bits)
+    {
+        [self updateDirtyBuffer: ptr];
     }
 
     return true;
@@ -2722,12 +2791,10 @@ void mtlDispatchComputeIndirect(GLMContext glm_ctx, GLintptr indirect)
 
 -(void) flushCommandBuffer: (bool) finish
 {
-    //RETURN_ON_FAILURE([self processGLState: false]);
+    RETURN_ON_FAILURE([self processGLState: false]);
 
-    // always these three in order
-    // end encoding
-    assert(_currentRenderEncoder);
-    [_currentRenderEncoder endEncoding];
+    // end encoding on current render encoder
+    [self endRenderEncoding];
 
     // Finalize rendering here & push the command buffer to the GPU.
     assert(_currentCommandBuffer);
@@ -2737,9 +2804,34 @@ void mtlDispatchComputeIndirect(GLMContext glm_ctx, GLintptr indirect)
     {
         [_currentCommandBuffer waitUntilCompleted];
     }
+    else
+    {
+        [_currentCommandBuffer waitUntilScheduled];
+    }
 
-    // get a new command buffer renderer encoder
-    [self newCommandBufferAndRenderEncoder];
+    // get a new command buffer
+    [self newCommandBuffer];
+}
+
+#pragma mark C interface to mtlBindBuffer
+void mtlBindBuffer(GLMContext glm_ctx, Buffer *ptr)
+{
+    // Call the Objective-C method using Objective-C syntax
+    [(__bridge id) glm_ctx->mtl_funcs.mtlObj bindMTLBuffer:ptr];
+}
+
+#pragma mark C interface to mtlBindTexture
+void mtlBindTexture(GLMContext glm_ctx, Texture *ptr)
+{
+    // Call the Objective-C method using Objective-C syntax
+    [(__bridge id) glm_ctx->mtl_funcs.mtlObj bindMTLTexture:ptr];
+}
+
+#pragma mark C interface to mtlBindProgram
+void mtlBindProgram(GLMContext glm_ctx, Program *ptr)
+{
+    // Call the Objective-C method using Objective-C syntax
+    [(__bridge id) glm_ctx->mtl_funcs.mtlObj bindMTLProgram:ptr];
 }
 
 #pragma mark C interface to mtlDeleteMTLObj
@@ -2835,21 +2927,26 @@ void mtlFlush (GLMContext glm_ctx, bool finish)
 #pragma mark C interface to mtlSwapBuffers
 -(void) mtlSwapBuffers:(GLMContext) glm_ctx
 {
-    RETURN_ON_FAILURE([self processGLState: false]);
-
-    assert(_currentRenderEncoder);
-    assert(_currentCommandBuffer);
-
-    //printf("%s\n", __FUNCTION__);
-
     if (ctx->state.draw_buffer == GL_FRONT)
     {
-        [_currentCommandBuffer presentDrawable: _drawable];
+        // clear commands rely on processGLState
+        // glClear / glSwap / repeat..
+        RETURN_ON_FAILURE([self processGLState: false]);
+
+        [self endRenderEncoding];
+
+        if (_drawable)
+        {
+            assert(_currentCommandBuffer);
+            [_currentCommandBuffer presentDrawable: _drawable];
+        }
 
         _drawable = [_layer nextDrawable];
-    }
 
-    [self flushCommandBuffer: false];
+        [_currentCommandBuffer commit];
+
+        [self newCommandBufferAndRenderEncoder];
+    }
 }
 
 void mtlSwapBuffers (GLMContext glm_ctx)
@@ -2877,23 +2974,18 @@ void mtlClearBuffer (GLMContext glm_ctx, GLuint type, GLbitfield mask)
     id<MTLBuffer> mtl_buffer;
     void *data;
 
-    // simple hack to save another function def, use buffer sub to create a buffer
-    if (ptr == NULL)
+    if (buf->data.mtl_data == NULL)
     {
-        buf->data.mtl_data = (void *)CFBridgingRetain([self createMTLBufferFromGLMBuffer: buf]);
-
-        return;
+        [self bindMTLBuffer:buf];
     }
 
     mtl_buffer = (__bridge id<MTLBuffer>)(buf->data.mtl_data);
+    assert(mtl_buffer);
 
     data = mtl_buffer.contents;
     memcpy(data+offset, ptr, size);
 
-    if (!(buf->immutable_storage & BUFFER_IMMUTABLE_STORAGE_FLAG))
-    {
-        [mtl_buffer didModifyRange:NSMakeRange(offset, size)];
-    }
+    [mtl_buffer didModifyRange:NSMakeRange(offset, size)];
 }
 
 void mtlBufferSubData(GLMContext glm_ctx, Buffer *buf, size_t offset, size_t size, const void *ptr)
@@ -3031,10 +3123,8 @@ void mtlGetTexImage(GLMContext glm_ctx, Texture *tex, void *pixelBytes, GLuint b
 {
     RETURN_ON_FAILURE([self processGLState: false]);
 
-    if(_currentRenderEncoder)
-    {
-        [_currentRenderEncoder endEncoding];
-    }
+    // end encoding on current render encoder
+    [self endRenderEncoding];
 
     // no failure path..?
     RETURN_ON_FAILURE([self bindMTLTexture:tex]);
@@ -3045,20 +3135,12 @@ void mtlGetTexImage(GLMContext glm_ctx, Texture *tex, void *pixelBytes, GLuint b
     texture = (__bridge id<MTLTexture>)(tex->mtl_data);
     assert(texture);
 
+    // start blit encoder
     id<MTLBlitCommandEncoder> blitCommandEncoder;
     blitCommandEncoder = [_currentCommandBuffer blitCommandEncoder];
 
     [blitCommandEncoder generateMipmapsForTexture:texture];
     [blitCommandEncoder endEncoding];
-
-    //_blitOperationComplete++;
-
-    //[_currentCommandBuffer addCompletedHandler:^(id<MTLCommandBuffer> _currentCommandBuffer) {
-    //    // texture is now ready for use
-    //    self->_blitOperationComplete--;
-    //}];
-
-    [self newRenderEncoder];
 }
 
 void mtlGenerateMipmaps(GLMContext glm_ctx, Texture *tex)
@@ -3069,35 +3151,37 @@ void mtlGenerateMipmaps(GLMContext glm_ctx, Texture *tex)
 
 #pragma mark C interface to mtlTexSubImage
 
-
 -(void)mtlTexSubImage:(GLMContext)glm_ctx tex:(Texture *)tex buf:(Buffer *)buf src_offset:(size_t)src_offset src_pitch:(size_t)src_pitch src_image_size:(size_t)src_image_size src_size:(size_t)src_size slice:(GLuint)slice level:(GLuint)level width:(size_t)width height:(size_t)height depth:(size_t)depth xoffset:(size_t)xoffset yoffset:(size_t)yoffset zoffset:(size_t)zoffset
 {
-    RETURN_ON_FAILURE([self processGLState: false]);
-
     // we can deal with a null buffer but we need a texture
     if (buf->data.mtl_data == NULL)
     {
-        buf->data.mtl_data = (void *)CFBridgingRetain([self createMTLBufferFromGLMBuffer: buf]);
+        [self bindMTLBuffer: buf];
         RETURN_ON_NULL(buf->data.mtl_data);
     }
 
     id<MTLBuffer> buffer;
     buffer = (__bridge id<MTLBuffer>)(buf->data.mtl_data);
+    assert(buffer);
+
+    if (tex->mtl_data == NULL)
+    {
+        [self bindMTLTexture: tex];
+        RETURN_ON_NULL(tex->mtl_data);
+    }
 
     id<MTLTexture> texture;
-
     texture = (__bridge id<MTLTexture>)(tex->mtl_data);
     assert(texture);
 
-    if(_currentRenderEncoder)
-    {
-        [_currentRenderEncoder endEncoding];
-    }
+    // end encoding on current render encoder
+    [self endRenderEncoding];
 
+    // start blit encoder
     id<MTLBlitCommandEncoder> blitCommandEncoder;
     blitCommandEncoder = [_currentCommandBuffer blitCommandEncoder];
 
-    [blitCommandEncoder copyFromBuffer:buffer sourceOffset:src_offset sourceBytesPerRow:src_pitch sourceBytesPerImage:src_image_size sourceSize:MTLSizeMake(width, height, depth) toTexture:texture destinationSlice:zoffset destinationLevel:level destinationOrigin:MTLOriginMake(xoffset, yoffset, zoffset)
+    [blitCommandEncoder copyFromBuffer:buffer sourceOffset:src_offset sourceBytesPerRow:src_pitch sourceBytesPerImage:src_image_size sourceSize:MTLSizeMake(width, height, depth) toTexture:texture destinationSlice:zoffset destinationLevel:level destinationOrigin:MTLOriginMake(xoffset, yoffset, 0)
                                 options:MTLBlitOptionNone];
 
     [blitCommandEncoder endEncoding];
@@ -3810,6 +3894,10 @@ void mtlMultiDrawElementsIndirect(GLMContext glm_ctx, GLenum mode, GLenum type, 
 {
     glm_ctx->mtl_funcs.mtlObj = (void *)CFBridgingRetain(self);
 
+    glm_ctx->mtl_funcs.mtlBindBuffer = mtlBindBuffer;
+    glm_ctx->mtl_funcs.mtlBindTexture = mtlBindTexture;
+    glm_ctx->mtl_funcs.mtlBindProgram = mtlBindProgram;
+
     glm_ctx->mtl_funcs.mtlDeleteMTLObj = mtlDeleteMTLObj;
 
     glm_ctx->mtl_funcs.mtlGetSync = mtlGetSync;
@@ -3859,7 +3947,7 @@ CppCreateMGLRendererAndBindToContext (void *window, void *glm_ctx)
     assert (glm_ctx);
     MGLRenderer *renderer = [[MGLRenderer alloc] init];
     assert (renderer);
-    NSWindow * w = /*(__bridge NSWindow *)*/ CFBridgingRelease( window );
+    NSWindow * w = (__bridge NSWindow *)(window); // just a plain bridge as the autorelease pool will try to release this and crash on exit
     assert (w);
     NSView *view = [[NSView alloc] initWithFrame:NSMakeRect(100, 100, 100, 100)];
     assert (view);
@@ -3907,7 +3995,7 @@ CppCreateMGLRendererAndBindToContext (void *window, void *glm_ctx)
     mglDrawBuffer(glm_ctx, GL_FRONT);
 
     // not sure if this is still needed
-    [self newCommandBufferAndRenderEncoder];
+    [self newCommandBuffer];
     
     glm_ctx->mtl_funcs.mtlView = (void *)CFBridgingRetain(view);
 }

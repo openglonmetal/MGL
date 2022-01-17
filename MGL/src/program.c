@@ -372,7 +372,7 @@ char *parseSPIRVShaderToMetal(GLMContext ctx, Program *ptr, int stage)
     return str_ret;
 }
 
-GLuint linkAndCompileProgramToMetal(GLMContext ctx, Program *pptr, int stage)
+bool linkAndCompileProgramToMetal(GLMContext ctx, Program *pptr, int stage)
 {
     glslang_program_t *glsl_program;
     int err;
@@ -393,9 +393,7 @@ GLuint linkAndCompileProgramToMetal(GLMContext ctx, Program *pptr, int stage)
         printf("glslang_program_get_info_log:\n%s\n", glslang_program_get_info_log(glsl_program));
         printf("glslang_program_get_info_debug_log:\n%s\n", glslang_program_get_info_debug_log(glsl_program));
 
-        assert(err == 0);
-
-        return 1;
+        ERROR_RETURN(GL_INVALID_OPERATION);
     }
 
     // generate SPIVR
@@ -405,7 +403,7 @@ GLuint linkAndCompileProgramToMetal(GLMContext ctx, Program *pptr, int stage)
     {
         printf("%s\n", glslang_program_SPIRV_get_messages(glsl_program));
 
-        assert(0);
+        ERROR_RETURN(GL_INVALID_OPERATION);
     }
 
     // save SPIRV code
@@ -416,13 +414,14 @@ GLuint linkAndCompileProgramToMetal(GLMContext ctx, Program *pptr, int stage)
 
     // compile SPIRV to Metal
     pptr->spirv[stage].msl_str = parseSPIRVShaderToMetal(ctx, pptr, stage);
+    ERROR_CHECK_RETURN(pptr->spirv[stage].msl_str, GL_INVALID_OPERATION);
 
     pptr->linked_glsl_program = glsl_program;
     pptr->dirty_bits |= DIRTY_PROGRAM;
 
     free(glsl_program);
 
-    return err;
+    return true;
 }
 
 void mglLinkProgram(GLMContext ctx, GLuint program)
@@ -440,11 +439,17 @@ void mglLinkProgram(GLMContext ctx, GLuint program)
 
     for (int stage=0; stage<_MAX_SHADER_TYPES; stage++)
     {
+        pptr->spirv[stage].msl_str = 0;
+        
         if (pptr->shader_slots[stage])
         {
             linkAndCompileProgramToMetal(ctx, pptr, stage);
         }
     }
+
+    ctx->mtl_funcs.mtlBindProgram(ctx, pptr);
+
+    ERROR_CHECK_RETURN(pptr->mtl_data, GL_INVALID_OPERATION);
 }
 
 void mglUseProgram(GLMContext ctx, GLuint program)
@@ -462,12 +467,9 @@ void mglUseProgram(GLMContext ctx, GLuint program)
             return;
         }
 
-        if (pptr->linked_glsl_program == NULL)
-        {
-            assert(0);
+        ERROR_CHECK_RETURN(pptr->linked_glsl_program, GL_INVALID_OPERATION);
 
-            return;
-        }
+        ERROR_CHECK_RETURN(pptr->mtl_data, GL_INVALID_OPERATION);
     }
     else
     {

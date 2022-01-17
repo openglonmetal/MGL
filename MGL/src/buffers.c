@@ -179,25 +179,7 @@ void *getBufferData(GLMContext ctx, Buffer *ptr)
 
     ERROR_CHECK_RETURN(ptr->mapped == false, GL_INVALID_OPERATION);
 
-    if (ptr->storage_flags & GL_CLIENT_STORAGE_BIT)
-    {
-        buffer_data = (void *)ptr->data.buffer_data;
-    }
-    else if (ptr->immutable_storage & BUFFER_IMMUTABLE_STORAGE_FLAG)
-    {
-        if (ptr->data.mtl_data == NULL)
-        {
-            ctx->mtl_funcs.mtlBufferSubData(ctx, ptr, 0, 0, NULL);
-
-            ERROR_CHECK_RETURN(ptr->data.mtl_data, GL_OUT_OF_MEMORY);
-        }
-
-        buffer_data = ctx->mtl_funcs.mtlMapUnmapBuffer(ctx, ptr, 0, ptr->size, 0, true);
-    }
-    else
-    {
-        assert(0);
-    }
+    buffer_data = (void *)ptr->data.buffer_data;
 
     ERROR_CHECK_RETURN(buffer_data, GL_INVALID_OPERATION);
 
@@ -213,31 +195,23 @@ void bufferStorage(GLMContext ctx, Buffer *ptr, GLenum target, GLuint index, GLs
     buffer_size = page_size_align(size);
 
     // Allocate directly from VM
-    if ((usage != 0) ||
-        (storage_flags & (GL_CLIENT_STORAGE_BIT | GL_DYNAMIC_STORAGE_BIT)))
+    err = vm_allocate((vm_map_t) mach_task_self(),
+                      (vm_address_t*) &buffer_data,
+                      buffer_size,
+                      VM_FLAGS_ANYWHERE);
+    if (err)
     {
-        err = vm_allocate((vm_map_t) mach_task_self(),
-                          (vm_address_t*) &buffer_data,
-                          buffer_size,
-                          VM_FLAGS_ANYWHERE);
-        if (err)
-        {
-            ERROR_RETURN(GL_OUT_OF_MEMORY);
-        }
-
-        ptr->data.buffer_data = buffer_data;
-
-        // copy to new buffer
-        if (data)
-        {
-            memcpy((void *)ptr->data.buffer_data, data, size);
-
-            ptr->data.dirty_bits |= DIRTY_BUFFER_DATA;
-        }
+        ERROR_RETURN(GL_OUT_OF_MEMORY);
     }
-    else
+
+    ptr->data.buffer_data = buffer_data;
+
+    // copy to new buffer
+    if (data)
     {
-        buffer_data = 0;
+        memcpy((void *)ptr->data.buffer_data, data, size);
+
+        ptr->data.dirty_bits |= DIRTY_BUFFER_DATA;
     }
 
     // init
@@ -249,7 +223,7 @@ void bufferStorage(GLMContext ctx, Buffer *ptr, GLenum target, GLuint index, GLs
     if (usage == 0)
     {
         ptr->immutable_storage = BUFFER_IMMUTABLE_STORAGE_FLAG;
-        ptr->usage = 0;
+        ptr->usage = usage;
     }
     else
     {
@@ -266,28 +240,13 @@ void bufferStorage(GLMContext ctx, Buffer *ptr, GLenum target, GLuint index, GLs
 
     if (data)
     {
-        // use buffer sub to bind the data to mtl
-        if (ptr->immutable_storage & BUFFER_IMMUTABLE_STORAGE_FLAG)
+        if (storage_flags & (GL_CLIENT_STORAGE_BIT | GL_DYNAMIC_STORAGE_BIT))
         {
-            void *buffer_data;
-
-            if (ptr->data.mtl_data == NULL)
-            {
-                ctx->mtl_funcs.mtlBufferSubData(ctx, ptr, 0, 0, NULL);
-
-                ERROR_CHECK_RETURN(ptr->data.mtl_data, GL_OUT_OF_MEMORY);
-            }
-
-            buffer_data = ctx->mtl_funcs.mtlMapUnmapBuffer(ctx, ptr, 0, ptr->size, 0, true);
-            ERROR_CHECK_RETURN(buffer_data, GL_OUT_OF_MEMORY);
-
-            memcpy(buffer_data, data, ptr->size);
-
-            // we don't unmap immutable storage
+            memcpy((void *)ptr->data.buffer_data, data, ptr->size);
         }
         else
         {
-            memcpy((void *)ptr->data.buffer_data, data, ptr->size);
+            ctx->mtl_funcs.mtlBufferSubData(ctx, ptr, 0, ptr->size, data);
         }
     }
 }
@@ -405,14 +364,21 @@ void mglDeleteBuffers(GLMContext ctx, GLsizei n, const GLuint *buffers)
 
             if (ptr->data.buffer_data)
             {
-                if (ptr->data.mtl_data)
+                if (ptr->storage_flags & GL_CLIENT_STORAGE_BIT)
                 {
-                    // the mtl buffer has a deallocator for the vm allocate
-                    ctx->mtl_funcs.mtlDeleteMTLObj(ctx, ptr->data.mtl_data);
+                    if (ptr->data.mtl_data)
+                    {
+                        // the mtl buffer has a deallocator for the vm allocate
+                        ctx->mtl_funcs.mtlDeleteMTLObj(ctx, ptr->data.mtl_data);
+                    }
+                    else
+                    {
+                        vm_deallocate(mach_host_self(), ptr->data.buffer_data, ptr->data.buffer_size);
+                    }
                 }
                 else
                 {
-                    vm_deallocate(mach_host_self(), ptr->data.buffer_data, ptr->data.buffer_size);
+                    ctx->mtl_funcs.mtlDeleteMTLObj(ctx, ptr->data.mtl_data);
                 }
 
                 ptr->data.buffer_data = 0;
@@ -562,7 +528,7 @@ void mglBindBufferBase(GLMContext ctx, GLenum target, GLuint index, GLuint buffe
         bzero(&ctx->state.buffer_base[buffer_index].buffers[index], sizeof(BufferBaseTarget));
     }
 
-    ctx->state.dirty_bits |= DIRTY_BUFFER_BASE_STATE;
+    ctx->state.dirty_bits |= (DIRTY_BUFFER | DIRTY_BUFFER_BASE_STATE);
 }
 
 
@@ -632,14 +598,21 @@ kern_return_t initBufferData(GLMContext ctx, Buffer *ptr, GLsizeiptr size, const
 
     if (ptr->data.buffer_data)
     {
-        if (ptr->data.mtl_data)
+        if (ptr->storage_flags & GL_CLIENT_STORAGE_BIT)
         {
-            // the mtl buffer has a deallocator for the vm allocate
-            ctx->mtl_funcs.mtlDeleteMTLObj(ctx, ptr->data.mtl_data);
+            if (ptr->data.mtl_data)
+            {
+                // the mtl buffer has a deallocator for the vm allocate
+                ctx->mtl_funcs.mtlDeleteMTLObj(ctx, ptr->data.mtl_data);
+            }
+            else
+            {
+                vm_deallocate(mach_host_self(), ptr->data.buffer_data, ptr->data.buffer_size);
+            }
         }
         else
         {
-            vm_deallocate(mach_host_self(), ptr->data.buffer_data, ptr->data.buffer_size);
+            ctx->mtl_funcs.mtlDeleteMTLObj(ctx, ptr->data.mtl_data);
         }
 
         ptr->data.buffer_data = 0;
@@ -787,7 +760,19 @@ void mglBufferSubData(GLMContext ctx, GLenum target, GLintptr offset, GLsizeiptr
         ERROR_RETURN(GL_INVALID_OPERATION);
     }
 
-    ctx->mtl_funcs.mtlBufferSubData(ctx, ptr, offset, size, data);
+    if (ptr->storage_flags & (GL_CLIENT_STORAGE_BIT | GL_DYNAMIC_STORAGE_BIT))
+    {
+        // copy it to the backing and use processGLState to upload new data
+        memcpy((void *)ptr->data.buffer_data, data, size);
+
+        ptr->data.dirty_bits |= DIRTY_BUFFER_DATA;
+        ctx->state.dirty_bits |= DIRTY_BUFFER;
+    }
+    else
+    {
+        // use use metal to do the subdata call
+        ctx->mtl_funcs.mtlBufferSubData(ctx, ptr, offset, size, data);
+    }
 }
 
 void mglNamedBufferSubData(GLMContext ctx, GLuint buffer, GLintptr offset, GLsizeiptr size, const void *data)
@@ -825,7 +810,21 @@ void mglNamedBufferSubData(GLMContext ctx, GLuint buffer, GLintptr offset, GLsiz
         ERROR_RETURN(GL_INVALID_OPERATION);
     }
 
-    ctx->mtl_funcs.mtlBufferSubData(ctx, ptr, offset, size, data);
+    if (ptr->storage_flags & (GL_CLIENT_STORAGE_BIT | GL_DYNAMIC_STORAGE_BIT))
+    {
+        // copy it to the backing and use processGLState to upload new data
+        memcpy((void *)ptr->data.buffer_data, data, size);
+
+        ptr->data.dirty_bits |= DIRTY_BUFFER_DATA;
+
+        // probably shouldn't have to do this... if its not bound its an excess
+        ctx->state.dirty_bits |= DIRTY_BUFFER;
+    }
+    else
+    {
+        // use use metal to do the subdata call
+        ctx->mtl_funcs.mtlBufferSubData(ctx, ptr, offset, size, data);
+    }
 }
 
 void copyBufferSubData(GLMContext ctx, Buffer *src_buf, Buffer *dst_buf, GLintptr readOffset, GLintptr writeOffset, GLsizeiptr size)

@@ -973,97 +973,114 @@ bool createTextureLevel(GLMContext ctx, Texture *tex, GLuint face, GLint level, 
     texture_size = page_size_align(internal_size);
     assert(texture_size);
 
-    // Allocate directly from VM
-    err = vm_allocate((vm_map_t) mach_task_self(),
-                      (vm_address_t*) &texture_data,
-                      texture_size,
-                      VM_FLAGS_ANYWHERE);
-    assert(err == 0);
-    assert(texture_data);
-
-    tex->faces[face].levels[level].data_size = texture_size;
-    tex->faces[face].levels[level].data = (vm_address_t)texture_data;
-
-    if (pixels)
+    switch(mtlFormatForGLInternalFormat(internalformat))
     {
-        GLsizei src_size;
+        case MTLPixelFormatDepth16Unorm:
+        case MTLPixelFormatDepth32Float:
+        case MTLPixelFormatDepth24Unorm_Stencil8:
+        case MTLPixelFormatDepth32Float_Stencil8:
+            tex->mtl_requires_private_storage = true;
+            break;
 
-        src_size = width * sizeForFormatType(format, type);
+        default:
+            tex->mtl_requires_private_storage = false;
+            break;
+    }
 
-        if (ctx->state.unpack.row_length)
+    if (tex->mtl_requires_private_storage == false)
+    {
+        // Allocate directly from VM
+        err = vm_allocate((vm_map_t) mach_task_self(),
+                          (vm_address_t*) &texture_data,
+                          texture_size,
+                          VM_FLAGS_ANYWHERE);
+        assert(err == 0);
+        assert(texture_data);
+
+        tex->faces[face].levels[level].data_size = texture_size;
+        tex->faces[face].levels[level].data = (vm_address_t)texture_data;
+
+        if (pixels)
         {
-            size_t alignment;
+            GLsizei src_size;
 
-            ERROR_CHECK_RETURN((ctx->state.unpack.row_length >> level) >= width, GL_INVALID_VALUE);
+            src_size = width * sizeForFormatType(format, type);
 
-            alignment = ctx->state.unpack.alignment;
-            if (alignment)
+            if (ctx->state.unpack.row_length)
             {
-                if (src_size >= alignment)
-                {
-                    src_pitch = src_size * (ctx->state.unpack.row_length >> level);
-                    assert(src_pitch);
-                }
-                else if (depth > 1)
-                {
-                    // 3d texture
-                    src_pitch = alignment / src_size;
+                size_t alignment;
 
-                    src_pitch = src_pitch * src_size * ctx->state.unpack.row_length * height;
+                ERROR_CHECK_RETURN((ctx->state.unpack.row_length >> level) >= width, GL_INVALID_VALUE);
 
-                    src_pitch = src_pitch / alignment;
-                    assert(src_pitch);
+                alignment = ctx->state.unpack.alignment;
+                if (alignment)
+                {
+                    if (src_size >= alignment)
+                    {
+                        src_pitch = src_size * (ctx->state.unpack.row_length >> level);
+                        assert(src_pitch);
+                    }
+                    else if (depth > 1)
+                    {
+                        // 3d texture
+                        src_pitch = alignment / src_size;
+
+                        src_pitch = src_pitch * src_size * ctx->state.unpack.row_length * height;
+
+                        src_pitch = src_pitch / alignment;
+                        assert(src_pitch);
+                    }
+                    else
+                    {
+                        src_pitch = alignment / src_size;
+
+                        src_pitch = src_pitch * src_size * ctx->state.unpack.row_length;
+
+                        src_pitch = src_pitch / alignment;
+                        assert(src_pitch);
+                    }
                 }
                 else
                 {
-                    src_pitch = alignment / src_size;
-
-                    src_pitch = src_pitch * src_size * ctx->state.unpack.row_length;
-
-                    src_pitch = src_pitch / alignment;
+                    src_pitch = src_size * (ctx->state.unpack.row_length >> level);
                     assert(src_pitch);
                 }
             }
             else
             {
-                src_pitch = src_size * (ctx->state.unpack.row_length >> level);
+                src_pitch = tex->faces[face].levels[level].pitch;
                 assert(src_pitch);
             }
-        }
-        else
-        {
-            src_pitch = tex->faces[face].levels[level].pitch;
-            assert(src_pitch);
-        }
 
-        // unpack from pixel buffer
-        if (ctx->state.buffers[_PIXEL_UNPACK_BUFFER])
-        {
-            Buffer *ptr;
+            // unpack from pixel buffer
+            if (ctx->state.buffers[_PIXEL_UNPACK_BUFFER])
+            {
+                Buffer *ptr;
 
-            ptr = ctx->state.buffers[_PIXEL_UNPACK_BUFFER];
+                ptr = ctx->state.buffers[_PIXEL_UNPACK_BUFFER];
 
-            ERROR_CHECK_RETURN(ptr->mapped == false, GL_INVALID_OPERATION);
+                ERROR_CHECK_RETURN(ptr->mapped == false, GL_INVALID_OPERATION);
 
-            GLubyte *buffer_data;
-            buffer_data = getBufferData(ctx, ptr);
+                GLubyte *buffer_data;
+                buffer_data = getBufferData(ctx, ptr);
 
-            // if a pixel buffer is the src, pixels is the offset
-            // need to check offset against size
-            size_t offset;
-            offset = (size_t)pixels;
+                // if a pixel buffer is the src, pixels is the offset
+                // need to check offset against size
+                size_t offset;
+                offset = (size_t)pixels;
 
-            pixels = &buffer_data[offset];
-        }
+                pixels = &buffer_data[offset];
+            }
 
-        unpackTexture(ctx, tex, face, level, (void *)pixels, (void *)texture_data, src_pitch, pixel_size, 0, 0, 0, width, height, depth);
+            unpackTexture(ctx, tex, face, level, (void *)pixels, (void *)texture_data, src_pitch, pixel_size, 0, 0, 0, width, height, depth);
 
-        tex->dirty_bits |= DIRTY_TEXTURE_DATA;
-    };
+            tex->dirty_bits |= DIRTY_TEXTURE_DATA;
+        };
+    }
 
     tex->faces[face].levels[level].complete = true;
 
-    tex->dirty_bits |= DIRTY_TEXTURE_LEVEL | DIRTY_TEXTURE_DATA;
+    tex->dirty_bits |= DIRTY_TEXTURE_LEVEL;
     STATE(dirty_bits) |= DIRTY_TEX;
 
     return true;
@@ -1339,7 +1356,7 @@ bool texSubImage(GLMContext ctx, Texture *tex, GLuint face, GLint level, GLint x
         size_t src_image_size;
         size_t src_size;
 
-        src_offset = (size_t)pixels;
+        src_offset = (size_t)0;
 
         src_image_size = src_pitch * height;
 
@@ -1542,7 +1559,12 @@ void texStorage(GLMContext ctx, Texture *tex, GLuint faces, GLsizei levels, GLbo
     }
 
     // mark it immutable
-    tex->immutable_storage = true;
+    tex->immutable_storage = BUFFER_IMMUTABLE_STORAGE_FLAG;
+
+    // bind it to metal
+    ctx->mtl_funcs.mtlBindTexture(ctx, tex);
+
+    ERROR_CHECK_RETURN(tex->mtl_data, GL_OUT_OF_MEMORY);
 }
 
 void mglTexStorage1D(GLMContext ctx, GLenum target, GLsizei levels, GLenum internalformat, GLsizei width)

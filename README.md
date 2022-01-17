@@ -29,6 +29,76 @@ I mapped as much of the functionality of Metal I could into OpenGL 4.6, it's sur
 
 Not all of the functionality for OpenGL is available, but I didn't build this for conformance I just wanted to program OpenGL on the MacOS platform.
 
+Metal Hiearchy
+
+    Command Queue
+        Command Buffer
+            Render Pipeline State <- created with RenderPipelineDescriptor
+                Render Encoder  <-- created with RenderPassDescriptor
+                    RenderPassDescriptor
+                        colorAttachments
+                            pixelFormat
+                            sourceRGBBlendFactor
+                            sourceAlphaBlendFactor
+                            destinationRGBBlendFactor
+                            destinationAlphaBlendFactor
+                            alphaBlendOperation
+                            writeMask
+                        depthAttachment
+                            pixelFormat
+                        stencilAttachment
+                            pixelFormat
+                        visibilityResultBuffer
+                        renderTargetArrayLength
+                        defaultRasterSampleCount
+                        samplePositions
+                        renderTargetWidth
+                        renderTargetHeight
+
+                    
+                DirectState for Render Encoder
+                    Vertex Function
+                    Fragment Function
+                    Vertex Descriptor
+                    Vertex Buffers
+                    Vertex Textures
+                    Viewport
+                    FrontFacingWinding
+                    CullMode
+                    DepthClipMode
+                    DepthBias
+                    ScissorRect
+                    TriangleFillMode
+                    Fragment Buffers
+                    Fragment Textures
+                    Fragment Samplers
+                    BlendColor
+                    StencilReferenceValue
+                    VisibilityResultMode
+                    ColorStoreMode
+                    DepthStoreMode
+                    DepthStoreAction
+                    StencilStoreAction
+                    DepthStoreActionOptions
+                    StencilStoreActionOptions
+                    
+                Descriptor State used to change render ecoder
+                    Depth Stencil State <- created with DepthStencil Descriptor
+                        DepthStencilPipeline Descriptor
+                            DepthStencil Descriptor
+                                readMask
+                                writeMask
+                                depthCompareFunction
+                                depthWriteEnabled
+                                stencilCompareFunction
+                                stencilFailureOperation
+                                depthFailureOperation
+                                depthStencilPassOperation
+                                frontFaceStencil <- created wtih StencilDescriptor
+                                backFaceStencil <- created wtih StencilDescriptor
+                                
+                    
+
 ## Parsing the OpenGL 4.6 XML spec
 In the beginning I used ezxml to parse the gl.xml file for all the enums and functions, then printed out one giant file with all the functions. I then used the same parser to create the dispatch tables and data structures. As each functional part was built I separated blocks of functions into these functions like buffers / textures / shaders / programs.
 

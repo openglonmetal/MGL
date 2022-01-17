@@ -954,7 +954,8 @@ void _glfwDestroyWindowCocoa(_GLFWwindow* window)
     if (_glfw.ns.disabledCursorWindow == window)
         _glfw.ns.disabledCursorWindow = NULL;
 
-    [window->ns.object orderOut:nil];
+    if (window->ns.object)
+        [window->ns.object orderOut:nil];
 
     if (window->monitor)
         releaseMonitor(window);
