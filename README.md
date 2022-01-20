@@ -354,10 +354,10 @@ If you want to contribute that would be great, it's all written in C.. in the sa
 
 We really need people to contribute to the functionality and testing rather than trying to just build MGL and see if it works with their application. If you can write C code you can probably figure out how MGL works and contribute.
 
-Its a great way to learn the internals of OpenGL and Metal at the same time, and if you are a college student.. or even an expirienced coder its going to look great on a resume that you actually did work on OpenGL internals and it's just from the black box to you.
+Its a great way to learn the internals of OpenGL and Metal at the same time, and if you are a college student.. or even an expirienced coder its going to look great on a resume that you actually did work on OpenGL internals and its not just a black box to you. A typical driver for a graphics driver will have hundreds of thousands of lines of code and its all state driven regardless of what they say about new interfaces like Metal or Vulkan, because hardware doesn't match these interfaces directly you have to evaluate state like OpenGL does but at a more abstract level.
 
 ## Future
-I will continue to implement functionality as needed, I had a goal of implementing OpenGL 4.6 functional paths and compute shaders to release it. Now that that is done my own application uses it and it works fine. But more tests and bugs need to written to bring it to a stage that it can be just compiled and distributed with a Makefile.
+I will continue to implement functionality as needed, I had a goal of implementing OpenGL 4.6 functional paths for buffers, textures, shaders (vertex, fragment, and compute shaders) to release it. Now that that is done my own application uses it and it works fine. But more tests and bugs need to written to bring it to a stage that it can be just compiled and distributed with a Makefile.
 
 ## Questions?
 You can reach me at sandstormsoftware@gmail.com for more information, it would be great to see this used by others and developed into a full fledged project anyone can use.
