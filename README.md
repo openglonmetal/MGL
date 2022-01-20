@@ -339,14 +339,26 @@ Once installed in /usr/local the Xcode project should be able to build all the r
 Start by building test_mgl_glfw, this is a chunk of test code I used to get most of the functionality up and running.
 
 ## Performance
-I really don't know what the performance comaprison is, how much is in overhead or in the driver. I wrote most of this as a functional exercise knowing that once it reached some level of functional coverage I would go back and address the performance issue. But I didn't write this without thinking about performance issues as I implemented the code.
-  
+I updated most of the immutible objects to allocate metal object up front, this is how to avoid the deferred allocation used in OpenGL and increase performance. The performance on simple tests using a FBO / draw element instance / uniform update in a simple test I wrote is negligiable.. you had to run the loop over 100,000,000 times to extract any difference.
+So.. it should be good.
+
+## Missing functions
+There are a lot of missing functions, if you open up XCode and look at the project you will see many functions defined and laid out but are just bracketed around an assert(0); If you want functionality just work with the XCode project with test_mgl_glfw.. pick a test like test_2d_array_textures and walk through each function using the debugger and you will get a gist on how it all works.
+This is the best way to start adding functionality, until you open it up it will remain a black box. From there just read the GL spec for the function you need, add it in bits by building a test for it and verifying the functionality.
+
+## Why the focus on 4.6 functionality?
+OpenGL is huge, and the effort was intended capture 4.6 functionality rather than try to implement it all (and that includes a lot of 3.x functionality). This is a good path to embedded functionality into the base then add in all the older functionality later using the paths you want rather than hacking apart older paths to make modern OpenGL functionality.
+
 ## Contributing
 If you want to contribute that would be great, it's all written in C.. in the same style all of the OpenGL framework from Apple was written in. If you don't like the coding style, don't change it. Just follow the same coding style and put your efforts into testing and functionality.
-  
+
+We really need people to contribute to the functionality and testing rather than trying to just build MGL and see if it works with their application. If you can write C code you can probably figure out how MGL works and contribute.
+
+Its a great way to learn the internals of OpenGL and Metal at the same time, and if you are a college student.. or even an expirienced coder its going to look great on a resume that you actually did work on OpenGL internals and it's just from the black box to you.
+
 ## Future
-I would like to implement OpenCL directly into this framework, its much simpler mapping from OpenCL to Metal and there is zero state to deal with so you should be able to use all the buffers / textures and other resources directly on top of a OpenGL context.
- 
+I will continue to implement functionality as needed, for now tests and bugs need to written to bring it to a stage that it can be just compiled and distributed with a Makefile.
+
 ## Questions?
 You can reach me at sandstormsoftware@gmail.com for more information, it would be great to see this used by others and developed into a full fledged project anyone can use.
   
