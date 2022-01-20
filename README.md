@@ -336,7 +336,7 @@ make install
 Once installed in /usr/local the Xcode project should be able to build all the required dependencies for MGL.
 
 ## Where to start
-Start by building test_mgl_glfw, this is a chunk of test code I used to get most of the functionality up and running.
+Use the Xcode MGL project to build your own tests and projects... start by building test_mgl_glfw, this is a chunk of test code I used to get most of the functionality up and running. Xcode has all the debugging tools and won't leave you wondering WTF is that assert about, throwing your hands up and walking away without learning anything about the internals of OpenGL or contributing to this project.
 
 ## Performance
 I updated most of the immutible objects to allocate metal object up front, this is how to avoid the deferred allocation used in OpenGL and increase performance. The performance on simple tests using a FBO / draw element instance / uniform update in a simple test I wrote is negligiable.. you had to run the loop over 100,000,000 times to extract any difference.
