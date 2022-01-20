@@ -347,7 +347,7 @@ There are a lot of missing functions, if you open up XCode and look at the proje
 This is the best way to start adding functionality, until you open it up it will remain a black box. From there just read the GL spec for the function you need, add it in bits by building a test for it and verifying the functionality.
 
 ## Why the focus on 4.6 functionality?
-OpenGL is huge, and the effort was intended capture 4.6 functionality rather than try to implement it all (and that includes a lot of 3.x functionality). This is a good path to embedded functionality into the base then add in all the older functionality later using the paths you want rather than hacking apart older paths to make modern OpenGL functionality.
+OpenGL is huge, and the effort was intended capture 4.6 functionality rather than try to implement it all (and that includes a lot of 3.x functionality). This is a good path to embed functionality into the base then add in all the older functionality later using the paths you want rather than hacking apart older paths to make modern OpenGL functionality.
 
 ## Contributing
 If you want to contribute that would be great, it's all written in C.. in the same style all of the OpenGL framework from Apple was written in. If you don't like the coding style, don't change it. Just follow the same coding style and put your efforts into testing and functionality.
@@ -357,7 +357,7 @@ We really need people to contribute to the functionality and testing rather than
 Its a great way to learn the internals of OpenGL and Metal at the same time, and if you are a college student.. or even an expirienced coder its going to look great on a resume that you actually did work on OpenGL internals and it's just from the black box to you.
 
 ## Future
-I will continue to implement functionality as needed, for now tests and bugs need to written to bring it to a stage that it can be just compiled and distributed with a Makefile.
+I will continue to implement functionality as needed, I had a goal of implementing OpenGL 4.6 functional paths and compute shaders to release it. Now that that is done my own application uses it and it works fine. But more tests and bugs need to written to bring it to a stage that it can be just compiled and distributed with a Makefile.
 
 ## Questions?
 You can reach me at sandstormsoftware@gmail.com for more information, it would be great to see this used by others and developed into a full fledged project anyone can use.
