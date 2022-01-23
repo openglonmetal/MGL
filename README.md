@@ -345,6 +345,7 @@ Install [brew](https://brew.sh).
 Then:
 
 ```
+brew install make git
 make install-pkgdeps
 ```
 
