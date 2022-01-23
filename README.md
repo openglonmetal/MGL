@@ -24,6 +24,8 @@ This is a start for porting OpenGL 4.6 on top of Metal, most of it is functional
 ## GLFW support
 I modified a version of GLFW to work with MGL, it replaces the default MacOS OpenGL contexts. The changes are included in the repository and should build correctly with the MGL xcode project.
 
+(additional notes from conversy/MGL repo: the modified GLFW version is not mandatory, see below).
+
 ## Mapping OpenGL onto Metal
 I mapped as much of the functionality of Metal I could into OpenGL 4.6, it's surprising how much I was able to map directly from OpenGL state to Metal. But I suppose Metal evolved to meet market requirements and since OpenGL was in place the same features existed just in another form.
 
@@ -334,6 +336,30 @@ make install
 ```
 
 Once installed in /usr/local the Xcode project should be able to build all the required dependencies for MGL.
+
+
+## Using the Makefile and uninstalled build dependencies
+
+Install [brew](https://brew.sh).
+
+Then:
+
+```
+brew install make git
+make install-pkgdeps
+```
+
+This will install as-much-as-regular dependencies with brew (including glfw).
+Then it git clones two directories: you should have two new directories next to MGL: SPIRV-Headers and SPIRV-Cross.
+Only SPIRV-Cross requires to be built, which is done on the last line of the `make install-pkgdeps` command.
+
+Finally,
+
+```
+make -j test
+```
+
+should compile everything and launch the test.
 
 ## Where to start
 Use the Xcode MGL project to build your own tests and projects... start by building test_mgl_glfw, this is a chunk of test code I used to get most of the functionality up and running. Xcode has all the debugging tools and won't leave you wondering WTF is that assert about, throwing your hands up and walking away without learning anything about the internals of OpenGL or contributing to this project.
