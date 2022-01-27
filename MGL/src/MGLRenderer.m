@@ -568,7 +568,7 @@ void logDirtyBits(GLMContext ctx)
         }
         else
         {
-            [buffer didModifyRange: NSMakeRange(ptr->mapped_offset, ptr->mapped_length)];
+            [buffer didModifyRange: NSMakeRange(0, ptr->data.buffer_size)];
 
             ptr->data.dirty_bits = 0;
         }

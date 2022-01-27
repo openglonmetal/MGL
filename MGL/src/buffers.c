@@ -815,10 +815,18 @@ void mglNamedBufferSubData(GLMContext ctx, GLuint buffer, GLintptr offset, GLsiz
         // copy it to the backing and use processGLState to upload new data
         memcpy((void *)ptr->data.buffer_data, data, size);
 
-        ptr->data.dirty_bits |= DIRTY_BUFFER_DATA;
+        if (ptr->data.mtl_data)
+        {
+            // use use metal to do the subdata call
+            ctx->mtl_funcs.mtlBufferSubData(ctx, ptr, offset, size, data);
+        }
+        else
+        {
+            ptr->data.dirty_bits |= DIRTY_BUFFER_DATA;
 
-        // probably shouldn't have to do this... if its not bound its an excess
-        ctx->state.dirty_bits |= DIRTY_BUFFER;
+            // probably shouldn't have to do this... if its not bound its an excess
+            ctx->state.dirty_bits |= DIRTY_BUFFER;
+        }
     }
     else
     {
