@@ -16,9 +16,8 @@
 
 # with uninstalled spirv_headers and spirv_cross
 # uncomment the following lines 
-spirv_headers_path ?= ../SPIRV-Headers/include/spirv/1.2
-spirv_cross_include_path ?= ../SPIRV-Cross
-spirv_cross_lib_path ?= ../SPIRV-Cross/build
+spirv_cross_1_2_include_path ?= ../SPIRV-Headers/include/spirv/1.2
+spirv_cross_config_include_path ?= ../SPIRV-Cross
 
 # build dir
 build_dir ?= build
@@ -89,8 +88,6 @@ $(test_exe): $(test_objs)
 
 CFLAGS += -gfull -Og
 CFLAGS += -arch $(shell uname -m)
-CFLAGS += -I$(spirv_headers_include_path)
-CFLAGS += -I$(spirv_cross_include_path)
 CFLAGS += -I$(spirv_cross_1_2_include_path)
 CFLAGS += -I$(spirv_cross_config_include_path)
 CFLAGS += -I$(brew_prefix)/opt/glslang/include/glslang/Include
