@@ -1,0 +1,6 @@
+[submodule "SPIRV-Headers"]
+	path = SPIRV-Headers
+	url = https://github.com/KhronosGroup/SPIRV-Headers
+[submodule "SPIRV-Cross"]
+	path = SPIRV-Cross
+	url = https://github.com/KhronosGroup/SPIRV-Cross
