@@ -1,11 +1,11 @@
--include config.mk
+#-include config.mk
 
 # first, with brew installed, do 'make install-pkgdeps'
 # then configure here
 
 # Find SDK path via xcode-select, backwards compatible with Xcode vers < 4.5
 # on M1 monterey, comment out the following line
-# SDK_ROOT = $(shell xcode-select -p)/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk
+SDK_ROOT = $(shell xcode-select -p)/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk
 
 # with installed spirv_headers and spirv_cross
 # spirv_headers_include_path ?= /usr/local/include
@@ -16,8 +16,9 @@
 
 # with uninstalled spirv_headers and spirv_cross
 # uncomment the following lines 
-spirv_cross_1_2_include_path ?= ../SPIRV-Headers/include/spirv/1.2
-spirv_cross_config_include_path ?= ../SPIRV-Cross
+spirv_cross_1_2_include_path ?= SPIRV-Headers/include/spirv/1.2
+spirv_cross_config_include_path ?= SPIRV-Cross
+spirv_cross_lib_path ?= SPIRV-Cross/build
 
 # build dir
 build_dir ?= build
@@ -31,7 +32,7 @@ brew_prefix := $(shell brew --prefix)
 
 mgl_srcs_c := $(wildcard MGL/src/*.c)
 mgl_srcs_objc := $(wildcard MGL/src/*.m)
-mgl_srcs_cpp := $(wildcard MGL/SPIRV/SPIRV-Cross/*.cpp)
+#mgl_srcs_cpp := $(wildcard MGL/SPIRV/SPIRV-Cross/*.cpp)
 
 mgl_objs := $(mgl_srcs_c:.c=.o) $(mgl_srcs_cpp:.cpp=.o)
 mgl_objs := $(addprefix $(build_dir)/,$(mgl_objs))
@@ -100,7 +101,7 @@ ifneq ($(SDK_ROOT),)
 CFLAGS += -isysroot $(SDK_ROOT)
 endif
 
-LIBS += -L$(spirv_cross_lib_path) -lspirv-cross-core
+LIBS += -L$(spirv_cross_lib_path) -lspirv-cross-core -lspirv-cross-c -lspirv-cross-cpp -lspirv-cross-msl -lspirv-cross-glsl -lspirv-cross-hlsl -lspirv-cross-reflect
 LIBS += -L$(brew_prefix)/opt/glslang/lib -lglslang -lMachineIndependent -lGenericCodeGen -lOGLCompiler -lOSDependent -lglslang-default-resource-limits -lSPIRV
 #LIBS += -framework OpenGL -framework CoreGraphics
 
@@ -137,10 +138,10 @@ clean:
 	rm -rf $(build_dir)
 
 install-pkgdeps:
-	brew install glm glslang spirv-tools glfw3
-	(cd .. && git clone --depth 1 https://github.com/KhronosGroup/SPIRV-Headers)
-	(cd .. && git clone --depth 1 https://github.com/KhronosGroup/SPIRV-Cross)
-	(cd ../SPIRV-Cross && mkdir -p build && cd build && cmake .. && make)
+	brew install glm glslang spirv-tools glfw
+	git submodule init
+	git submodule update --depth 1
+	(cd SPIRV-Cross && mkdir -p build && cd build && cmake .. && make)
 
 test-make:
 	@echo $(glfw_objs)
