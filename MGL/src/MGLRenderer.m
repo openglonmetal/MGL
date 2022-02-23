@@ -1393,6 +1393,7 @@ void logDirtyBits(GLMContext ctx)
     __autoreleasing NSError *error = nil;
 
     library = [_device newLibraryWithSource: [NSString stringWithUTF8String: str] options: nil error: &error];
+    if(!library) NSLog(@" error compiling shader => %@ ", [error localizedDescription] );
     assert(library);
 
     return library;
