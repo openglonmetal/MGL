@@ -1,7 +1,8 @@
 #-include config.mk
 
-# first, with brew installed, do 'make install-pkgdeps'
-# then configure here
+# first, with brew already installed (see https://brew.sh), do 'make install-pkgdeps'
+# you can configure below, but it should be ok as is
+# then 'make -j test' or 'make -j dbg' if the test crashes
 
 # Find SDK path via xcode-select, backwards compatible with Xcode vers < 4.5
 # on M1 monterey, comment out the following line
@@ -26,13 +27,14 @@ build_dir ?= build
 # --
 # no need to tweak after this line, hopefully
 
+default: lib
+
 brew_prefix := $(shell brew --prefix)
 
 # mgl
 
 mgl_srcs_c := $(wildcard MGL/src/*.c)
 mgl_srcs_objc := $(wildcard MGL/src/*.m)
-#mgl_srcs_cpp := $(wildcard MGL/SPIRV/SPIRV-Cross/*.cpp)
 
 mgl_objs := $(mgl_srcs_c:.c=.o) $(mgl_srcs_cpp:.cpp=.o)
 mgl_objs := $(addprefix $(build_dir)/,$(mgl_objs))
@@ -51,23 +53,6 @@ $(mgl_lib): $(mgl_objs) $(mgl_arc_objs)
 	# loading dynamic library requires this
 	ln -fs $(mgl_lib) .
 
-# glfw
-
-glfw_srcs_c := $(addprefix glfw/src/,cocoa_time.c posix_module.c posix_thread.c)
-glfw_srcs_c += $(addprefix glfw/src/,context.c init.c input.c monitor.c platform.c vulkan.c window.c egl_context.c osmesa_context.c null_init.c null_monitor.c null_window.c null_joystick.c)
-glfw_srcs_objc := $(addprefix glfw/src/,cocoa_init.m cocoa_joystick.m cocoa_monitor.m cocoa_window.m mgl_context.m)
-glfw_objs := $(glfw_srcs_c:.c=.o) $(glfw_srcs_objc:.m=.o)
-glfw_objs := $(addprefix $(build_dir)/,$(glfw_objs))
-deps += $(glfw_objs:.o=.d)
-$(glfw_objs): CFLAGS += -D_GLFW_COCOA
-#$(build_dir)/libglfw.dylib: LIBS += -L$(build_dir) -lMGL
-glfw_lib := $(build_dir)/libglfw.dylib
-$(glfw_lib): $(mgl_lib)
-
-$(glfw_lib): $(glfw_objs)
-	@mkdir -p $(dir $@)
-	$(CC) -dynamiclib -o $@ $^ -L$(build_dir) -lmgl
-
 # test
 
 test_srcs_cpp := $(wildcard test_mgl_glfw/*.cpp)
@@ -76,8 +61,6 @@ test_deps := $(test_objs:.o=.d)
 test_objs := $(addprefix $(build_dir)/,$(test_objs))
 deps += $(test_objs:.o=.d)
 test_exe := $(build_dir)/test
-#$(test_exe): $(glfw_lib) $(mgl_lib)
-#$(test_objs): CFLAGS+=-Iglfw/include
 $(test_exe): $(mgl_lib)
 $(test_objs): CFLAGS += $(shell pkg-config --cflags glfw3)
 
@@ -85,17 +68,16 @@ $(test_exe): $(test_objs)
 	@mkdir -p $(dir $@)
 	$(CXX) -o $@ $^ -L$(build_dir) -lmgl $(shell pkg-config --libs glfw3)
 
-
-
 CFLAGS += -gfull -Og
 CFLAGS += -arch $(shell uname -m)
 CFLAGS += -I$(spirv_cross_1_2_include_path)
 CFLAGS += -I$(spirv_cross_config_include_path)
 CFLAGS += -I$(brew_prefix)/opt/glslang/include/glslang/Include
-CFLAGS += -I$(brew_prefix)/include # GL
 CFLAGS += $(shell pkg-config --cflags SPIRV-Tools)
 CFLAGS += $(shell pkg-config --cflags glm)
-CFLAGS += -IMGL/include -IMGL/SPIRV/SPIRV-Cross
+CFLAGS += -IMGL/include
+CFLAGS += -IMGL/include/GL # "glcorearb.h"
+CFLAGS += -IMGL/SPIRV/SPIRV-Cross
 CFLAGS += -DENABLE_OPT=0 -DSPIRV_CROSS_C_API_MSL=1 -DSPIRV_CROSS_C_API_GLSL=1 -DSPIRV_CROSS_C_API_CPP=1 -DSPIRV_CROSS_C_API_REFLECT=1
 ifneq ($(SDK_ROOT),)
 CFLAGS += -isysroot $(SDK_ROOT)
@@ -105,7 +87,7 @@ LIBS += -L$(spirv_cross_lib_path) -lspirv-cross-core -lspirv-cross-c -lspirv-cro
 LIBS += -L$(brew_prefix)/opt/glslang/lib -lglslang -lMachineIndependent -lGenericCodeGen -lOGLCompiler -lOSDependent -lglslang-default-resource-limits -lSPIRV
 #LIBS += -framework OpenGL -framework CoreGraphics
 
-default: lib
+# specific rules
 
 lib: $(build_dir)/libglfw.dylib
 
@@ -114,6 +96,24 @@ test: $(test_exe)
 
 dbg: $(test_exe)
 	lldb -o run $(test_exe)
+
+
+# # glfw
+# # not needed anymore
+# glfw_srcs_c := $(addprefix glfw/src/,cocoa_time.c posix_module.c posix_thread.c)
+# glfw_srcs_c += $(addprefix glfw/src/,context.c init.c input.c monitor.c platform.c vulkan.c window.c egl_context.c osmesa_context.c null_init.c null_monitor.c null_window.c null_joystick.c)
+# glfw_srcs_objc := $(addprefix glfw/src/,cocoa_init.m cocoa_joystick.m cocoa_monitor.m cocoa_window.m mgl_context.m)
+# glfw_objs := $(glfw_srcs_c:.c=.o) $(glfw_srcs_objc:.m=.o)
+# glfw_objs := $(addprefix $(build_dir)/,$(glfw_objs))
+# deps += $(glfw_objs:.o=.d)
+# $(glfw_objs): CFLAGS += -D_GLFW_COCOA
+# #$(build_dir)/libglfw.dylib: LIBS += -L$(build_dir) -lMGL
+# glfw_lib := $(build_dir)/libglfw.dylib
+# $(glfw_lib): $(mgl_lib)
+
+# $(glfw_lib): $(glfw_objs)
+# 	@mkdir -p $(dir $@)
+# 	$(CC) -dynamiclib -o $@ $^ -L$(build_dir) -lmgl
 
 
 # generic rules
@@ -145,5 +145,7 @@ install-pkgdeps:
 
 test-make:
 	@echo $(glfw_objs)
+
+.PHONY: default test dbg lib clean insall-pkgdeps test-make 
 
 -include $(deps)
