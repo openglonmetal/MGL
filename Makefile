@@ -89,7 +89,8 @@ LIBS += -L$(brew_prefix)/opt/glslang/lib -lglslang -lMachineIndependent -lGeneri
 
 # specific rules
 
-lib: $(build_dir)/libglfw.dylib
+#lib: $(build_dir)/libglfw.dylib
+lib: $(mgl_lib)
 
 test: $(test_exe)
 	$(test_exe)
