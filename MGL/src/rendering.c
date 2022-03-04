@@ -72,6 +72,13 @@ void mglFlush(GLMContext ctx)
     ctx->mtl_funcs.mtlFlush(ctx, false);
 }
 
+void mglDrawBuffers(GLMContext ctx, GLsizei n, const GLenum *bufs)
+{
+    for (GLsizei i=0; i<n; ++i) {
+        mglDrawBuffer(ctx, bufs[i]);
+    }
+}
+
 void mglDrawBuffer(GLMContext ctx, GLenum buf)
 {
     switch(buf)
