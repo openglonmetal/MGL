@@ -350,7 +350,7 @@ void mglVertexAttribPointer(GLMContext ctx, GLuint index, GLint size, GLenum typ
     {
         Buffer *ptr;
 
-        ptr = ctx->state.vao->attrib[index].buffer;
+        ptr = ctx->state.vao->buffer_bindings[index].buffer;
 
         ERROR_CHECK_RETURN(ptr, GL_INVALID_OPERATION);
     }

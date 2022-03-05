@@ -169,11 +169,6 @@ void mglDepthRangef(GLMContext ctx, GLfloat n, GLfloat f)
         assert(0);
 }
 
-void mglDrawBuffers(GLMContext ctx, GLsizei n, const GLenum *bufs)
-{
-        assert(0);
-}
-
 void mglDrawTransformFeedback(GLMContext ctx, GLenum mode, GLuint id)
 {
         assert(0);

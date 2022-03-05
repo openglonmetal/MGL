@@ -574,7 +574,7 @@ void mglBindBufferRange(GLMContext ctx, GLenum target, GLuint index, GLuint buff
         assert(ptr);
 
         ERROR_CHECK_RETURN(ptr->data.buffer_data, GL_INVALID_VALUE);
-        ERROR_CHECK_RETURN(offset + size < ptr->data.buffer_size, GL_INVALID_VALUE);
+        ERROR_CHECK_RETURN(offset + size <= ptr->data.buffer_size, GL_INVALID_VALUE);
 
         ctx->state.buffer_base[buffer_index].buffers[index].buffer = buffer;
         ctx->state.buffer_base[buffer_index].buffers[index].offset = offset;
@@ -1244,7 +1244,7 @@ void mglFlushMappedBufferRange(GLMContext ctx, GLenum target, GLintptr offset, G
         ERROR_RETURN(GL_INVALID_VALUE);
     }
 
-    if (ptr->access & GL_MAP_FLUSH_EXPLICIT_BIT)
+    if (ptr->access_flags & GL_MAP_FLUSH_EXPLICIT_BIT)
     {
         ctx->mtl_funcs.mtlFlushBufferRange(ctx, ptr, offset, length);
     }

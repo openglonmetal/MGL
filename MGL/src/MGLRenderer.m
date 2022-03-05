@@ -3000,6 +3000,11 @@ void mtlBufferSubData(GLMContext glm_ctx, Buffer *buf, size_t offset, size_t siz
 {
     id<MTLBuffer> mtl_buffer;
 
+    if (buf->data.mtl_data == NULL)
+    {
+        [self bindMTLBuffer:buf];
+    }
+
     mtl_buffer = (__bridge id<MTLBuffer>)(buf->data.mtl_data);
 
     if (map)

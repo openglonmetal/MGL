@@ -645,7 +645,11 @@ GLuint sizeForInternalFormat(GLenum internalformat, GLenum format, GLenum type)
             return 1; // bitsToBytes(4);
 
         case GL_STENCIL_INDEX8:
+            return bitsToBytes(8);
+
         case GL_STENCIL_INDEX16:
+            return bitsToBytes(16);
+
         case GL_COMPRESSED_RED_RGTC1:
             return 0;   // return 0 on compressed
 
