@@ -486,6 +486,7 @@ void logDirtyBits(GLMContext ctx)
                             // include it the list of attributes
                             buffer_map->buffers[map].attribute_mask |= (0x1 << att);
                             found_buffer = true;
+                            mapped_buffers++;
                             break;
                         }
                     }
