@@ -763,7 +763,7 @@ void mglBufferSubData(GLMContext ctx, GLenum target, GLintptr offset, GLsizeiptr
     if (ptr->storage_flags & (GL_CLIENT_STORAGE_BIT | GL_DYNAMIC_STORAGE_BIT))
     {
         // copy it to the backing and use processGLState to upload new data
-        memcpy((void *)ptr->data.buffer_data, data, size);
+        memcpy((char*)ptr->data.buffer_data + offset, data, size);
 
         ptr->data.dirty_bits |= DIRTY_BUFFER_DATA;
         ctx->state.dirty_bits |= DIRTY_BUFFER;
@@ -813,7 +813,7 @@ void mglNamedBufferSubData(GLMContext ctx, GLuint buffer, GLintptr offset, GLsiz
     if (ptr->storage_flags & (GL_CLIENT_STORAGE_BIT | GL_DYNAMIC_STORAGE_BIT))
     {
         // copy it to the backing and use processGLState to upload new data
-        memcpy((void *)ptr->data.buffer_data, data, size);
+        memcpy((char*)ptr->data.buffer_data + offset, data, size);
 
         if (ptr->data.mtl_data)
         {
