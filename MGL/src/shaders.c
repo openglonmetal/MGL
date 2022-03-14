@@ -246,7 +246,7 @@ void mglShaderSource(GLMContext ctx, GLuint shader, GLsizei count, const GLchar 
         *src = 0;
         for(int i=0; i<count; i++)
         {
-            strncat(src, string[i], used_length[i]);
+            strlcat(src, string[i], len);
         }
         if (tmp_length) free(tmp_length);
     }
