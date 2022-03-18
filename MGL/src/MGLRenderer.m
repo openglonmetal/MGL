@@ -897,7 +897,7 @@ void logDirtyBits(GLMContext ctx)
 
                         if (depth > 1) // 2d array
                             region = MTLRegionMake3D(0,0,0,width,height,1);
-                        else if (height > 1) // 1d array
+                        else if (height >= 1) // 1d array
                             region = MTLRegionMake2D(0,0,width,1);
                         else // ?
                             assert(0);
