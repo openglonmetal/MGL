@@ -29,7 +29,7 @@
 extern void getMacOSDefaults(GLMContext glm_ctx);
 extern void init_dispatch(GLMContext ctx);
 
-GLMContext  _ctx = NULL;
+GLMContext _ctx = NULL;
 
 GLMContext createGLMContext(GLenum format, GLenum type,
                             GLenum depth_format, GLenum depth_type,
@@ -150,6 +150,8 @@ GLMContext createGLMContext(GLenum format, GLenum type,
         STATE(var.blend_src_alpha[i]) = GL_ONE;
         STATE(var.blend_dst_rgb[i]) = GL_ZERO;
         STATE(var.blend_dst_alpha[i]) = GL_ZERO;
+        STATE(var.blend_equation_rgb[i]) = GL_FUNC_ADD;
+        STATE(var.blend_equation_alpha[i]) = GL_FUNC_ADD;
     }
 
     STATE(var.depth_func) = GL_LESS;
@@ -198,7 +200,7 @@ GLMContext createGLMContext(GLenum format, GLenum type,
         STATE(caps.use_color_mask[attachment]) = false;
 
         for(int i=0; i<4; i++)
-            STATE(var.color_writemask[attachment][i]) = true;
+            STATE(var.color_writemask[attachment][i]) = GL_TRUE;
     }
 
 

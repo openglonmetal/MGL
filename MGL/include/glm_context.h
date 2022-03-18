@@ -350,7 +350,10 @@ typedef struct Shader_t {
     glslang_shader_t *compiled_glsl_shader;
     const char *entry_point;
     char *log;
-    void *mtl_data;
+    struct {
+        void *function;
+        void *library;
+    } mtl_data;
 } Shader;
 
 typedef struct Spirv_t {

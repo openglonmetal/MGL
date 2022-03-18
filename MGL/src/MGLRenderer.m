@@ -1402,82 +1402,48 @@ void logDirtyBits(GLMContext ctx)
 
 -(bool)bindMTLProgram:(Program *)ptr
 {
-    id<MTLLibrary> library;
-    id<MTLFunction> function;
-    Shader *shader;
-
     if (ptr->dirty_bits & DIRTY_PROGRAM)
     {
-        char *src;
-        size_t len;
-
-        // build a single string from all shader source
-        len = 0;
-        for(int i=_VERTEX_SHADER; i<_MAX_SHADER_TYPES; i++)
-        {
-            if (ptr->spirv[i].msl_str)
-            {
-                len += strlen(ptr->spirv[i].msl_str) + 1024;
-            }
-        }
-
-        src = (char *)malloc(len);
-        *src = 0;
-
-        for(int i=_VERTEX_SHADER; i<_MAX_SHADER_TYPES; i++)
-        {
-            if (ptr->spirv[i].msl_str)
-            {
-                strcat(src, ptr->spirv[i].msl_str);
-            }
-        }
-
         // release mtl shaders
         for(int i=_VERTEX_SHADER; i<_MAX_SHADER_TYPES; i++)
         {
+            Shader *shader;
             shader = ptr->shader_slots[i];
 
             if (shader)
             {
-                if (shader->mtl_data)
+                if (shader->mtl_data.library)
                 {
-                    CFBridgingRelease(shader->mtl_data);
-                    shader->mtl_data = NULL;
+                    CFBridgingRelease(shader->mtl_data.library);
+                    CFBridgingRelease(shader->mtl_data.function);
+                    shader->mtl_data.library = NULL;
+                    shader->mtl_data.function = NULL;
                 }
             }
         }
 
-        // release library
-        if (ptr->mtl_data)
-        {
-            CFBridgingRelease(ptr->mtl_data);
-            ptr->mtl_data = NULL;
-        }
-
-        // compile all shaders into library
-        library = [self compileShader: src];
-        assert(library);
-
-        ptr->mtl_data = (void *)CFBridgingRetain(library);
-
         ptr->dirty_bits &= ~DIRTY_PROGRAM;
     }
-
-    library = (__bridge id<MTLLibrary>)(ptr->mtl_data);
-    assert(library);
 
     // bind mtl functions to shaders
     for(int i=_VERTEX_SHADER; i<_MAX_SHADER_TYPES; i++)
     {
+        Shader *shader;
         shader = ptr->shader_slots[i];
 
         if (shader)
         {
-            if (shader->mtl_data == NULL)
+            if (shader->mtl_data.library == NULL)
             {
+                id<MTLLibrary> library;
+                id<MTLFunction> function;
+                
+                library = [self compileShader: ptr->spirv[i].msl_str];
+                assert(library);
                 function = [library newFunctionWithName:[NSString stringWithUTF8String: shader->entry_point]];
                 assert(function);
-                shader->mtl_data = (void *)CFBridgingRetain(function);
+                shader->mtl_data.library = (void *)CFBridgingRetain(library);
+                shader->mtl_data.function = (void *)CFBridgingRetain(function);
             }
         }
     }
@@ -1974,8 +1940,8 @@ void logDirtyBits(GLMContext ctx)
     assert(vertex_shader);
     assert(fragment_shader);
 
-    vertexFunction = (__bridge id<MTLFunction>)(vertex_shader->mtl_data);
-    fragmentFunction = (__bridge id<MTLFunction>)(fragment_shader->mtl_data);
+    vertexFunction = (__bridge id<MTLFunction>)(vertex_shader->mtl_data.function);
+    fragmentFunction = (__bridge id<MTLFunction>)(fragment_shader->mtl_data.function);
     assert(vertexFunction);
     assert(fragmentFunction);
 
@@ -2160,7 +2126,6 @@ void logDirtyBits(GLMContext ctx)
         case GL_FUNC_REVERSE_SUBTRACT: op = MTLBlendOperationReverseSubtract; break;
         case GL_MIN: op = MTLBlendOperationMin; break;
         case GL_MAX: op = MTLBlendOperationMax; break;
-            break;
 
         default:
             assert(0);
@@ -2200,7 +2165,7 @@ void logDirtyBits(GLMContext ctx)
         }
         else
         {
-            _color_mask[i] = MTLColorWriteMaskNone;
+            _color_mask[i] = MTLColorWriteMaskRed | MTLColorWriteMaskGreen | MTLColorWriteMaskBlue | MTLColorWriteMaskAlpha;
         }
     }
 }
@@ -2360,7 +2325,7 @@ void logDirtyBits(GLMContext ctx)
         if (ctx->state.dirty_bits & (DIRTY_PROGRAM | DIRTY_VAO | DIRTY_BUFFER_BASE_STATE))
         {
             // programs are now compiled before execution, we shouldn't get here
-            assert(ctx->state.program->mtl_data);
+            //assert(ctx->state.program->mtl_data); //
 
             // figure out vertex shader uniforms / buffer mappings
             RETURN_FALSE_ON_FAILURE([self mapBuffersToMTL]);
@@ -2657,7 +2622,7 @@ void logDirtyBits(GLMContext ctx)
     assert(computeShader);
 
     id <MTLFunction> func;
-    func = (__bridge id<MTLFunction>)(computeShader->mtl_data);
+    func = (__bridge id<MTLFunction>)(computeShader->mtl_data.function);
     assert(func);
 
     id <MTLComputePipelineState> computePipelineState;
@@ -4005,6 +3970,37 @@ CppCreateMGLRendererAndBindToContext (void *window, void *glm_ctx)
     [self newCommandBuffer];
     
     glm_ctx->mtl_funcs.mtlView = (void *)CFBridgingRetain(view);
+
+    // capture Metal commands in MGL.gputrace
+    // necessitates Info.plist in the cwd, see https://stackoverflow.com/a/64172784
+    //MTLCaptureDescriptor *descriptor = [self setupCaptureToFile: _device];
+    //[self startCapture:descriptor];
+}
+
+- (MTLCaptureDescriptor *)setupCaptureToFile: (id<MTLDevice>)device//(nonnull MTLDevice* )device // (nonnull MTKView *)view
+{
+    MTLCaptureDescriptor *descriptor = [[MTLCaptureDescriptor alloc] init];
+    descriptor.destination = MTLCaptureDestinationGPUTraceDocument;
+    descriptor.outputURL = [NSURL fileURLWithPath:@"MGL.gputrace"];
+    descriptor.captureObject = device; //((MTKView *)view).device;
+    
+    return descriptor;
+}
+
+- (void)startCapture:(MTLCaptureDescriptor *) descriptor
+{
+    NSError *error = nil;
+    BOOL success = [MTLCaptureManager.sharedCaptureManager startCaptureWithDescriptor:descriptor
+                                                                                error:&error];
+    if (!success) {
+        NSLog(@" error capturing mtl => %@ ", [error localizedDescription] );
+    }
+}
+
+// Stop the capture.
+- (void)stopCapture
+{
+    [MTLCaptureManager.sharedCaptureManager stopCapture];
 }
 
 @end
