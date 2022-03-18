@@ -149,7 +149,7 @@ bool validate_program(GLMContext ctx)
 {
     RETURN_FALSE_ON_NULL(ctx->state.program);
 
-    RETURN_FALSE_ON_NULL(ctx->state.program->mtl_data);
+    //RETURN_FALSE_ON_NULL(ctx->state.program->mtl_data);
 
     if (ctx->state.program->shader_slots[_GEOMETRY_SHADER])
     {

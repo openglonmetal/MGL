@@ -187,9 +187,10 @@ void mglDeleteShader(GLMContext ctx, GLuint shader)
         glslang_shader_delete(ptr->compiled_glsl_shader);
     }
 
-    if (ptr->mtl_data)
+    if (ptr->mtl_data.library)
     {
-        ctx->mtl_funcs.mtlDeleteMTLObj(ctx, ptr->mtl_data);
+        ctx->mtl_funcs.mtlDeleteMTLObj(ctx, ptr->mtl_data.function);
+        ctx->mtl_funcs.mtlDeleteMTLObj(ctx, ptr->mtl_data.library);
     }
 
     free((void *)ptr->mtl_shader_type_name);

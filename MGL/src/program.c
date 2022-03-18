@@ -449,7 +449,7 @@ void mglLinkProgram(GLMContext ctx, GLuint program)
 
     ctx->mtl_funcs.mtlBindProgram(ctx, pptr);
 
-    ERROR_CHECK_RETURN(pptr->mtl_data, GL_INVALID_OPERATION);
+    //ERROR_CHECK_RETURN(pptr->mtl_data, GL_INVALID_OPERATION);
 }
 
 void mglUseProgram(GLMContext ctx, GLuint program)
@@ -469,7 +469,7 @@ void mglUseProgram(GLMContext ctx, GLuint program)
 
         ERROR_CHECK_RETURN(pptr->linked_glsl_program, GL_INVALID_OPERATION);
 
-        ERROR_CHECK_RETURN(pptr->mtl_data, GL_INVALID_OPERATION);
+        // ERROR_CHECK_RETURN(pptr->mtl_data, GL_INVALID_OPERATION);
     }
     else
     {
