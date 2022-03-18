@@ -4005,6 +4005,37 @@ CppCreateMGLRendererAndBindToContext (void *window, void *glm_ctx)
     [self newCommandBuffer];
     
     glm_ctx->mtl_funcs.mtlView = (void *)CFBridgingRetain(view);
+
+    // capture Metal commands in MGL.gputrace
+    // necessitates Info.plist in the cwd, see https://stackoverflow.com/a/64172784
+    //MTLCaptureDescriptor *descriptor = [self setupCaptureToFile: _device];
+    //[self startCapture:descriptor];
+}
+
+- (MTLCaptureDescriptor *)setupCaptureToFile: (id<MTLDevice>)device//(nonnull MTLDevice* )device // (nonnull MTKView *)view
+{
+    MTLCaptureDescriptor *descriptor = [[MTLCaptureDescriptor alloc] init];
+    descriptor.destination = MTLCaptureDestinationGPUTraceDocument;
+    descriptor.outputURL = [NSURL fileURLWithPath:@"MGL.gputrace"];
+    descriptor.captureObject = device; //((MTKView *)view).device;
+    
+    return descriptor;
+}
+
+- (void)startCapture:(MTLCaptureDescriptor *) descriptor
+{
+    NSError *error = nil;
+    BOOL success = [MTLCaptureManager.sharedCaptureManager startCaptureWithDescriptor:descriptor
+                                                                                error:&error];
+    if (!success) {
+        NSLog(@" error capturing mtl => %@ ", [error localizedDescription] );
+    }
+}
+
+// Stop the capture.
+- (void)stopCapture
+{
+    [MTLCaptureManager.sharedCaptureManager stopCapture];
 }
 
 @end
