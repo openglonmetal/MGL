@@ -2126,7 +2126,6 @@ void logDirtyBits(GLMContext ctx)
         case GL_FUNC_REVERSE_SUBTRACT: op = MTLBlendOperationReverseSubtract; break;
         case GL_MIN: op = MTLBlendOperationMin; break;
         case GL_MAX: op = MTLBlendOperationMax; break;
-            break;
 
         default:
             assert(0);
@@ -2166,7 +2165,7 @@ void logDirtyBits(GLMContext ctx)
         }
         else
         {
-            _color_mask[i] = MTLColorWriteMaskNone;
+            _color_mask[i] = MTLColorWriteMaskRed | MTLColorWriteMaskGreen | MTLColorWriteMaskBlue | MTLColorWriteMaskAlpha;
         }
     }
 }
