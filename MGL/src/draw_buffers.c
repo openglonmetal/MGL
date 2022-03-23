@@ -394,8 +394,6 @@ void mglDrawArraysInstancedBaseInstance(GLMContext ctx, GLenum mode, GLint first
 
     ERROR_CHECK_RETURN(validate_program(ctx), GL_INVALID_OPERATION);
 
-    ERROR_CHECK_RETURN(ctx->state.buffers[_DRAW_INDIRECT_BUFFER], GL_INVALID_OPERATION);
-
     ctx->mtl_funcs.mtlDrawArraysInstancedBaseInstance(ctx, mode, first, count, instancecount, baseinstance);
 }
 
@@ -420,8 +418,6 @@ void mglDrawElementsInstancedBaseInstance(GLMContext ctx, GLenum mode, GLsizei c
 
     ERROR_CHECK_RETURN(VAO_STATE(element_array.buffer), GL_INVALID_OPERATION);
 
-    ERROR_CHECK_RETURN(ctx->state.buffers[_DRAW_INDIRECT_BUFFER], GL_INVALID_OPERATION);
-
     ctx->mtl_funcs.mtlDrawElementsInstancedBaseInstance(ctx, mode, count, type, indices, instancecount, baseinstance);
 }
 
@@ -445,8 +441,6 @@ void mglDrawElementsInstancedBaseVertexBaseInstance(GLMContext ctx, GLenum mode,
     ERROR_CHECK_RETURN(validate_program(ctx), GL_INVALID_OPERATION);
 
     ERROR_CHECK_RETURN(VAO_STATE(element_array.buffer), GL_INVALID_OPERATION);
-
-    ERROR_CHECK_RETURN(ctx->state.buffers[_DRAW_INDIRECT_BUFFER], GL_INVALID_OPERATION);
 
     ctx->mtl_funcs.mtlDrawElementsInstancedBaseVertexBaseInstance(ctx, mode, count, type, indices, instancecount, basevertex, baseinstance);
 }
