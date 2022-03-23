@@ -1150,12 +1150,12 @@ void logDirtyBits(GLMContext ctx)
         {
             RETURN_FALSE_ON_FAILURE(i < count);
 
-            GLuint spirv_location;
+            GLuint spirv_binding;
             Texture *ptr;
 
-            spirv_location = [self getProgramLocation:_FRAGMENT_SHADER type:SPVC_RESOURCE_TYPE_SAMPLED_IMAGE index: i];
+            spirv_binding = [self getProgramBinding:_FRAGMENT_SHADER type:SPVC_RESOURCE_TYPE_SAMPLED_IMAGE index: i];
 
-            ptr = STATE(active_textures[spirv_location]);
+            ptr = STATE(active_textures[spirv_binding]);
 
             if (ptr)
             {
@@ -1171,11 +1171,11 @@ void logDirtyBits(GLMContext ctx)
 
                 // late binding of texture samplers.. but its better than scanning all texture_samplers
                 // texture samplers take priority over texture parameters
-                if(STATE(texture_samplers[spirv_location]))
+                if(STATE(texture_samplers[spirv_binding]))
                 {
                     Sampler *gl_sampler;
 
-                    gl_sampler = STATE(texture_samplers[spirv_location]);
+                    gl_sampler = STATE(texture_samplers[spirv_binding]);
 
                     // delete existing sampler if dirty
                     if (gl_sampler->dirty_bits)
@@ -1202,8 +1202,8 @@ void logDirtyBits(GLMContext ctx)
                     assert(sampler);
                 }
 
-                [_currentRenderEncoder setFragmentTexture:texture atIndex:spirv_location];
-                [_currentRenderEncoder setFragmentSamplerState:sampler atIndex:spirv_location];
+                [_currentRenderEncoder setFragmentTexture:texture atIndex:spirv_binding];
+                [_currentRenderEncoder setFragmentSamplerState:sampler atIndex:spirv_binding];
 
                 textures_to_be_mapped--;
             }
