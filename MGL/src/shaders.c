@@ -81,10 +81,10 @@ void initGLSLInput(GLMContext ctx, GLuint type, const char *src, glslang_input_t
     input->target_language_version = GLSLANG_TARGET_SPV_1_5;
 
     input->code = src;
-    input->default_version = 450;
+    input->default_version = 460;
     input->default_profile = GLSLANG_CORE_PROFILE;
     //input->messages = 0xFFFF & ~GLSLANG_MSG_RELAXED_ERRORS_BIT;
-    input->messages = GLSLANG_MSG_DEFAULT_BIT | GLSLANG_MSG_DEBUG_INFO_BIT;
+    input->messages = GLSLANG_MSG_DEFAULT_BIT | GLSLANG_MSG_DEBUG_INFO_BIT | GLSLANG_MSG_RELAXED_ERRORS_BIT;
     input->resource = glslang_default_resource();
 
     input->force_default_version_and_profile = 1;
@@ -294,6 +294,8 @@ void mglCompileShader(GLMContext ctx, GLuint shader)
         free(ptr->log);
         ptr->log = NULL;
     }
+
+    glslang_shader_set_options(glsl_shader, GLSLANG_SHADER_VULKAN_RULES_RELAXED);
 
     err = glslang_shader_preprocess(glsl_shader, &glsl_input);
     if (!err)
