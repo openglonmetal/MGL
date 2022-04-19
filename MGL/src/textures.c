@@ -144,7 +144,7 @@ static Texture *getTexture(GLMContext ctx, GLenum target, GLuint texture)
     return ptr;
 }
 
-static int isTexuture(GLMContext ctx, GLuint texture)
+static int isTexture(GLMContext ctx, GLuint texture)
 {
     Texture *ptr;
 
@@ -370,7 +370,7 @@ void mglDeleteTextures(GLMContext ctx, GLsizei n, const GLuint *textures)
 
 GLboolean mglIsTexture(GLMContext ctx, GLuint texture)
 {
-    return isTexuture(ctx, texture);
+    return isTexture(ctx, texture);
 }
 
 void mglInvalidateTexImage(GLMContext ctx, GLuint texture, GLint level)
