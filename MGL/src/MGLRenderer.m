@@ -3307,6 +3307,8 @@ void mtlDrawElements(GLMContext glm_ctx, GLenum mode, GLsizei count, GLenum type
     id <MTLBuffer>indexBuffer = (__bridge id<MTLBuffer>)(gl_element_buffer->data.mtl_data);
     assert(indexBuffer);
 
+    size_t offset = (char *)indices - (char *)NULL;
+
     // indexBufferOffset is a byte offset
     switch(indexType)
     {
@@ -3320,7 +3322,7 @@ void mtlDrawElements(GLMContext glm_ctx, GLenum mode, GLsizei count, GLenum type
     // to much memory down.. like a million point galaxy drawing
     //
     [_currentRenderEncoder drawIndexedPrimitives:primitiveType indexCount:end - count indexType:indexType
-                                     indexBuffer:indexBuffer indexBufferOffset:start instanceCount:1];
+                                     indexBuffer:indexBuffer indexBufferOffset:offset+start instanceCount:1];
 }
 
 void mtlDrawRangeElements(GLMContext glm_ctx, GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const void *indices)
@@ -3371,13 +3373,15 @@ void mtlDrawArraysInstanced(GLMContext glm_ctx, GLenum mode, GLint first, GLsize
     id <MTLBuffer>indexBuffer = (__bridge id<MTLBuffer>)(gl_element_buffer->data.mtl_data);
     assert(indexBuffer);
 
+    size_t offset = (char *)indices - (char *)NULL;
+
     // for now lets just ignore the range data and use drawIndexedPrimitives
     //
     // in the future it would be an idea to use temp buffers for large buffers that would wire
     // to much memory down.. like a million point galaxy drawing
     //
     [_currentRenderEncoder drawIndexedPrimitives:primitiveType indexCount:count indexType:indexType
-                                     indexBuffer:indexBuffer indexBufferOffset:0 instanceCount:instancecount];
+                                     indexBuffer:indexBuffer indexBufferOffset:offset instanceCount:instancecount];
 }
 
 void mtlDrawElementsInstanced(GLMContext glm_ctx, GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei instancecount)
@@ -3409,7 +3413,9 @@ void mtlDrawElementsInstanced(GLMContext glm_ctx, GLenum mode, GLsizei count, GL
     id <MTLBuffer>indexBuffer = (__bridge id<MTLBuffer>)(gl_element_buffer->data.mtl_data);
     assert(indexBuffer);
 
-    [_currentRenderEncoder drawIndexedPrimitives: primitiveType indexCount:count indexType: indexType indexBuffer:indexBuffer indexBufferOffset:0 instanceCount:1 baseVertex:basevertex baseInstance:0];
+    size_t offset = (char *)indices - (char *)NULL;
+
+    [_currentRenderEncoder drawIndexedPrimitives: primitiveType indexCount:count indexType: indexType indexBuffer:indexBuffer indexBufferOffset:offset instanceCount:1 baseVertex:basevertex baseInstance:0];
 }
 
 void mtlDrawElementsBaseVertex(GLMContext glm_ctx, GLenum mode, GLsizei count, GLenum type, const void *indices, GLint basevertex)
@@ -3441,6 +3447,8 @@ void mtlDrawElementsBaseVertex(GLMContext glm_ctx, GLenum mode, GLsizei count, G
     id <MTLBuffer>indexBuffer = (__bridge id<MTLBuffer>)(gl_element_buffer->data.mtl_data);
     assert(indexBuffer);
 
+    size_t offset = (char *)indices - (char *)NULL;
+
     // indexBufferOffset is a byte offset
     switch(indexType)
     {
@@ -3448,7 +3456,7 @@ void mtlDrawElementsBaseVertex(GLMContext glm_ctx, GLenum mode, GLsizei count, G
         case MTLIndexTypeUInt32: start <<= 2; break;
     }
 
-    [_currentRenderEncoder drawIndexedPrimitives: primitiveType indexCount:end - start indexType: indexType indexBuffer:indexBuffer indexBufferOffset:start instanceCount:1 baseVertex:basevertex baseInstance:0];
+    [_currentRenderEncoder drawIndexedPrimitives: primitiveType indexCount:end - start indexType: indexType indexBuffer:indexBuffer indexBufferOffset:offset+start instanceCount:1 baseVertex:basevertex baseInstance:0];
 }
 
 void mtlDrawRangeElementsBaseVertex(GLMContext glm_ctx, GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const void *indices, GLint basevertex)
@@ -3458,7 +3466,7 @@ void mtlDrawRangeElementsBaseVertex(GLMContext glm_ctx, GLenum mode, GLuint star
 
 
 #pragma mark C interface to mtlDrawElementsInstancedBaseVertex
--(void) mtlDrawElementsInstancedBaseVertex: (GLMContext) glm_ctx mode:(GLenum) mode count:(GLuint)count type: (GLenum) type indices:(const void *)indices instancecount:(GLsizei) instancecount basevertex:(GLint) basevertex
+-(void) mtlDrawElementsInstancedBaseVertex: (GLMContext) glm_ctx mode:(GLenum) mode count:(GLuint) count type: (GLenum) type indices:(const void *)indices instancecount:(GLsizei) instancecount basevertex:(GLint) basevertex
 {
     MTLPrimitiveType primitiveType;
     MTLIndexType indexType;
@@ -3480,7 +3488,9 @@ void mtlDrawRangeElementsBaseVertex(GLMContext glm_ctx, GLenum mode, GLuint star
     id <MTLBuffer>indexBuffer = (__bridge id<MTLBuffer>)(gl_element_buffer->data.mtl_data);
     assert(indexBuffer);
 
-    [_currentRenderEncoder drawIndexedPrimitives: primitiveType indexCount:count indexType: indexType indexBuffer:indexBuffer indexBufferOffset:0 instanceCount:instancecount baseVertex:basevertex baseInstance:0];
+    size_t offset = (char *)indices - (char *)NULL;
+
+    [_currentRenderEncoder drawIndexedPrimitives:primitiveType indexCount:count indexType:indexType indexBuffer:indexBuffer indexBufferOffset:offset instanceCount:instancecount baseVertex:basevertex baseInstance:0];
 }
 
 void mtlDrawElementsInstancedBaseVertex(GLMContext glm_ctx, GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei instancecount, GLint basevertex)
@@ -3602,12 +3612,14 @@ void mtlDrawArraysInstancedBaseInstance(GLMContext glm_ctx, GLenum mode, GLint f
     id <MTLBuffer>indexBuffer = (__bridge id<MTLBuffer>)(gl_element_buffer->data.mtl_data);
     assert(indexBuffer);
 
+    size_t offset = (char *)indices - (char *)NULL;
+
     // for now lets just ignore the range data and use drawIndexedPrimitives
     //
     // in the future it would be an idea to use temp buffers for large buffers that would wire
     // to much memory down.. like a million point galaxy drawing
     //
-    [_currentRenderEncoder drawIndexedPrimitives:primitiveType indexCount:count indexType:indexType indexBuffer:indexBuffer indexBufferOffset:0 instanceCount:instancecount baseVertex:0 baseInstance:baseinstance];
+    [_currentRenderEncoder drawIndexedPrimitives:primitiveType indexCount:count indexType:indexType indexBuffer:indexBuffer indexBufferOffset:offset instanceCount:instancecount baseVertex:0 baseInstance:baseinstance];
 }
 
 void mtlDrawElementsInstancedBaseInstance(GLMContext glm_ctx, GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei instancecount, GLuint baseinstance)
@@ -3640,12 +3652,14 @@ void mtlDrawElementsInstancedBaseInstance(GLMContext glm_ctx, GLenum mode, GLsiz
     id <MTLBuffer>indexBuffer = (__bridge id<MTLBuffer>)(gl_element_buffer->data.mtl_data);
     assert(indexBuffer);
 
+    size_t offset = (char *)indices - (char *)NULL;
+
     // for now lets just ignore the range data and use drawIndexedPrimitives
     //
     // in the future it would be an idea to use temp buffers for large buffers that would wire
     // to much memory down.. like a million point galaxy drawing
     //
-    [_currentRenderEncoder drawIndexedPrimitives:primitiveType indexCount:count indexType:indexType indexBuffer:indexBuffer indexBufferOffset:0 instanceCount:instancecount baseVertex:basevertex baseInstance:baseinstance];
+    [_currentRenderEncoder drawIndexedPrimitives:primitiveType indexCount:count indexType:indexType indexBuffer:indexBuffer indexBufferOffset:offset instanceCount:instancecount baseVertex:basevertex baseInstance:baseinstance];
 }
 
 void mtlDrawElementsInstancedBaseVertexBaseInstance(GLMContext glm_ctx, GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei instancecount, GLint basevertex, GLuint baseinstance)
