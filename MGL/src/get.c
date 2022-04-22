@@ -409,7 +409,7 @@ const GLubyte *mglGetString(GLMContext ctx, GLenum name)
             return (const GLubyte *)"4.6.0";
 
         case GL_SHADING_LANGUAGE_VERSION:
-            return (const GLubyte *)"4.5";
+            return (const GLubyte *)"4.6";
 
         default:
             assert(0);
@@ -435,7 +435,7 @@ const GLubyte  *mglGetStringi(GLMContext ctx, GLenum name, GLuint index)
         case GL_VENDOR: return (const GLubyte *)"Mike Larson";
         case GL_RENDERER: return (const GLubyte *) "MGL";
         case GL_VERSION: return (const GLubyte *) "4.6.0";
-        case GL_SHADING_LANGUAGE_VERSION: return (const GLubyte *) "4.5.0";
+        case GL_SHADING_LANGUAGE_VERSION: return (const GLubyte *) "4.6.0";
         case GL_EXTENSIONS: return NULL;
 
         default:
