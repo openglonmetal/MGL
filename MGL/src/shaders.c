@@ -207,7 +207,6 @@ void mglShaderSource(GLMContext ctx, GLuint shader, GLsizei count, const GLchar 
     size_t len;
     char *src;
     Shader *ptr;
-    const GLint * used_length=0;
     GLint* tmp_length=0;
 
     ERROR_CHECK_RETURN(isShader(ctx, shader), GL_INVALID_VALUE);
@@ -229,14 +228,12 @@ void mglShaderSource(GLMContext ctx, GLuint shader, GLsizei count, const GLchar 
                 tmp_length[i] = strlen(string[i]);
                 len += tmp_length[i];
             }
-            used_length = tmp_length;
         }
         else {
             for(int i=0; i<count; i++)
             {
                 len += length[i];
             }
-            used_length = length;
         }   
 
         ERROR_CHECK_RETURN(len, GL_INVALID_VALUE);
