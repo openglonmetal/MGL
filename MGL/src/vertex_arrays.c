@@ -676,7 +676,7 @@ void setAttribIFormat(GLMContext ctx, VertexArray *vao, GLuint attribindex, GLin
 
     switch(type)
     {
-        case GL_DOUBLE:
+        case GL_UNSIGNED_INT:
             ERROR_CHECK_RETURN((size >= 1 && size <=4), GL_INVALID_VALUE);
             break;
 
