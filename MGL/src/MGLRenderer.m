@@ -3967,6 +3967,15 @@ CppCreateMGLRendererAndBindToContext (void *window, void *glm_ctx)
     _layer.pixelFormat = ctx->pixel_format.mtl_pixel_format;
     _layer.framebufferOnly = true;
     _layer.frame = view.layer.frame;
+    _layer.magnificationFilter = kCAFilterNearest;
+
+    // from https://github.com/bkaradzic/bgfx/issues/2009#issuecomment-581390564
+    int scaleFactor = [[NSScreen mainScreen] backingScaleFactor];
+    [_layer setContentsScale: scaleFactor];
+
+    // for iOS, it'll be:
+    // scaleFactor = [[UIScreen mainScreen] scale];
+    // [m_metalLayer setContentScaleFactor: scaleFactor];
 
     //assert([_view layer]);
     if ([_view layer])
