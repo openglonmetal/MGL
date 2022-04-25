@@ -68,7 +68,9 @@ $(test_exe): $(test_objs)
 	@mkdir -p $(dir $@)
 	$(CXX) -o $@ $^ -L$(build_dir) -lmgl $(shell pkg-config --libs glfw3)
 
-CFLAGS += -gfull -Og
+CFLAGS += -gfull -O0 -Wall
+CFLAGS += -fsanitize=address #-O1
+LIBS += -fsanitize=address
 CFLAGS += -arch $(shell uname -m)
 CFLAGS += -I$(spirv_cross_1_2_include_path)
 CFLAGS += -I$(spirv_cross_config_include_path)
