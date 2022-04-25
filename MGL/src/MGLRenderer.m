@@ -3801,11 +3801,11 @@ void mtlMultiDrawElementsBaseVertex(GLMContext glm_ctx, GLenum mode, const GLsiz
 
         if (stride)
         {
-            offset = (DrawArraysIndirectCommand  *)((GLuint *)indirect + i * stride) - (DrawArraysIndirectCommand *)NULL;
+            offset = (char *)((char *)indirect + i * stride) - (char *)NULL;
         }
         else
         {
-            offset = (DrawArraysIndirectCommand  *)indirect + i - (DrawArraysIndirectCommand *)NULL;
+            offset = (char *)indirect + i - (char *)NULL;
         }
 
         [_currentRenderEncoder drawPrimitives:primitiveType indirectBuffer:indirectBuffer indirectBufferOffset:offset];
@@ -3857,11 +3857,11 @@ void mtlMultiDrawArraysIndirect(GLMContext glm_ctx, GLenum mode, const void *ind
 
         if (stride)
         {
-            offset = (DrawElementsIndirectCommand  *)((GLuint *)indirect + i * stride) - (DrawElementsIndirectCommand *)NULL;
+            offset = (char *)((char *)indirect + i * stride) - (char *)NULL;
         }
         else
         {
-            offset = (DrawElementsIndirectCommand  *)indirect + i - (DrawElementsIndirectCommand *)NULL;
+            offset = (char *)indirect + i - (char *)NULL;
         }
 
         // draw indexed primitive
