@@ -31,10 +31,26 @@
 #define GL_GLEXT_PROTOTYPES 1
 #include <GL/glcorearb.h>
 
+#if !defined(TEST_MGL_GLFW) && !defined(TEST_MGL_SDL)
+#define TEST_MGL_GLFW 1
+#endif
+
+#if TEST_MGL_GLFW
 #include <GLFW/glfw3.h>
 #define GLFW_EXPOSE_NATIVE_COCOA
 #include <GLFW/glfw3native.h>
-//#include <GL/utils.h>
+#define SWAP_BUFFERS MGLswapBuffers((GLMContext) glfwGetWindowUserPointer(window));
+#endif
+
+#if TEST_MGL_SDL
+#include <SDL.h>
+#include <SDL_syswm.h>
+#define SWAP_BUFFERS MGLswapBuffers((GLMContext) SDL_GetWindowData(window,"MGLRenderer"));
+#define GLFWwindow SDL_Window
+SDL_Event sdlevent;
+#define glfwPollEvents() SDL_PollEvent(&sdlevent)
+#define glfwWindowShouldClose(window) (sdlevent.type==SDL_QUIT ||  (sdlevent.type==SDL_WINDOWEVENT && sdlevent.window.event==SDL_WINDOWEVENT_CLOSE))
+#endif
 
 extern "C" {
 #include "MGLContext.h"
@@ -2817,7 +2833,8 @@ void error_callback(int error_code, const char* description)
     //exit(EXIT_FAILURE);
 }
 
-int main(int argc, const char * argv[])
+#if TEST_MGL_GLFW
+int main_glfw(int argc, const char * argv[])
 {
     glfwSetErrorCallback (error_callback);
 
@@ -2895,18 +2912,103 @@ int main(int argc, const char * argv[])
 
     return 0;
 }
+#endif
 
+#if TEST_MGL_SDL
+int main_sdl(int argc, const char * argv[])
+{
+    if (SDL_Init (SDL_INIT_VIDEO) < 0) {
+        fprintf(stderr, "Failed to initialize SDL : %s\n", SDL_GetError());
+        exit(EXIT_FAILURE);
+    }
 
+    fprintf(stderr, "creating window...\n");
 
+    SDL_GL_LoadLibrary ("/Users/conversy/recherche/istar/code/misc/MGL/build/libmgl.dylib"); // this will make SDL_GL_GetProcAdress work as expected
 
+    SDL_Window * window = SDL_CreateWindow (
+        "MGL Test", 
+        0,0,600,600,
+          SDL_WINDOW_RESIZABLE
+        | SDL_WINDOW_ALLOW_HIGHDPI
+        | SDL_WINDOW_OPENGL
+        //| SDL_WINDOW_METAL
+        );
 
+    if( window == NULL ) {
+        fprintf(stderr, "Window could not be created! SDL_Error: %s\n",SDL_GetError());
+        exit(EXIT_FAILURE);
+    }
 
+    GLMContext glm_ctx = createGLMContext(GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, GL_DEPTH_COMPONENT, GL_FLOAT, 0, 0);
+    MGLsetCurrentContext(glm_ctx);
 
+    SDL_SysWMinfo info;
+    SDL_VERSION(&info.version);
+    if( !SDL_GetWindowWMInfo(window, &info)) {
+        fprintf(stderr, "Couldn't GetWindowWMInfo: %s %s:%d\n", SDL_GetError(), __FILE__, __LINE__);
+        exit(EXIT_FAILURE);
+      }
+    assert (info.subsystem==SDL_SYSWM_COCOA);
+    void * renderer = CppCreateMGLRendererAndBindToContext (info.info.cocoa.window, glm_ctx);
+    if (!renderer)
+    {
+        fprintf(stderr, "Couldn't create MGL renderer\n");   
+        exit(EXIT_FAILURE);
+    }
+    SDL_SetWindowData (window, "MGLRenderer", glm_ctx);
+    assert(SDL_GetWindowData(window, "MGLRenderer")==glm_ctx);
 
+    SDL_GL_SetSwapInterval(0);
 
+    int width, height;
 
+    SDL_GetWindowSize(window, &width, &height);
 
+    int wscaled, hscaled;
 
+    SDL_GL_GetDrawableSize(window, &wscaled, &hscaled);
+    printf("%d %d\n",width, wscaled);
 
+    glViewport(0, 0, wscaled, hscaled);
 
+    fprintf(stderr, "setup complete. testing...\n");
+
+    // test_clear(window, width, height);
+    // test_draw_arrays(window, width, height);
+    // test_draw_elements(window, width, height);
+    // test_draw_range_elements(window, width, height);
+    // test_draw_arrays_instanced(window, width, height);
+    // test_uniform_buffer(window, width, height);
+    // test_1D_textures(window, width, height);
+    // test_1D_array_textures(window, width, height);
+    test_2D_textures(window, width, height);
+    // test_3D_textures(window, width, height);
+    // test_2D_array_textures(window, width, height);
+    // test_textures(window, width, height, 0, 0);
+    // test_textures(window, width, height, 0, 0, 0, GL_NEAREST, GL_NEAREST);
+    // test_textures(window, width, height, 0, 0, 0, GL_LINEAR, GL_LINEAR);
+    // test_textures(window, width, height, 1, 1, 0, GL_LINEAR_MIPMAP_NEAREST);
+    // test_textures(window, width, height, 1, 1, 8, GL_LINEAR_MIPMAP_NEAREST);
+    // test_framebuffer(window, width, height);
+    // test_readpixels(window, width, height);
+    // test_compute_shader(window, width, height);
+
+    //test_2D_array_textures_perf_mon(window, width, height);
+
+    SDL_Quit();
+
+    return 0;
+}
+#endif
+
+int main(int argc, const char * argv[])
+{
+#if TEST_MGL_GLFW
+    return main_glfw(argc, argv);
+#endif
+#if TEST_MGL_SDL
+    return main_sdl(argc, argv);
+#endif
+}
 

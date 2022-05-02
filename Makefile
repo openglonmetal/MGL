@@ -21,6 +21,10 @@ spirv_cross_1_2_include_path ?= SPIRV-Headers/include/spirv/1.2
 spirv_cross_config_include_path ?= SPIRV-Cross
 spirv_cross_lib_path ?= SPIRV-Cross/build
 
+glslang_path ?= glslang
+glslang_include_path ?= $(glslang_path)/build/include/glslang $(glslang_path)/glslang/Include
+glslang_lib_path ?= $(glslang_path)/build/glslang $(glslang_path)/build/OGLCompilersDLL $(glslang_path)/build/glslang/OSDependent/Unix $(glslang_path)/build/StandAlone $(glslang_path)/build/SPIRV
+
 # build dir
 build_dir ?= build
 
@@ -55,26 +59,31 @@ $(mgl_lib): $(mgl_objs) $(mgl_arc_objs)
 
 # test
 
-test_srcs_cpp := $(wildcard test_mgl_glfw/*.cpp)
+test_srcs_cpp := $(wildcard test_mgl/*.cpp)
 test_objs := $(test_srcs_cpp:.cpp=.o)
 test_deps := $(test_objs:.o=.d)
 test_objs := $(addprefix $(build_dir)/,$(test_objs))
 deps += $(test_objs:.o=.d)
 test_exe := $(build_dir)/test
 $(test_exe): $(mgl_lib)
-$(test_objs): CFLAGS += $(shell pkg-config --cflags glfw3)
+$(test_exe): test_libs += $(shell pkg-config --libs glfw3)
+$(test_objs): CFLAGS += -DTEST_MGL_GLFW $(shell pkg-config --cflags glfw3)
+#$(test_exe): test_libs += $(shell pkg-config --libs sdl2)
+#$(test_objs): CFLAGS += -DTEST_MGL_SDL $(shell pkg-config --cflags sdl2)
 
 $(test_exe): $(test_objs)
 	@mkdir -p $(dir $@)
-	$(CXX) -o $@ $^ -L$(build_dir) -lmgl $(shell pkg-config --libs glfw3)
+	$(CXX) -o $@ $^ -L$(build_dir) -lmgl $(test_libs) -fsanitize=address
 
-CFLAGS += -gfull -O0 -Wall
-CFLAGS += -fsanitize=address #-O1
+CFLAGS += -Wall #-Wunused-parameter #-Wextra
+CFLAGS += -gfull -O0 -fsanitize=address
+#CFLAGS += -03
 LIBS += -fsanitize=address
 CFLAGS += -arch $(shell uname -m)
 CFLAGS += -I$(spirv_cross_1_2_include_path)
 CFLAGS += -I$(spirv_cross_config_include_path)
-CFLAGS += -I$(brew_prefix)/opt/glslang/include/glslang/Include
+#CFLAGS += -I$(brew_prefix)/opt/glslang/include/glslang/Include
+CFLAGS += $(addprefix -I,$(glslang_include_path))
 CFLAGS += $(shell pkg-config --cflags SPIRV-Tools)
 CFLAGS += $(shell pkg-config --cflags glm)
 CFLAGS += -IMGL/include
@@ -86,7 +95,9 @@ CFLAGS += -isysroot $(SDK_ROOT)
 endif
 
 LIBS += -L$(spirv_cross_lib_path) -lspirv-cross-core -lspirv-cross-c -lspirv-cross-cpp -lspirv-cross-msl -lspirv-cross-glsl -lspirv-cross-hlsl -lspirv-cross-reflect
-LIBS += -L$(brew_prefix)/opt/glslang/lib -lglslang -lMachineIndependent -lGenericCodeGen -lOGLCompiler -lOSDependent -lglslang-default-resource-limits -lSPIRV
+#LIBS += -L$(brew_prefix)/opt/glslang/lib
+LIBS += $(addprefix -L,$(glslang_lib_path))
+LIBS += -lglslang -lMachineIndependent -lGenericCodeGen -lOGLCompiler -lOSDependent -lglslang-default-resource-limits -lSPIRV
 #LIBS += -framework OpenGL -framework CoreGraphics
 
 # specific rules
@@ -145,6 +156,10 @@ install-pkgdeps:
 	git submodule init
 	git submodule update --depth 1
 	(cd SPIRV-Cross && mkdir -p build && cd build && cmake .. && make)
+	(cd glslang && mkdir -p build && cd build && cmake .. && make)
+
+update-pkdeps:
+	git submodule -q foreach git pull -q origin master
 
 test-make:
 	@echo $(glfw_objs)
