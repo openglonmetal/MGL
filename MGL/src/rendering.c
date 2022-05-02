@@ -62,6 +62,55 @@ void mglClearDepth(GLMContext ctx, GLdouble depth)
     ctx->state.dirty_bits |= DIRTY_STATE;
 }
 
+void mglClearBufferfv(GLMContext ctx, GLenum buffer, GLint drawbuffer, const GLfloat *value)
+{
+    Framebuffer * fbo = ctx->state.framebuffer;
+    FBOAttachment * fboa;
+
+    switch (buffer) {
+        case GL_COLOR:
+            fboa = &fbo->color_attachments[drawbuffer];
+            fboa->clear_bitmask |= GL_COLOR_BUFFER_BIT;
+            fboa->clear_color[0] = value[0];
+            fboa->clear_color[1] = value[1];
+            fboa->clear_color[2] = value[2];
+            fboa->clear_color[3] = value[3];
+            break;
+        case GL_DEPTH:
+            fboa = &fbo->depth;
+            fboa->clear_bitmask |= GL_DEPTH_BUFFER_BIT;
+            fboa->clear_color[0] = value[0];
+            break;
+        case GL_STENCIL:
+            fboa = &fbo->stencil;
+            fboa->clear_bitmask |= GL_STENCIL_BUFFER_BIT;
+            fboa->clear_color[0] = value[0];
+            break;
+        default:
+            break;
+    }
+}
+
+void mglClearBufferfi(GLMContext ctx, GLenum buffer, GLint drawbuffer, GLfloat depth, GLint stencil)
+{
+    Framebuffer * fbo = ctx->state.framebuffer;
+    FBOAttachment * fboa;
+
+    switch (buffer) {
+        case GL_DEPTH_STENCIL:
+            fboa = &fbo->depth;
+            fboa->clear_bitmask |= GL_DEPTH_BUFFER_BIT;
+            fboa->clear_color[0] = depth;
+
+            fboa = &fbo->stencil;
+            fboa->clear_bitmask |= GL_STENCIL_BUFFER_BIT;
+            fboa->clear_color[0] = stencil;
+            break;
+        default:
+            break;
+    }
+}
+
 void mglFinish(GLMContext ctx)
 {
     ctx->mtl_funcs.mtlFlush(ctx, true);
@@ -103,6 +152,8 @@ void mglDrawBuffer(GLMContext ctx, GLenum buf)
         (buf <= (GL_COLOR_ATTACHMENT0 + STATE(max_color_attachments))))
     {
         // probably should validate current fbo..
+        Framebuffer * fbo = ctx->state.framebuffer;
+        fbo->color_attachments[buf-GL_COLOR_ATTACHMENT0].buf.rbo->is_draw_buffer = GL_TRUE;
     }
 
     STATE(draw_buffer) = buf;

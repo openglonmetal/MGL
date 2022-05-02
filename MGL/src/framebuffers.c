@@ -183,7 +183,21 @@ void mglBindFramebuffer(GLMContext ctx, GLenum target, GLuint framebuffer)
         ptr = NULL;
     }
 
-    ctx->state.framebuffer = ptr;
+    switch(target) {
+        case GL_DRAW_FRAMEBUFFER:
+            ctx->state.framebuffer = ptr;
+            break;
+
+        case GL_READ_FRAMEBUFFER:
+            ctx->state.readbuffer = ptr;
+            break;
+
+        case GL_FRAMEBUFFER:
+            ctx->state.framebuffer = ptr;
+            ctx->state.readbuffer = ptr;
+            break;
+    }
+    
     STATE(dirty_bits) |= DIRTY_FBO;
 }
 
@@ -261,11 +275,11 @@ void mglBindRenderbuffer(GLMContext ctx, GLenum target, GLuint renderbuffer)
     Renderbuffer    *ptr;
     GLuint index;
 
-    if (ctx->state.framebuffer == NULL)
-    {
-        // no fbo bound..
-        assert(0);
-    }
+    // if (ctx->state.framebuffer == NULL)
+    // {
+    //     // no fbo bound..
+    //     assert(0);
+    // }
 
     assert(target == GL_RENDERBUFFER);
 
@@ -531,6 +545,11 @@ void framebufferTexture(GLMContext ctx, GLenum target, GLenum attachment_type, G
     fbo_attachment_ptr->textarget = textarget;
     fbo_attachment_ptr->level = level;
     fbo_attachment_ptr->layer = layer;
+    fbo_attachment_ptr->clear_bitmask = 0;
+    fbo_attachment_ptr->clear_color[0] = 0.f;
+    fbo_attachment_ptr->clear_color[1] = 0.f;
+    fbo_attachment_ptr->clear_color[2] = 0.f;
+    fbo_attachment_ptr->clear_color[3] = 0.f;
     fbo_attachment_ptr->buf.tex = tex;
 
     if (attachment == GL_DEPTH_STENCIL_ATTACHMENT)
@@ -648,7 +667,7 @@ void mglFramebufferRenderbuffer(GLMContext ctx, GLenum target, GLenum attachment
     if (renderbuffer)
     {
         rbo = findRenderbuffer(ctx, renderbuffer);
-        (assert(renderbuffer));
+        (assert(rbo));
     }
     else
     {
@@ -661,6 +680,7 @@ void mglFramebufferRenderbuffer(GLMContext ctx, GLenum target, GLenum attachment
     fbo_attachment_ptr->texture = renderbuffer;
     fbo_attachment_ptr->level = 0;
     fbo_attachment_ptr->buf.rbo = rbo;
+    fbo_attachment_ptr->buf.rbo->is_draw_buffer = GL_FALSE;
 
     if (attachment == GL_DEPTH_STENCIL_ATTACHMENT)
     {
@@ -807,8 +827,7 @@ void mglGetNamedFramebufferAttachmentParameteriv(GLMContext ctx, GLuint framebuf
 
 void mglBlitFramebuffer(GLMContext ctx, GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter)
 {
-    // Unimplemented function
-    assert(0);
+    ctx->mtl_funcs.mtlBlitFramebuffer(ctx, srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter);
 }
 
 void mglRenderbufferStorageMultisample(GLMContext ctx, GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height)

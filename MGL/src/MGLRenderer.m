@@ -1214,6 +1214,85 @@ void logDirtyBits(GLMContext ctx)
 }
 
 #pragma mark framebuffers
+
+extern bool isColorAttachment(GLMContext ctx, GLuint attachment);
+extern FBOAttachment *getFBOAttachment(GLMContext ctx, Framebuffer *fbo, GLenum attachment);
+
+-(void)mtlBlitFramebuffer:(GLMContext)glm_ctx srcX0:(size_t)srcX0 srcY0:(size_t)srcY0 srcX1:(size_t)srcX1 srcY1:(size_t)srcY1 dstX0:(size_t)dstX0 dstY0:(size_t)dstY0 dstX1:(size_t)dstX1 dstY1:(size_t)dstY1 mask:(size_t)mask filter:(GLuint)filter
+{
+    Framebuffer * readfbo, * drawfbo;
+    int readtex, drawtex;
+
+    readfbo = ctx->state.readbuffer;
+    assert(readfbo);
+
+    id<MTLTexture> readtexid;
+
+    if (readfbo==NULL) {
+        assert(_drawable);
+        readtexid = _drawable.texture;
+    } else {
+        assert(readfbo);
+        FBOAttachment * fboa = getFBOAttachment(ctx, readfbo, STATE(read_buffer));
+        assert(fboa);
+        Texture * readtexobj;
+        if (fboa->textarget == GL_RENDERBUFFER)
+        {
+            readtexobj = fboa->buf.rbo->tex;
+        }
+        else
+        {
+            readtexobj = fboa->buf.tex;
+        }
+        assert(readtexobj);
+        readtexid = (__bridge id<MTLTexture>)(readtexobj->mtl_data);
+        assert(readtexid);
+    }
+
+
+    drawfbo = ctx->state.framebuffer;
+
+    id<MTLTexture> drawtexid;
+    if (drawfbo==NULL) {
+        assert(_drawable);
+        drawtexid = _drawable.texture;
+    } else {
+        assert(drawfbo);
+        FBOAttachment * fboa = getFBOAttachment(ctx, drawfbo, STATE(draw_buffer));
+        assert(fboa);
+        Texture * drawtexobj;
+        if (fboa->textarget == GL_RENDERBUFFER)
+        {
+            drawtexobj = fboa->buf.rbo->tex;
+        }
+        else
+        {
+            drawtexobj = fboa->buf.tex;
+        }
+        assert(drawtexobj);
+        drawtexid = (__bridge id<MTLTexture>)(drawtexobj->mtl_data);
+        assert(drawtexid);
+    }
+
+
+    // end encoding on current render encoder
+    [self endRenderEncoding];
+
+    // start blit encoder
+    id<MTLBlitCommandEncoder> blitCommandEncoder;
+    blitCommandEncoder = [_currentCommandBuffer blitCommandEncoder];
+    [blitCommandEncoder
+        copyFromTexture:readtexid sourceSlice:0 sourceLevel:0 sourceOrigin:MTLOriginMake(srcX0, srcY0, 0) sourceSize:MTLSizeMake(srcX1-srcX0, srcY1-srcY0, 1)
+        toTexture:drawtexid destinationSlice:0 destinationLevel:0 destinationOrigin:MTLOriginMake(dstX0, dstY0, 0) /*destinationSize:MTLSizeMake(dstX1, dstY1, 0)*/ ];
+    [blitCommandEncoder endEncoding];
+
+}
+
+void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter)
+{
+    [(__bridge id) glm_ctx->mtl_funcs.mtlObj mtlBlitFramebuffer:glm_ctx srcX0:srcX0 srcY0:srcY0 srcX1:srcX1 srcY1:srcY1 dstX0:dstX0 dstY0:dstY0 dstX1:dstX1 dstY1:dstY1 mask:mask filter:filter];
+}
+
 - (Texture *)framebufferAttachmentTexture: (FBOAttachment *)fbo_attachment
 {
     Texture *tex;
@@ -1651,12 +1730,8 @@ void logDirtyBits(GLMContext ctx)
     if (ctx->state.framebuffer)
     {
         Framebuffer *fbo;
-        GLuint drawbuffer;
 
         fbo = ctx->state.framebuffer;
-        drawbuffer = ctx->state.draw_buffer - GL_COLOR_ATTACHMENT0;
-        assert(drawbuffer >= 0);
-        assert(drawbuffer <= STATE(max_color_attachments));
 
         for (int i=0; i<MAX_COLOR_ATTACHMENTS; i++)
         {
@@ -1670,7 +1745,7 @@ void logDirtyBits(GLMContext ctx)
                 assert(tex->mtl_data);
                 _renderPassDescriptor.colorAttachments[i].texture = (__bridge id<MTLTexture> _Nullable)(tex->mtl_data);
 
-                if (i == drawbuffer)
+                if (fbo->color_attachments[i].buf.rbo->is_draw_buffer)
                 {
                     GLuint width, height;
 
@@ -1789,7 +1864,8 @@ void logDirtyBits(GLMContext ctx)
         _renderPassDescriptor.renderTargetHeight = texture.height;
     }
 
-    if (ctx->state.clear_bitmask)
+    // in case one of the framebuffers should be cleared
+    if (true) // ctx->state.clear_bitmask)
     {
         if (ctx->state.clear_bitmask & GL_COLOR_BUFFER_BIT)
         {
@@ -1804,6 +1880,25 @@ void logDirtyBits(GLMContext ctx)
         else
         {
             _renderPassDescriptor.colorAttachments[0].loadAction = MTLLoadActionLoad;
+        }
+
+        if (ctx->state.framebuffer) {
+            Framebuffer * fbo = ctx->state.framebuffer;
+            for(int i=0; i<STATE(max_color_attachments);i++) {
+                FBOAttachment * fboa;
+                fboa = &fbo->color_attachments[i];
+                if (fboa->clear_bitmask & GL_COLOR_BUFFER_BIT) {
+                    _renderPassDescriptor.colorAttachments[i].clearColor =
+                        MTLClearColorMake(fboa->clear_color[0],
+                                        fboa->clear_color[1],
+                                        fboa->clear_color[2],
+                                        fboa->clear_color[3]);
+
+                    _renderPassDescriptor.colorAttachments[i].loadAction = MTLLoadActionClear;
+                } else {
+                    _renderPassDescriptor.colorAttachments[i].loadAction = MTLLoadActionLoad;
+                }
+            }
         }
 
         if (ctx->state.clear_bitmask & GL_DEPTH_BUFFER_BIT)
@@ -1955,12 +2050,8 @@ void logDirtyBits(GLMContext ctx)
     if (ctx->state.framebuffer)
     {
         Framebuffer *fbo;
-        GLuint drawbuffer;
 
         fbo = ctx->state.framebuffer;
-        drawbuffer = ctx->state.draw_buffer - GL_COLOR_ATTACHMENT0;
-        assert(drawbuffer >= 0);
-        assert(drawbuffer <= STATE(max_color_attachments));
 
         for (int i=0; i<STATE(max_color_attachments); i++)
         {
@@ -1983,8 +2074,9 @@ void logDirtyBits(GLMContext ctx)
         }
 
         // depth attachment
-        if (fbo->depth.texture &&
-            ctx->state.caps.depth_test)
+        if (fbo->depth.texture
+        //    && ctx->state.caps.depth_test // otherwise, the render pipeline's pixelFormat is MTLPixelFormatInvalid
+        )
         {
             Texture *tex;
 
@@ -1998,8 +2090,9 @@ void logDirtyBits(GLMContext ctx)
         }
 
         // stencil attachment
-        if (fbo->stencil.texture &&
-            ctx->state.caps.stencil_test)
+        if (fbo->stencil.texture
+        //    && ctx->state.caps.stencil_test // otherwise, the render pipeline's pixelFormat is MTLPixelFormatInvalid
+        )
         {
             Texture *tex;
 
@@ -2009,7 +2102,7 @@ void logDirtyBits(GLMContext ctx)
             RETURN_NULL_ON_FAILURE([self bindMTLTexture: tex]);
             assert(tex->mtl_data);
 
-            pipelineStateDescriptor.depthAttachmentPixelFormat = mtlPixelFormatForGLTex(tex);
+            pipelineStateDescriptor.stencilAttachmentPixelFormat = mtlPixelFormatForGLTex(tex);
         }
     }
     else
@@ -2194,18 +2287,14 @@ void logDirtyBits(GLMContext ctx)
 -(bool)bindFramebufferAttachmentTextures
 {
     Framebuffer *fbo;
-    GLuint drawbuffer;
 
     fbo = ctx->state.framebuffer;
-    drawbuffer = ctx->state.draw_buffer - GL_COLOR_ATTACHMENT0;
-    assert(drawbuffer >= 0);
-    assert(drawbuffer <= STATE(max_color_attachments));
 
     for (int i=0; i<MAX_COLOR_ATTACHMENTS; i++)
     {
         if (fbo->color_attachments[i].texture)
         {
-            if ([self bindFramebufferTexture: &fbo->color_attachments[i] isDrawBuffer: (i == drawbuffer)] == false)
+            if ([self bindFramebufferTexture: &fbo->color_attachments[i] isDrawBuffer: (fbo->color_attachments[i].buf.rbo->is_draw_buffer)] == false)
             {
                 printf("Failed Framebuffer Attachment\n");
                 return false;
@@ -2894,7 +2983,7 @@ void mtlFlush (GLMContext glm_ctx, bool finish)
 #pragma mark C interface to mtlSwapBuffers
 -(void) mtlSwapBuffers:(GLMContext) glm_ctx
 {
-    if (ctx->state.draw_buffer == GL_FRONT)
+    if (ctx->state.draw_buffer == GL_FRONT || ctx->state.draw_buffer == GL_COLOR_ATTACHMENT0)
     {
         // clear commands rely on processGLState
         // glClear / glSwap / repeat..
@@ -3891,6 +3980,7 @@ void mtlMultiDrawElementsIndirect(GLMContext glm_ctx, GLenum mode, GLenum type, 
     glm_ctx->mtl_funcs.mtlFlush = mtlFlush;
     glm_ctx->mtl_funcs.mtlSwapBuffers = mtlSwapBuffers;
     glm_ctx->mtl_funcs.mtlClearBuffer = mtlClearBuffer;
+    glm_ctx->mtl_funcs.mtlBlitFramebuffer = mtlBlitFramebuffer;
 
     glm_ctx->mtl_funcs.mtlBufferSubData = mtlBufferSubData;
     glm_ctx->mtl_funcs.mtlMapUnmapBuffer = mtlMapUnmapBuffer;
@@ -3965,7 +4055,7 @@ CppCreateMGLRendererAndBindToContext (void *window, void *glm_ctx)
 
     _layer.device = _device;
     _layer.pixelFormat = ctx->pixel_format.mtl_pixel_format;
-    _layer.framebufferOnly = true;
+    _layer.framebufferOnly = NO; // enable blitting to main color buffer
     _layer.frame = view.layer.frame;
     _layer.magnificationFilter = kCAFilterNearest;
 

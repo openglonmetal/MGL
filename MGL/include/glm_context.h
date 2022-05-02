@@ -405,6 +405,7 @@ typedef struct Program_t {
 typedef struct Renderbuffer_t {
     GLuint dirty_bits;
     GLuint  name;
+    GLboolean is_draw_buffer;
     Texture *tex;
 } Renderbuffer;
 
@@ -414,6 +415,8 @@ typedef struct FBOAttachment_t {
     GLuint texture;
     GLuint level;
     GLuint layer;
+    GLbitfield clear_bitmask;
+    GLfloat clear_color[4];
     union {
         Texture *tex;
         Renderbuffer *rbo;
@@ -591,6 +594,8 @@ struct GLMMetalFuncs {
     void (*mtlSwapBuffers)(GLMContext glm_ctx);
     
     void (*mtlClearBuffer)(GLMContext glm_ctx, GLuint type, GLbitfield mask);
+    void (*mtlBlitFramebuffer)(GLMContext ctx, GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter);
+
 
     void (*mtlBufferSubData)(GLMContext glm_ctx, Buffer *buf, size_t offset, size_t size, const void *ptr);
     void *(*mtlMapUnmapBuffer)(GLMContext glm_ctx, Buffer *buf, size_t offset, size_t size, GLenum access, bool map);

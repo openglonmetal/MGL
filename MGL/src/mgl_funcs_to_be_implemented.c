@@ -54,16 +54,6 @@ void mglClampColor(GLMContext ctx, GLenum target, GLenum clamp)
         assert(0);
 }
 
-void mglClearBufferfi(GLMContext ctx, GLenum buffer, GLint drawbuffer, GLfloat depth, GLint stencil)
-{
-        assert(0);
-}
-
-void mglClearBufferfv(GLMContext ctx, GLenum buffer, GLint drawbuffer, const GLfloat *value)
-{
-        assert(0);
-}
-
 void mglClearBufferiv(GLMContext ctx, GLenum buffer, GLint drawbuffer, const GLint *value)
 {
         assert(0);
