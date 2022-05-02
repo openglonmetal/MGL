@@ -3206,6 +3206,96 @@ void mtlGetTexImage(GLMContext glm_ctx, Texture *tex, void *pixelBytes, GLuint b
     [(__bridge id) glm_ctx->mtl_funcs.mtlObj mtlGetTexImage:glm_ctx tex:tex pixelBytes:pixelBytes bytesPerRow:bytesPerRow bytesPerImage:bytesPerImage fromRegion:MTLRegionMake2D(x,y,width,height) mipmapLevel:level slice:slice];
 }
 
+
+
+-(void) mtlGetTexImageAsync:(GLMContext) glm_ctx tex:(Texture *)tex bytesPerRow:(NSUInteger)bytesPerRow bytesPerImage:(NSUInteger)bytesPerImage fromRegion:(MTLRegion)region mipmapLevel:(NSUInteger)level slice:(NSUInteger)slice
+{
+    id<MTLTexture> texture;
+
+    if (glm_ctx->state.readbuffer)
+    {
+        Framebuffer *fbo;
+        GLuint drawbuffer;
+
+        fbo = ctx->state.readbuffer;
+        drawbuffer = ctx->state.read_buffer - GL_COLOR_ATTACHMENT0;
+        assert(drawbuffer >= 0);
+        assert(drawbuffer <= STATE(max_color_attachments));
+
+        tex = [self framebufferAttachmentTexture: &fbo->color_attachments[drawbuffer]];
+        assert(tex);
+
+        texture = (__bridge id<MTLTexture>)(tex->mtl_data);
+        assert(texture);
+    }
+    else
+    {
+        GLuint mgl_drawbuffer;
+        id<MTLTexture> texture;
+
+        switch(ctx->state.read_buffer)
+        {
+            case GL_FRONT: mgl_drawbuffer = _FRONT; break;
+            case GL_BACK: mgl_drawbuffer = _BACK; break;
+            case GL_FRONT_LEFT: mgl_drawbuffer = _FRONT_LEFT; break;
+            case GL_FRONT_RIGHT: mgl_drawbuffer = _FRONT_RIGHT; break;
+            case GL_BACK_LEFT: mgl_drawbuffer = _BACK_LEFT; break;
+            case GL_BACK_RIGHT: mgl_drawbuffer = _BACK_RIGHT; break;
+            default:
+                assert(0);
+        }
+
+        if (mgl_drawbuffer == _FRONT)
+        {
+            texture = _drawable.texture;
+            assert(texture);
+        }
+        else if(_drawBuffers[mgl_drawbuffer].drawbuffer)
+        {
+            texture = _drawBuffers[mgl_drawbuffer].drawbuffer;
+        }
+        else
+        {
+            assert(0);
+        }
+    }
+
+
+    Buffer *ptr;
+
+    ptr = glm_ctx->state.buffers[_PIXEL_PACK_BUFFER];
+
+    id<MTLBuffer> buffer = (__bridge id<MTLBuffer>) ptr->data.mtl_data;
+
+    if(!buffer)
+    {
+        MTLResourceOptions options;
+        options = MTLResourceCPUCacheModeDefaultCache | MTLResourceStorageModeManaged;
+        buffer = [_device newBufferWithLength:bytesPerImage options: options];
+        ptr->data.mtl_data = CFBridgingRetain(buffer);;
+    }
+
+    assert(buffer);
+    
+
+    // end encoding on current render encoder
+    [self endRenderEncoding];
+
+    // start blit encoder
+    id<MTLBlitCommandEncoder> blitCommandEncoder;
+    blitCommandEncoder = [_currentCommandBuffer blitCommandEncoder];
+    [blitCommandEncoder
+        copyFromTexture:texture sourceSlice:0 sourceLevel:0
+        sourceOrigin:MTLOriginMake(region.origin.x, region.origin.y, 0) sourceSize:MTLSizeMake(region.size.width, region.size.height, 1)
+        toBuffer:buffer destinationOffset:0 destinationBytesPerRow:bytesPerRow destinationBytesPerImage:bytesPerImage];
+    [blitCommandEncoder endEncoding];
+}
+
+void mtlGetTexImageAsync(GLMContext glm_ctx, Texture *tex, GLuint bytesPerRow, GLuint bytesPerImage, GLint x, GLint y, GLsizei width, GLsizei height, GLuint level, GLuint slice)
+{
+    [(__bridge id) glm_ctx->mtl_funcs.mtlObj mtlGetTexImageAsync:glm_ctx tex:tex bytesPerRow:bytesPerRow bytesPerImage:bytesPerImage fromRegion:MTLRegionMake2D(x,y,width,height) mipmapLevel:level slice:slice];
+}
+
 #pragma mark C interface to mtlGenerateMipmaps
 
 -(void)mtlGenerateMipmaps:(GLMContext)glm_ctx forTexture:(Texture *) tex
@@ -4015,6 +4105,7 @@ void mtlMultiDrawElementsIndirect(GLMContext glm_ctx, GLenum mode, GLenum type, 
     glm_ctx->mtl_funcs.mtlFlushBufferRange = mtlFlushBufferRange;
 
     glm_ctx->mtl_funcs.mtlGetTexImage = mtlGetTexImage;
+    glm_ctx->mtl_funcs.mtlGetTexImageAsync = mtlGetTexImageAsync;
     glm_ctx->mtl_funcs.mtlGenerateMipmaps = mtlGenerateMipmaps;
     glm_ctx->mtl_funcs.mtlTexSubImage = mtlTexSubImage;
 

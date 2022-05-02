@@ -353,8 +353,27 @@ void mglReadPixels(GLMContext ctx, GLint x, GLint y, GLsizei width, GLsizei heig
             break;
     }
 
-    if (ctx->state.buffers[_PIXEL_PACK_BUFFER])
+    GLuint pitch;
+    if (ctx->state.pack.row_length)
     {
+        pitch = ctx->state.pack.row_length * pixel_size;
+    }
+    else
+    {
+        pitch = (width - x) * pixel_size;
+    }
+
+    size_t buffer_size;
+    buffer_size = pitch * (height - y);
+
+    if (! ctx->state.buffers[_PIXEL_PACK_BUFFER])
+    {
+        // in client memory
+        ctx->mtl_funcs.mtlGetTexImage(ctx, NULL, (void *)pixels, pitch, (GLuint)buffer_size, x, y, width, height, 0, 0);
+    }
+    else
+    {
+        // in PBO
         Buffer *ptr;
 
         ptr = ctx->state.buffers[_PIXEL_PACK_BUFFER];
@@ -367,52 +386,33 @@ void mglReadPixels(GLMContext ctx, GLint x, GLint y, GLsizei width, GLsizei heig
 
         ERROR_CHECK_RETURN(ptr->size >= size_req, GL_INVALID_OPERATION);
 
-        // GL_INVALID_OPERATION is generated if a non-zero buffer object name is bound to the GL_PIXEL_PACK_BUFFER target and data is not evenly divisible into the number of bytes needed to store in memory a datum indicated by type.
+        vm_address_t buffer_data;
+        buffer_data = ptr->data.buffer_data;
 
-        uint64_t alignment_test;
-        uint32_t alignment;
+        if (pixels) {
+            // GL_INVALID_OPERATION is generated if a non-zero buffer object name is bound to the GL_PIXEL_PACK_BUFFER target and data is not evenly divisible into the number of bytes needed to store in memory a datum indicated by type.
 
-        alignment_test = (uint64_t)pixels;
-        alignment_test = ~alignment_test;
+            uint64_t alignment_test;
+            uint32_t alignment;
 
-        alignment = 0;
-        // count number of lower zero bits for alignment
-        while((alignment_test & 0x1) == 0)
-        {
-            alignment++;
-            alignment_test >>= 1;
+            buffer_data += (const char*)pixels-(const char*)NULL;
+
+            alignment_test = (uint64_t)buffer_data;
+            alignment_test = ~alignment_test;
+
+            alignment = 0;
+            // count number of lower zero bits for alignment
+            while( ((alignment_test & 0x1) == 1) && alignment >= pixel_size)
+            {
+                alignment++;
+                alignment_test >>= 1;
+            }
+
+            ERROR_CHECK_RETURN(alignment >= pixel_size, GL_INVALID_OPERATION);
         }
 
-        ERROR_CHECK_RETURN(alignment >= pixel_size, GL_INVALID_OPERATION);
+        //ctx->mtl_funcs.mtlGetTexImage(ctx, NULL, (void *)buffer_data, pitch, (GLuint)buffer_size, x, y, width, height, 0, 0);
+        ctx->mtl_funcs.mtlGetTexImageAsync(ctx, NULL, pitch, (GLuint)buffer_size, x, y, width, height, 0, 0);
     }
-
-    GLuint pitch;
-    if (ctx->state.pack.row_length)
-    {
-        pitch = ctx->state.pack.row_length * pixel_size;
-    }
-    else
-    {
-        pitch = (width - x) * pixel_size;
-    }
-
-    kern_return_t err;
-    vm_address_t buffer_data;
-    size_t buffer_size;
-
-    buffer_size = pitch * (height - y);
-
-    err = vm_allocate((vm_map_t) mach_task_self(),
-                      (vm_address_t*) &buffer_data,
-                      buffer_size,
-                      VM_FLAGS_ANYWHERE);
-    if (err)
-    {
-        ERROR_RETURN(GL_OUT_OF_MEMORY);
-    }
-
-    ctx->mtl_funcs.mtlGetTexImage(ctx, NULL, (void *)buffer_data, pitch, (GLuint)buffer_size, x, y, width, height, 0, 0);
-
-    vm_deallocate(mach_host_self(), buffer_data, buffer_size);
 }
 
