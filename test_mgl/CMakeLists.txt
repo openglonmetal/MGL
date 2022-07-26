@@ -2,7 +2,7 @@ project(test_mgl)
 cmake_minimum_required(VERSION 3.18)
 #set(CMAKE_OSX_ARCHITECTURES "arm64")
 
-set(CMAKE_EXE_LINKER_FLAGS "-framework Quartz -framework Quartzcore -framework AppKit -framework IOKit -framework Metal -framework ApplicationServices -framework CoreGraphics -framework Cocoa -framework Foundation")
+set(CMAKE_EXE_LINKER_FLAGS "-framework Quartzcore -framework IOKit -framework Cocoa -framework Foundation")
 
 add_executable(test_mgl main.cpp)
 

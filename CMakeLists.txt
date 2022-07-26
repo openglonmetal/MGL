@@ -12,6 +12,8 @@ target_include_directories(mgl PUBLIC MGL/include MGL/include/GL)
 set_source_files_properties(MGL/src/MGLRenderer.m PROPERTIES COMPILE_FLAGS "-x objective-c")
 set_source_files_properties(MGL/src/MGLTextures.m PROPERTIES COMPILE_FLAGS "-x objective-c")
 
+set(CMAKE_C_FLAGS "-fobjc-arc")
+
 target_compile_definitions(mgl PUBLIC 
                                 ENABLE_OPT=0 
                                 SPIRV_CROSS_C_API_MSL=1
