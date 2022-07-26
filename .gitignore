@@ -1,3 +1,9 @@
 config.mk
 build/
 libmgl.dylib
+external/OpenGL-Registry/
+external/SPIRV-Cross/
+external/SPIRV-Headers/
+external/SPIRV-Tools/
+external/ezxml/
+external/glslang/

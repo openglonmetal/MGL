@@ -2,29 +2,29 @@ cd SPIRV-Cross
 mkdir build
 cd build
 cmake ..
-make
+make -j 4
 cd ../..
 cd SPIRV-Headers
 mkdir build
 cd build
 cmake ..
-make
+make -j 4
 cd ../..
 cd SPIRV-Tools
 mkdir build
 cd build
 cmake ..
-make
+make -j 4
 cd ../..
 cd glslang
 mkdir build
 cd build
 cmake ..
-make
+make -j 4
 cd ../..
 cd glfw
 mkdir build
 cd build
 cmake ..
-make glfw
+make -j 4 glfw
 cd ../..

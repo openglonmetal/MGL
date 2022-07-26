@@ -21,8 +21,9 @@
 #ifndef MGLRenderer_h
 #define MGLRenderer_h
 
-#ifdef __OBJC__
 
+#ifdef __OBJC__
+#import <AppKit/AppKit.h>
 #ifndef __GLM_CONTEXT_
 #define __GLM_CONTEXT_
 typedef struct GLMContextRec_t *GLMContext;
