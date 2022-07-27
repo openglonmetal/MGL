@@ -1,6 +1,6 @@
 project(mgl)
 cmake_minimum_required(VERSION 3.18)
-set(CMAKE_OSX_ARCHITECTURES "arm64")
+#set(CMAKE_OSX_ARCHITECTURES "arm64")
 
 FILE(GLOB MyCSources MGL/src/*.c)
 FILE(GLOB MyMSources MGL/src/*.m)
