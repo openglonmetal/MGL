@@ -1382,7 +1382,7 @@
 		FFA82FF8276F97DE003F1EA0 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 1240;
+				LastUpgradeCheck = 1340;
 				TargetAttributes = {
 					FF48101D2772B44D00BBF7C7 = {
 						CreatedOnToolsVersion = 12.4;
@@ -1722,6 +1722,7 @@
 		FF7B784D27714BE700C2028F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = A54HA75PNX;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -1732,6 +1733,7 @@
 		FF7B784E27714BE700C2028F /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = A54HA75PNX;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -2022,6 +2024,7 @@
 		FFA83031276F9CE4003F1EA0 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = A54HA75PNX;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -2037,6 +2040,7 @@
 		FFA83032276F9CE4003F1EA0 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = A54HA75PNX;
 				ENABLE_HARDENED_RUNTIME = YES;
