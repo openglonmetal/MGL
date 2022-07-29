@@ -29,7 +29,7 @@
 #include <Carbon/Carbon.h>
 #include <IOKit/hid/IOHIDLib.h>
 
-#include <MGLContext.h>
+#include "MGLContext.h"
 
 // NOTE: All of NSGL was deprecated in the 10.14 SDK
 //       This disables the pointless warnings for every symbol we use

@@ -8,9 +8,9 @@
 
 #import <QuartzCore/QuartzCore.h>
 
-#include <MGLContext.h>
+#include "MGLContext.h"
 #include "internal.h"
-#include <MGLRenderer.h>
+#include "MGLRenderer.h"
 
 #include <unistd.h>
 #include <math.h>

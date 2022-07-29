@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		DFC728FF28948F3000990595 /* validate_ray_query.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DFC728FE28948F3000990595 /* validate_ray_query.cpp */; };
 		FF33414C278BDD2000FDBD91 /* Fixed_ResourceLimits.h in Headers */ = {isa = PBXBuildFile; fileRef = FF33414B278BDD2000FDBD91 /* Fixed_ResourceLimits.h */; };
 		FF480DC32772A60200BBF7C7 /* pch_source.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FF480DAB2772A60200BBF7C7 /* pch_source.cpp */; };
 		FF480DC42772A60200BBF7C7 /* spirv_optimizer_options.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FF480DAC2772A60200BBF7C7 /* spirv_optimizer_options.cpp */; };
@@ -230,14 +231,7 @@
 		FF7B7AD627728C3200C2028F /* glcorearb.h in Headers */ = {isa = PBXBuildFile; fileRef = FF7B7AC627728C3100C2028F /* glcorearb.h */; };
 		FF7B7AD727728C3200C2028F /* glm_params.h in Headers */ = {isa = PBXBuildFile; fileRef = FF7B7AC727728C3100C2028F /* glm_params.h */; };
 		FF7B7AD827728C3200C2028F /* glm_limits.h in Headers */ = {isa = PBXBuildFile; fileRef = FF7B7AC827728C3100C2028F /* glm_limits.h */; };
-		FF7B7AE927728CAB00C2028F /* glcorearb.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = FF7B77EC27710FE100C2028F /* glcorearb.h */; };
-		FF7B7AEA27728CAB00C2028F /* MGLRenderer.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = FF7B7ABC27728C3100C2028F /* MGLRenderer.h */; };
-		FF7B7AEB27728CAB00C2028F /* glm_context.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = FF7B7ABE27728C3100C2028F /* glm_context.h */; };
-		FF7B7AEC27728CAB00C2028F /* glm_dispatch.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = FF7B7ABF27728C3100C2028F /* glm_dispatch.h */; };
-		FF7B7AED27728CAB00C2028F /* MGLContext.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = FF7B7AC327728C3100C2028F /* MGLContext.h */; };
 		FF7B7AF7277290EB00C2028F /* gl_core.c in Sources */ = {isa = PBXBuildFile; fileRef = FF7B7AF6277290EB00C2028F /* gl_core.c */; };
-		FF7B7B312772A12600C2028F /* libMGL.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = FFA83000276F97DE003F1EA0 /* libMGL.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		FF8F91A1277E371100A1E546 /* utils.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = FF7B7ABA27728C3100C2028F /* utils.h */; };
 		FF8F91A82780FBBD00A1E546 /* samplers.c in Sources */ = {isa = PBXBuildFile; fileRef = FF8F91A72780FBBD00A1E546 /* samplers.c */; };
 		FFA1EB712782851500EEE5AD /* compute.c in Sources */ = {isa = PBXBuildFile; fileRef = FFA1EB702782851500EEE5AD /* compute.c */; };
 		FFA83047276F9EBF003F1EA0 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FFA83046276F9EBF003F1EA0 /* main.cpp */; };
@@ -302,31 +296,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 1;
 		};
-		FF7B79882772629100C2028F /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/local/include/GL;
-			dstSubfolderSpec = 0;
-			files = (
-				FF7B7AE927728CAB00C2028F /* glcorearb.h in CopyFiles */,
-				FF8F91A1277E371100A1E546 /* utils.h in CopyFiles */,
-				FF7B7AEA27728CAB00C2028F /* MGLRenderer.h in CopyFiles */,
-				FF7B7AEB27728CAB00C2028F /* glm_context.h in CopyFiles */,
-				FF7B7AEC27728CAB00C2028F /* glm_dispatch.h in CopyFiles */,
-				FF7B7AED27728CAB00C2028F /* MGLContext.h in CopyFiles */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		FF7B7B302772A11300C2028F /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/local/lib;
-			dstSubfolderSpec = 0;
-			files = (
-				FF7B7B312772A12600C2028F /* libMGL.dylib in CopyFiles */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		FFA8302A276F9CE4003F1EA0 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 12;
@@ -349,6 +318,10 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		DFC728FA2894855E00990595 /* libSPIRV-Tools-shared.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libSPIRV-Tools-shared.dylib"; path = "external/SPIRV-Tools/build/source/libSPIRV-Tools-shared.dylib"; sourceTree = "<group>"; };
+		DFC728FC289485A000990595 /* libSPIRV-Tools.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libSPIRV-Tools.a"; path = "external/SPIRV-Tools/build/source/libSPIRV-Tools.a"; sourceTree = "<group>"; };
+		DFC728FE28948F3000990595 /* validate_ray_query.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = validate_ray_query.cpp; path = "external/SPIRV-Tools/source/val/validate_ray_query.cpp"; sourceTree = SOURCE_ROOT; };
+		DFC729002894933400990595 /* test_mgl_glfw.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = test_mgl_glfw.entitlements; sourceTree = SOURCE_ROOT; };
 		FF33414B278BDD2000FDBD91 /* Fixed_ResourceLimits.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Fixed_ResourceLimits.h; sourceTree = "<group>"; };
 		FF480DAB2772A60200BBF7C7 /* pch_source.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pch_source.cpp; path = "external/SPIRV-Tools/source/pch_source.cpp"; sourceTree = SOURCE_ROOT; };
 		FF480DAC2772A60200BBF7C7 /* spirv_optimizer_options.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = spirv_optimizer_options.cpp; path = "external/SPIRV-Tools/source/spirv_optimizer_options.cpp"; sourceTree = SOURCE_ROOT; };
@@ -997,6 +970,7 @@
 		FF7B7B762772A50300C2028F /* SPIRV-Tools */ = {
 			isa = PBXGroup;
 			children = (
+				DFC728FE28948F3000990595 /* validate_ray_query.cpp */,
 				FF480FDA2772B1BB00BBF7C7 /* basic_block.cpp */,
 				FF480FD62772B1BB00BBF7C7 /* construct.cpp */,
 				FF480FDB2772B1BB00BBF7C7 /* function.cpp */,
@@ -1122,9 +1096,11 @@
 		FFA83045276F9EBF003F1EA0 /* test_mgl_glfw */ = {
 			isa = PBXGroup;
 			children = (
+				DFC729002894933400990595 /* test_mgl_glfw.entitlements */,
 				FFA83046276F9EBF003F1EA0 /* main.cpp */,
 			);
-			path = test_mgl_glfw;
+			name = test_mgl_glfw;
+			path = test_mgl;
 			sourceTree = "<group>";
 		};
 		FFA8307F27700A3B003F1EA0 /* Unused */ = {
@@ -1140,6 +1116,8 @@
 		FFA83096277026E1003F1EA0 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				DFC728FC289485A000990595 /* libSPIRV-Tools.a */,
+				DFC728FA2894855E00990595 /* libSPIRV-Tools-shared.dylib */,
 				FF7B7A6527728A0B00C2028F /* Cocoa.framework */,
 				FF7B7A5F277289C500C2028F /* ApplicationServices.framework */,
 				FF7B7A592772899300C2028F /* CoreGraphics.framework */,
@@ -1240,12 +1218,12 @@
 /* Begin PBXLegacyTarget section */
 		FF8F9165277E309800A1E546 /* SPIRV-Tools */ = {
 			isa = PBXLegacyTarget;
-			buildArgumentsString = "$(ACTION)";
+			buildArgumentsString = "$(SRCROOT)/external/xcbuild-SPIRV-Tools.sh";
 			buildConfigurationList = FF8F9168277E309900A1E546 /* Build configuration list for PBXLegacyTarget "SPIRV-Tools" */;
 			buildPhases = (
 			);
-			buildToolPath = /usr/bin/make;
-			buildWorkingDirectory = "/Users/milarson/Projects/mgl/external/SPIRV-Tools/build";
+			buildToolPath = sh;
+			buildWorkingDirectory = "$(SRCROOT)/external/";
 			dependencies = (
 				FF8F9199277E318500A1E546 /* PBXTargetDependency */,
 			);
@@ -1255,12 +1233,12 @@
 		};
 		FF8F9173277E30D500A1E546 /* SPIRV-Cross */ = {
 			isa = PBXLegacyTarget;
-			buildArgumentsString = "$(ACTION)";
+			buildArgumentsString = "$(SRCROOT)/external/xcbuild-SPIRV-Cross.sh";
 			buildConfigurationList = FF8F9174277E30D500A1E546 /* Build configuration list for PBXLegacyTarget "SPIRV-Cross" */;
 			buildPhases = (
 			);
-			buildToolPath = /usr/bin/make;
-			buildWorkingDirectory = "/Users/milarson/Projects/mgl/external/SPIRV-Cross/build";
+			buildToolPath = sh;
+			buildWorkingDirectory = "$(SRCROOT)/external/";
 			dependencies = (
 				FF8F919B277E318A00A1E546 /* PBXTargetDependency */,
 			);
@@ -1270,12 +1248,12 @@
 		};
 		FF8F918A277E312E00A1E546 /* SPIRV-Headers */ = {
 			isa = PBXLegacyTarget;
-			buildArgumentsString = "$(ACTION)";
+			buildArgumentsString = "$(SRCROOT)/external/xcbuild-SPIRV-Headers.sh";
 			buildConfigurationList = FF8F918B277E312E00A1E546 /* Build configuration list for PBXLegacyTarget "SPIRV-Headers" */;
 			buildPhases = (
 			);
-			buildToolPath = /usr/bin/make;
-			buildWorkingDirectory = "/Users/milarson/Projects/mgl/external/SPIRV-Headers/build";
+			buildToolPath = sh;
+			buildWorkingDirectory = "$(SRCROOT)/external/";
 			dependencies = (
 			);
 			name = "SPIRV-Headers";
@@ -1327,8 +1305,6 @@
 				FFA82FFC276F97DE003F1EA0 /* Headers */,
 				FFA82FFD276F97DE003F1EA0 /* Sources */,
 				FFA82FFE276F97DE003F1EA0 /* Frameworks */,
-				FF7B79882772629100C2028F /* CopyFiles */,
-				FF7B7B302772A11300C2028F /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -1382,7 +1358,7 @@
 		FFA82FF8276F97DE003F1EA0 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 1240;
+				LastUpgradeCheck = 1340;
 				TargetAttributes = {
 					FF48101D2772B44D00BBF7C7 = {
 						CreatedOnToolsVersion = 12.4;
@@ -1613,6 +1589,7 @@
 				FF480DEC2772A62300BBF7C7 /* spirv_cfg.cpp in Sources */,
 				FF480FEC2772B1BB00BBF7C7 /* validate_literals.cpp in Sources */,
 				FF480DF52772A62300BBF7C7 /* spirv_cross_util.cpp in Sources */,
+				DFC728FF28948F3000990595 /* validate_ray_query.cpp in Sources */,
 				FF4811722776963E00BBF7C7 /* tex_param.c in Sources */,
 				FF48100C2772B1BB00BBF7C7 /* validate_debug.cpp in Sources */,
 				FF480EF72772A9A800BBF7C7 /* attribute.cpp in Sources */,
@@ -1691,7 +1668,7 @@
 				CLANG_ENABLE_OBJC_ARC = NO;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = NO;
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = A54HA75PNX;
+				DEVELOPMENT_TEAM = 5HX42H6A9N;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				EXECUTABLE_PREFIX = lib;
@@ -1708,7 +1685,7 @@
 				CLANG_ENABLE_OBJC_ARC = NO;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = NO;
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = A54HA75PNX;
+				DEVELOPMENT_TEAM = 5HX42H6A9N;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				EXECUTABLE_PREFIX = lib;
@@ -1722,6 +1699,7 @@
 		FF7B784D27714BE700C2028F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = A54HA75PNX;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -1732,6 +1710,7 @@
 		FF7B784E27714BE700C2028F /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = A54HA75PNX;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -1935,15 +1914,17 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_WARN_DOCUMENTATION_COMMENTS = NO;
-				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = A54HA75PNX;
+				DEVELOPMENT_TEAM = 5HX42H6A9N;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				EXECUTABLE_PREFIX = lib;
 				HEADER_SEARCH_PATHS = (
-					"$(SRCROOT)/external/SPIRV-Tools",
+					"$(SRCROOT)/external/SPIRV-Headers/include",
 					"$(SRCROOT)/external/SPIRV-Tools/build",
+					"$(SRCROOT)/external/SPIRV-Tools/",
+					"$(SRCROOT)/external/SPIRV-Tools/include",
 					"$(SRCROOT)/external/glslang/build/include",
 					"$(SRCROOT)/external/glslang/",
 					"$(SRCROOT)/MGL/include",
@@ -1954,6 +1935,7 @@
 					"$(PROJECT_DIR)/external/glslang/build/glslang",
 					"$(PROJECT_DIR)/external/glslang/build/SPIRV",
 					"$(PROJECT_DIR)/external/glslang/build/glslang/OSDependent/Unix",
+					"$(PROJECT_DIR)/external/SPIRV-Tools/build/source",
 				);
 				MACH_O_TYPE = mh_dylib;
 				OTHER_CFLAGS = (
@@ -1979,15 +1961,17 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_WARN_DOCUMENTATION_COMMENTS = NO;
-				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = A54HA75PNX;
+				DEVELOPMENT_TEAM = 5HX42H6A9N;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				EXECUTABLE_PREFIX = lib;
 				HEADER_SEARCH_PATHS = (
-					"$(SRCROOT)/external/SPIRV-Tools",
+					"$(SRCROOT)/external/SPIRV-Headers/include",
 					"$(SRCROOT)/external/SPIRV-Tools/build",
+					"$(SRCROOT)/external/SPIRV-Tools/",
+					"$(SRCROOT)/external/SPIRV-Tools/include",
 					"$(SRCROOT)/external/glslang/build/include",
 					"$(SRCROOT)/external/glslang/",
 					"$(SRCROOT)/MGL/include",
@@ -1998,6 +1982,7 @@
 					"$(PROJECT_DIR)/external/glslang/build/glslang",
 					"$(PROJECT_DIR)/external/glslang/build/SPIRV",
 					"$(PROJECT_DIR)/external/glslang/build/glslang/OSDependent/Unix",
+					"$(PROJECT_DIR)/external/SPIRV-Tools/build/source",
 				);
 				MACH_O_TYPE = mh_dylib;
 				OTHER_CFLAGS = (
@@ -2022,6 +2007,7 @@
 		FFA83031276F9CE4003F1EA0 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = A54HA75PNX;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -2037,6 +2023,7 @@
 		FFA83032276F9CE4003F1EA0 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = A54HA75PNX;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -2052,10 +2039,15 @@
 		FFA83049276F9EBF003F1EA0 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = test_mgl_glfw.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = A54HA75PNX;
+				DEVELOPMENT_TEAM = 5HX42H6A9N;
 				ENABLE_HARDENED_RUNTIME = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)/MGL/include",
+					"$(SRCROOT)/glfw/include",
+				);
 				LIBRARY_SEARCH_PATHS = /usr/local/lib;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SYSTEM_HEADER_SEARCH_PATHS = /usr/local/include;
@@ -2065,10 +2057,15 @@
 		FFA8304A276F9EBF003F1EA0 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = test_mgl_glfw.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = A54HA75PNX;
+				DEVELOPMENT_TEAM = 5HX42H6A9N;
 				ENABLE_HARDENED_RUNTIME = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)/MGL/include",
+					"$(SRCROOT)/glfw/include",
+				);
 				LIBRARY_SEARCH_PATHS = /usr/local/lib;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SYSTEM_HEADER_SEARCH_PATHS = /usr/local/include;

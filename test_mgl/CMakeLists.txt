@@ -4,8 +4,6 @@ cmake_minimum_required(VERSION 3.18)
 
 set(CMAKE_EXE_LINKER_FLAGS "-framework Quartzcore -framework IOKit -framework Cocoa -framework Foundation")
 
-find_package(glfw3 CONFIG REQUIRED)
-
 add_executable(test_mgl main.cpp)
 
 target_compile_definitions(test_mgl PUBLIC 
@@ -20,11 +18,11 @@ target_compile_definitions(test_mgl PUBLIC
 target_include_directories(test_mgl PUBLIC 
                             ../MGL/include
                             ../external/OpenGL-Registry/api
+                            ../external/glfw/include
                             ${GLM_INCLUDE_DIRS}/../include)
 
 target_link_libraries(test_mgl
                         mgl
-                        glfw
                         ${SPIRVLIB}
                         ${SPIRVCROSS}
                         ${SPIRVCROSSC}
@@ -42,6 +40,7 @@ target_link_libraries(test_mgl
                         ${SPIRVTOOLS}
                         ${SPIRVTOOLSOPT}
                         ${SPVREMAPPER}
+                        ${CUSTOMGLFW}      
                         )
 
 
