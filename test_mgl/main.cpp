@@ -2882,6 +2882,10 @@ int main_glfw(int argc, const char * argv[])
     int width, height;
 
     glfwGetWindowSize(window, &width, &height);
+    
+    // hidpi
+    width *= 2;
+    height *= 2;
 
     fprintf(stderr, "setup complete. testing...\n");
 

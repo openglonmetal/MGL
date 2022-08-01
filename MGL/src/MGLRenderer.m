@@ -1558,6 +1558,29 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
     return texture;
 }
 
+- (id)newDrawBufferWithCustomSize:(MTLPixelFormat)pixelFormat isDepthStencil:(bool)depthStencil customSize:(CGSize)size
+{
+    id<MTLTexture> texture;
+    MTLTextureDescriptor *tex_desc;
+
+    tex_desc = [[MTLTextureDescriptor alloc] init];
+    tex_desc.width = size.width;
+    tex_desc.height = size.height;
+    tex_desc.width = size.width;
+    tex_desc.pixelFormat = pixelFormat;
+    tex_desc.usage = MTLTextureUsageRenderTarget;
+
+    if (depthStencil)
+    {
+        tex_desc.storageMode = MTLStorageModePrivate;
+    }
+
+    texture = [_device newTextureWithDescriptor:tex_desc];
+    assert(texture);
+
+    return texture;
+}
+
 - (bool) checkDrawBufferSize:(GLuint) index;
 {
     NSRect frame;
@@ -1697,7 +1720,7 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
 
     if (ctx->state.var.polygon_mode == GL_LINES)
     {
-        //[_currentRenderEncoder setTriangleFillMode: MTLTriangleFillModeLines];
+        [_currentRenderEncoder setTriangleFillMode: MTLTriangleFillModeLines];
     }
 }
 
@@ -1836,7 +1859,7 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
             }
             else
             {
-                depth_texture = [self newDrawBuffer: ctx->depth_format.mtl_pixel_format isDepthStencil:true];
+                depth_texture = [self newDrawBufferWithCustomSize:ctx->depth_format.mtl_pixel_format isDepthStencil:true customSize: CGSizeMake(texture.width, texture.height) ];
                 _drawBuffers[mgl_drawbuffer].depthbuffer = depth_texture;
             }
         }
@@ -1851,7 +1874,7 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
             }
             else
             {
-                stencil_texture = [self newDrawBuffer: ctx->stencil_format.mtl_pixel_format isDepthStencil:true];
+                stencil_texture = [self newDrawBufferWithCustomSize:ctx->depth_format.mtl_pixel_format isDepthStencil:true customSize: CGSizeMake(texture.width, texture.height) ];
                 _drawBuffers[mgl_drawbuffer].stencilbuffer = stencil_texture;
             }
         }
