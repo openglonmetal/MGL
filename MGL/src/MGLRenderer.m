@@ -1726,6 +1726,8 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
 
 - (bool) newRenderEncoder
 {
+    @autoreleasepool {
+    
     if (VAO() == NULL)
         return true;    // not really a failure we just can't setup a new desc
 
@@ -1980,6 +1982,7 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
     }
 
     return true;
+    }
 }
 
 - (bool) newCommandBuffer
@@ -3031,7 +3034,9 @@ void mtlFlush (GLMContext glm_ctx, bool finish)
 void mtlSwapBuffers (GLMContext glm_ctx)
 {
     // Call the Objective-C method using Objective-C syntax
-    [(__bridge id) glm_ctx->mtl_funcs.mtlObj mtlSwapBuffers: glm_ctx];
+    @autoreleasepool {
+        [(__bridge id) glm_ctx->mtl_funcs.mtlObj mtlSwapBuffers: glm_ctx];
+    }
 }
 
 #pragma mark C interface to mtlClearBuffer
