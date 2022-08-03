@@ -840,7 +840,7 @@ void unpackTexture(GLMContext ctx, Texture *tex, GLuint face, GLuint level, void
         // 2d texture
         for(int y=0; y<height; y++)
         {
-            memcpy(dst, src, dst_pitch);
+            memcpy(dst, src, width * pixel_size);
             src += src_pitch;
             dst += dst_pitch;
         }
@@ -848,7 +848,7 @@ void unpackTexture(GLMContext ctx, Texture *tex, GLuint face, GLuint level, void
     else
     {
         // 1d texture
-        memcpy(dst, src, dst_pitch);
+        memcpy(dst, src, width);
     }
 }
 
@@ -1329,7 +1329,7 @@ bool texSubImage(GLMContext ctx, Texture *tex, GLuint face, GLint level, GLint x
     }
     else
     {
-        src_pitch = tex->faces[face].levels[level].pitch;
+        src_pitch = src_size;
         assert(src_pitch);
     }
 
@@ -1433,7 +1433,7 @@ bool texSubImage2D(GLMContext ctx, Texture *tex, GLuint face, GLint level, GLint
     ERROR_CHECK_RETURN(height >= 0, GL_INVALID_VALUE);
 
     ERROR_CHECK_RETURN(width + xoffset <= tex->width, GL_INVALID_VALUE);
-    ERROR_CHECK_RETURN(height + xoffset <= tex->height, GL_INVALID_VALUE);
+    ERROR_CHECK_RETURN(height + yoffset <= tex->height, GL_INVALID_VALUE);
 
     texSubImage(ctx, tex, face, level, xoffset, yoffset, 0, width, height, 1, format, type, (void *)pixels);
 
@@ -1551,7 +1551,7 @@ void texStorage(GLMContext ctx, Texture *tex, GLuint faces, GLsizei levels, GLbo
 
         for(int level=0; level<levels; level++)
         {
-            createTextureLevel(ctx, tex, face, level, is_array, internalformat, width, height, depth, 0, 0, NULL, proxy);
+            createTextureLevel(ctx, tex, face, level, is_array, internalformat, level_width, level_height, depth, 0, 0, NULL, proxy);
 
             level_width >>= 1;
             level_height >>= 1;
