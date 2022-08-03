@@ -848,7 +848,7 @@ void unpackTexture(GLMContext ctx, Texture *tex, GLuint face, GLuint level, void
     else
     {
         // 1d texture
-        memcpy(dst, src, width);
+        memcpy(dst, src, width * pixel_size);
     }
 }
 
