@@ -8,7 +8,7 @@
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
             uuid = "01EF3520-7AFF-462A-9956-BD274C986F37"
-            shouldBeEnabled = "No"
+            shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "MGL/src/MGLRenderer.m"
@@ -16,6 +16,22 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "404"
             endingLineNumber = "404"
+            landmarkName = "-mapGLBuffersToMTLBufferMap:stage:"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "D0C97DB0-84A8-4BB3-A779-82F637F9DD21"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "MGL/src/MGLRenderer.m"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "406"
+            endingLineNumber = "406"
             landmarkName = "-mapGLBuffersToMTLBufferMap:stage:"
             landmarkType = "7">
          </BreakpointContent>
