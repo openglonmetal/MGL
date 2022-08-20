@@ -525,13 +525,51 @@ void mglGetProgramInfoLog(GLMContext ctx, GLuint program, GLsizei bufSize, GLsiz
     assert(0);
 }
 
+#pragma mark uniforms
+
 GLint  mglGetUniformLocation(GLMContext ctx, GLuint program, const GLchar *name)
 {
-    GLint ret = -1;
+    if (isProgram(ctx, program) == GL_FALSE)
+    {
+        ERROR_RETURN(GL_INVALID_OPERATION); // also may be GL_INVALID_VALUE ????
 
-    // Unimplemented function
-    assert(0);
-    return ret;
+        return -1;
+    }
+
+    Program *ptr;
+
+    ptr = getProgram(ctx, program);
+    assert(program);
+
+    if (ptr->linked_glsl_program == NULL)
+    {
+        ERROR_RETURN(GL_INVALID_OPERATION);
+
+        return -1;
+    }
+
+    for (int stage=_VERTEX_SHADER; stage<_MAX_SHADER_TYPES; stage++)
+    {
+        int count;
+
+        count = ptr->spirv_resources_list[stage][SPVC_RESOURCE_TYPE_UNIFORM_BUFFER].count;
+
+        for (int i=0; i<count; i++)
+        {
+            const char *str = ptr->spirv_resources_list[stage][SPVC_RESOURCE_TYPE_UNIFORM_BUFFER].list[i].name;
+
+            if (!strcmp(str, name))
+            {
+                GLuint binding;
+
+                binding = ptr->spirv_resources_list[stage][SPVC_RESOURCE_TYPE_UNIFORM_BUFFER].list[i].binding;
+
+                return binding;
+            }
+        }
+    }
+    
+    return -1;
 }
 
 void mglGetUniformfv(GLMContext ctx, GLuint program, GLint location, GLfloat *params)
@@ -581,9 +619,9 @@ GLuint  mglGetUniformBlockIndex(GLMContext ctx, GLuint program, const GLchar *un
 
     if (ptr->linked_glsl_program == NULL)
     {
-        assert(0);
+        ERROR_RETURN(GL_INVALID_OPERATION);
 
-        return 0;
+        return -1;
     }
 
     for (int stage=_VERTEX_SHADER; stage<_MAX_SHADER_TYPES; stage++)

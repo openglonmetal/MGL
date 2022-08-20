@@ -1552,7 +1552,7 @@ int test_2D_array_textures(GLFWwindow* window, int width, int height)
     shader_program = compileGLSLProgram(2, GL_VERTEX_SHADER, vertex_shader, GL_FRAGMENT_SHADER, fragment_shader);
     glUseProgram(shader_program);
 
-    GLuint matrices_loc = glGetUniformBlockIndex(shader_program, "matrices");
+    GLuint matrices_loc = glGetUniformLocation(shader_program, "matrices");
     assert(matrices_loc == 0);
 
     glBindBufferBase(GL_UNIFORM_BUFFER, 0, mat_ubo);
@@ -2899,7 +2899,7 @@ int main_glfw(int argc, const char * argv[])
     // test_1D_array_textures(window, width, height);
     // test_2D_textures(window, width, height);
     // test_3D_textures(window, width, height);
-    // test_2D_array_textures(window, width, height);
+    test_2D_array_textures(window, width, height);
     // test_textures(window, width, height, 0, 0);
     // test_textures(window, width, height, 0, 0, 0, GL_NEAREST, GL_NEAREST);
     // test_textures(window, width, height, 0, 0, 0, GL_LINEAR, GL_LINEAR);
@@ -2907,7 +2907,7 @@ int main_glfw(int argc, const char * argv[])
     // test_textures(window, width, height, 1, 1, 8, GL_LINEAR_MIPMAP_NEAREST);
     // test_framebuffer(window, width, height);
     // test_readpixels(window, width, height);
-    test_compute_shader(window, width, height);
+    // test_compute_shader(window, width, height);
 
     //test_2D_array_textures_perf_mon(window, width, height);
 
