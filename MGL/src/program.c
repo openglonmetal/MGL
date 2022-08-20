@@ -641,12 +641,6 @@ GLuint  mglGetUniformBlockIndex(GLMContext ctx, GLuint program, const GLchar *un
                 GLuint binding;
 
                 binding = ptr->spirv_resources_list[stage][SPVC_RESOURCE_TYPE_UNIFORM_BUFFER].list[i].binding;
-                
-                //if(ctx->state.buffer_base[SPVC_RESOURCE_TYPE_UNIFORM_BUFFER].buffers[binding] == NULL)
-                {
-                    //bzero(&ctx->state.buffer_base[SPVC_RESOURCE_TYPE_UNIFORM_BUFFER].buffers[binding], sizeof(BufferBaseTarget));
-                    // hopefuly
-                }
 
                 return binding;
             }
