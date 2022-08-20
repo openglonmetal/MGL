@@ -24,6 +24,7 @@
 #include <limits.h>
 
 #include "glm_context.h"
+#include "buffers.h"
 #include "pixel_utils.h"
 
 #pragma mark Utility Functions

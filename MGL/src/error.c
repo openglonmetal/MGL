@@ -46,6 +46,6 @@ void error_func(GLMContext ctx, const char *func, GLenum error)
 
     ctx->state.error = error;
 
-    if (ctx->assert_on_error)
+    if (!ctx->assert_on_error)
         assert(0);
 }

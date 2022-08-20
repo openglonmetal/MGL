@@ -599,6 +599,82 @@ int test_draw_arrays(GLFWwindow* window, int width, int height)
     return 0;
 }
 
+int test_draw_arrays_uniform(GLFWwindow* window, int width, int height)
+{
+    GLuint vbo = 0;
+
+    const char* vertex_shader =
+    "#version 450 core\n"
+    "layout(location = 0) in vec3 position;"
+    "layout(binding = 0) uniform mpBlock"
+    "{"
+    "    int mp;"
+    "};"
+    "void main() {"
+    "  gl_Position = vec4(position*mp, 1.0);"
+    "}";
+    const char* fragment_shader =
+    "#version 450 core\n"
+    "layout(location = 0) out vec4 frag_colour;"
+    "void main() {"
+    "  frag_colour = vec4(0.5, 0.0, 0.5, 1.0);"
+    "}";
+
+    float points[] = {
+       0.0f,  0.5f,  0.0f,
+       0.5f, -0.5f,  0.0f,
+      -0.5f, -0.5f,  0.0f
+    };
+
+    glGenBuffers(1, &vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, 9 * sizeof(float), points, GL_STATIC_DRAW);
+
+    GLuint vao = 0;
+    glCreateVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+    glEnableVertexAttribArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+
+    GLuint vs = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vs, 1, &vertex_shader, NULL);
+    glCompileShader(vs);
+    GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fs, 1, &fragment_shader, NULL);
+    glCompileShader(fs);
+
+    GLuint shader_program = glCreateProgram();
+    glAttachShader(shader_program, fs);
+    glAttachShader(shader_program, vs);
+    glLinkProgram(shader_program);
+    glUseProgram(shader_program);
+
+    glViewport(0, 0, width, height);
+    
+    GLint mp_loc = glGetUniformLocation(shader_program, "mpBlock");
+    printf("%d\n", mp_loc);
+    glUniform1i(mp_loc, 4);
+    
+    while (!glfwWindowShouldClose(window))
+    {
+        glBindVertexArray(vao);
+
+        glUseProgram(shader_program);
+
+        glClearColor(0.2, 0.2, 0.2, 0.0);
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+
+        SWAP_BUFFERS;
+
+        glfwPollEvents();
+    }
+
+    return 0;
+}
+
 int test_draw_elements(GLFWwindow* window, int width, int height)
 {
     GLuint vbo = 0, elem_vbo = 0;
@@ -1552,7 +1628,7 @@ int test_2D_array_textures(GLFWwindow* window, int width, int height)
     shader_program = compileGLSLProgram(2, GL_VERTEX_SHADER, vertex_shader, GL_FRAGMENT_SHADER, fragment_shader);
     glUseProgram(shader_program);
 
-    GLuint matrices_loc = glGetUniformLocation(shader_program, "matrices");
+    GLuint matrices_loc = glGetUniformBlockIndex(shader_program, "matrices");
     assert(matrices_loc == 0);
 
     glBindBufferBase(GL_UNIFORM_BUFFER, 0, mat_ubo);
@@ -2891,6 +2967,7 @@ int main_glfw(int argc, const char * argv[])
 
     // test_clear(window, width, height);
     // test_draw_arrays(window, width, height);
+    test_draw_arrays_uniform(window, width, height);
     // test_draw_elements(window, width, height);
     // test_draw_range_elements(window, width, height);
     // test_draw_arrays_instanced(window, width, height);
@@ -2899,7 +2976,7 @@ int main_glfw(int argc, const char * argv[])
     // test_1D_array_textures(window, width, height);
     // test_2D_textures(window, width, height);
     // test_3D_textures(window, width, height);
-    test_2D_array_textures(window, width, height);
+    // test_2D_array_textures(window, width, height);
     // test_textures(window, width, height, 0, 0);
     // test_textures(window, width, height, 0, 0, 0, GL_NEAREST, GL_NEAREST);
     // test_textures(window, width, height, 0, 0, 0, GL_LINEAR, GL_LINEAR);
