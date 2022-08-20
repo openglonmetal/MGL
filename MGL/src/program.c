@@ -641,6 +641,12 @@ GLuint  mglGetUniformBlockIndex(GLMContext ctx, GLuint program, const GLchar *un
                 GLuint binding;
 
                 binding = ptr->spirv_resources_list[stage][SPVC_RESOURCE_TYPE_UNIFORM_BUFFER].list[i].binding;
+                
+                //if(ctx->state.buffer_base[SPVC_RESOURCE_TYPE_UNIFORM_BUFFER].buffers[binding] == NULL)
+                {
+                    //bzero(&ctx->state.buffer_base[SPVC_RESOURCE_TYPE_UNIFORM_BUFFER].buffers[binding], sizeof(BufferBaseTarget));
+                    // hopefuly
+                }
 
                 return binding;
             }
@@ -699,12 +705,12 @@ void mglUniform1i(GLMContext ctx, GLint location, GLint v0)
     
     ERROR_CHECK_RETURN(ptr, GL_INVALID_OPERATION)
 
-    Buffer *buf = ctx->state.buffer_base[SPVC_RESOURCE_TYPE_UNIFORM_BUFFER].buffers[location].buf;
+    Buffer *buf = ctx->state.buffer_base[_UNIFORM_BUFFER].buffers[location].buf;
     printf("buffer check\n");
     if(buf == NULL)
     {
-        ERROR_RETURN(GL_INVALID_OPERATION);
-        return;
+        ctx->state.buffer_base[_UNIFORM_BUFFER].buffers[location].buf = newBuffer(ctx, GL_UNIFORM_BUFFER, location);
+        buf = ctx->state.buffer_base[_UNIFORM_BUFFER].buffers[location].buf;
     }
     initBufferData(ctx, buf, sizeof v0, &v0); // FIXME: is this correct?
     
