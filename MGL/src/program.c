@@ -27,6 +27,7 @@
 #include "spirv.h"
 
 #include "shaders.h"
+#include "buffers.h"
 #include "glm_context.h"
 
 Program *newProgram(GLMContext ctx, GLuint program)
@@ -557,8 +558,9 @@ GLint  mglGetUniformLocation(GLMContext ctx, GLuint program, const GLchar *name)
         for (int i=0; i<count; i++)
         {
             const char *str = ptr->spirv_resources_list[stage][SPVC_RESOURCE_TYPE_UNIFORM_BUFFER].list[i].name;
+            printf(strcat(str, "\n"));
 
-            if (!strcmp(str, name))
+            if (strcmp(str, name))
             {
                 GLuint binding;
 
@@ -666,6 +668,272 @@ void mglUniformBlockBinding(GLMContext ctx, GLuint program, GLuint uniformBlockI
 {
     // Unimplemented function
     assert(0);
+}
+
+void mglUniform1d(GLMContext ctx, GLint location, GLdouble x)
+{
+        assert(0);
+}
+
+void mglUniform1dv(GLMContext ctx, GLint location, GLsizei count, const GLdouble *value)
+{
+        assert(0);
+}
+
+void mglUniform1f(GLMContext ctx, GLint location, GLfloat v0)
+{
+        assert(0);
+}
+
+void mglUniform1fv(GLMContext ctx, GLint location, GLsizei count, const GLfloat *value)
+{
+        assert(0);
+}
+
+void mglUniform1i(GLMContext ctx, GLint location, GLint v0)
+{
+#pragma mark current
+    // TODO: actual error checking (am too lazy)
+    // TODO: find a better way to do this (if there is one)
+    Program* ptr = ctx->state.program;
+    
+    ERROR_CHECK_RETURN(ptr, GL_INVALID_OPERATION)
+
+    Buffer *buf = ctx->state.buffer_base[SPVC_RESOURCE_TYPE_UNIFORM_BUFFER].buffers[location].buf;
+    printf("buffer check\n");
+    if(buf == NULL)
+    {
+        ERROR_RETURN(GL_INVALID_OPERATION);
+        return;
+    }
+    initBufferData(ctx, buf, sizeof v0, &v0); // FIXME: is this correct?
+    
+    // i think this is correct ?? ?? ?? 
+}
+
+void mglUniform1iv(GLMContext ctx, GLint location, GLsizei count, const GLint *value)
+{
+        assert(0);
+}
+
+void mglUniform1ui(GLMContext ctx, GLint location, GLuint v0)
+{
+        assert(0);
+}
+
+void mglUniform1uiv(GLMContext ctx, GLint location, GLsizei count, const GLuint *value)
+{
+        assert(0);
+}
+
+void mglUniform2d(GLMContext ctx, GLint location, GLdouble x, GLdouble y)
+{
+        assert(0);
+}
+
+void mglUniform2dv(GLMContext ctx, GLint location, GLsizei count, const GLdouble *value)
+{
+        assert(0);
+}
+
+void mglUniform2f(GLMContext ctx, GLint location, GLfloat v0, GLfloat v1)
+{
+        assert(0);
+}
+
+void mglUniform2fv(GLMContext ctx, GLint location, GLsizei count, const GLfloat *value)
+{
+        assert(0);
+}
+
+void mglUniform2i(GLMContext ctx, GLint location, GLint v0, GLint v1)
+{
+        assert(0);
+}
+
+void mglUniform2iv(GLMContext ctx, GLint location, GLsizei count, const GLint *value)
+{
+        assert(0);
+}
+
+void mglUniform2ui(GLMContext ctx, GLint location, GLuint v0, GLuint v1)
+{
+        assert(0);
+}
+
+void mglUniform2uiv(GLMContext ctx, GLint location, GLsizei count, const GLuint *value)
+{
+        assert(0);
+}
+
+void mglUniform3d(GLMContext ctx, GLint location, GLdouble x, GLdouble y, GLdouble z)
+{
+        assert(0);
+}
+
+void mglUniform3dv(GLMContext ctx, GLint location, GLsizei count, const GLdouble *value)
+{
+        assert(0);
+}
+
+void mglUniform3f(GLMContext ctx, GLint location, GLfloat v0, GLfloat v1, GLfloat v2)
+{
+        assert(0);
+}
+
+void mglUniform3fv(GLMContext ctx, GLint location, GLsizei count, const GLfloat *value)
+{
+        assert(0);
+}
+
+void mglUniform3i(GLMContext ctx, GLint location, GLint v0, GLint v1, GLint v2)
+{
+        assert(0);
+}
+
+void mglUniform3iv(GLMContext ctx, GLint location, GLsizei count, const GLint *value)
+{
+        assert(0);
+}
+
+void mglUniform3ui(GLMContext ctx, GLint location, GLuint v0, GLuint v1, GLuint v2)
+{
+        assert(0);
+}
+
+void mglUniform3uiv(GLMContext ctx, GLint location, GLsizei count, const GLuint *value)
+{
+        assert(0);
+}
+
+void mglUniform4d(GLMContext ctx, GLint location, GLdouble x, GLdouble y, GLdouble z, GLdouble w)
+{
+        assert(0);
+}
+
+void mglUniform4dv(GLMContext ctx, GLint location, GLsizei count, const GLdouble *value)
+{
+        assert(0);
+}
+
+void mglUniform4f(GLMContext ctx, GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3)
+{
+        assert(0);
+}
+
+void mglUniform4fv(GLMContext ctx, GLint location, GLsizei count, const GLfloat *value)
+{
+        assert(0);
+}
+
+void mglUniform4i(GLMContext ctx, GLint location, GLint v0, GLint v1, GLint v2, GLint v3)
+{
+        assert(0);
+}
+
+void mglUniform4iv(GLMContext ctx, GLint location, GLsizei count, const GLint *value)
+{
+        assert(0);
+}
+
+void mglUniform4ui(GLMContext ctx, GLint location, GLuint v0, GLuint v1, GLuint v2, GLuint v3)
+{
+        assert(0);
+}
+
+void mglUniform4uiv(GLMContext ctx, GLint location, GLsizei count, const GLuint *value)
+{
+        assert(0);
+}
+
+void mglUniformMatrix2dv(GLMContext ctx, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
+{
+        assert(0);
+}
+
+void mglUniformMatrix2fv(GLMContext ctx, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
+{
+        assert(0);
+}
+
+void mglUniformMatrix2x3dv(GLMContext ctx, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
+{
+        assert(0);
+}
+
+void mglUniformMatrix2x3fv(GLMContext ctx, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
+{
+        assert(0);
+}
+
+void mglUniformMatrix2x4dv(GLMContext ctx, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
+{
+        assert(0);
+}
+
+void mglUniformMatrix2x4fv(GLMContext ctx, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
+{
+        assert(0);
+}
+
+void mglUniformMatrix3dv(GLMContext ctx, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
+{
+        assert(0);
+}
+
+void mglUniformMatrix3fv(GLMContext ctx, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
+{
+        assert(0);
+}
+
+void mglUniformMatrix3x2dv(GLMContext ctx, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
+{
+        assert(0);
+}
+
+void mglUniformMatrix3x2fv(GLMContext ctx, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
+{
+        assert(0);
+}
+
+void mglUniformMatrix3x4dv(GLMContext ctx, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
+{
+        assert(0);
+}
+
+void mglUniformMatrix3x4fv(GLMContext ctx, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
+{
+        assert(0);
+}
+
+void mglUniformMatrix4dv(GLMContext ctx, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
+{
+        assert(0);
+}
+
+void mglUniformMatrix4fv(GLMContext ctx, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
+{
+        assert(0);
+}
+
+void mglUniformMatrix4x2dv(GLMContext ctx, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
+{
+        assert(0);
+}
+
+void mglUniformMatrix4x2fv(GLMContext ctx, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
+{
+        assert(0);
+}
+
+void mglUniformMatrix4x3dv(GLMContext ctx, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
+{
+        assert(0);
+}
+
+void mglUniformMatrix4x3fv(GLMContext ctx, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
+{
+        assert(0);
 }
 
 

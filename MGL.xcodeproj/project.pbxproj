@@ -329,6 +329,7 @@
 		DFB50A8F28ADD0030084D12B /* libspirv-cross-reflect.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libspirv-cross-reflect.a"; path = "external/SPIRV-Cross/build/libspirv-cross-reflect.a"; sourceTree = "<group>"; };
 		DFB50A9028ADD0030084D12B /* libspirv-cross-cpp.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libspirv-cross-cpp.a"; path = "external/SPIRV-Cross/build/libspirv-cross-cpp.a"; sourceTree = "<group>"; };
 		DFB50A9C28ADD2230084D12B /* validate_ray_tracing.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = validate_ray_tracing.cpp; path = "external/SPIRV-Tools/source/val/validate_ray_tracing.cpp"; sourceTree = SOURCE_ROOT; };
+		DFB50A9E28B09F1E0084D12B /* buffers.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = buffers.h; sourceTree = "<group>"; };
 		DFC728FA2894855E00990595 /* libSPIRV-Tools-shared.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libSPIRV-Tools-shared.dylib"; path = "external/SPIRV-Tools/build/source/libSPIRV-Tools-shared.dylib"; sourceTree = "<group>"; };
 		DFC728FC289485A000990595 /* libSPIRV-Tools.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libSPIRV-Tools.a"; path = "external/SPIRV-Tools/build/source/libSPIRV-Tools.a"; sourceTree = "<group>"; };
 		DFC728FE28948F3000990595 /* validate_ray_query.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = validate_ray_query.cpp; path = "external/SPIRV-Tools/source/val/validate_ray_query.cpp"; sourceTree = SOURCE_ROOT; };
@@ -911,6 +912,7 @@
 				FF7B7A8427728C1D00C2028F /* state.c */,
 				FF7B7A9127728C1D00C2028F /* fence.c */,
 				FF7B7A8C27728C1D00C2028F /* buffers.c */,
+				DFB50A9E28B09F1E0084D12B /* buffers.h */,
 				FF4811712776963E00BBF7C7 /* tex_param.c */,
 				FF7B7A8D27728C1D00C2028F /* textures.c */,
 				FF8F91A72780FBBD00A1E546 /* samplers.c */,
