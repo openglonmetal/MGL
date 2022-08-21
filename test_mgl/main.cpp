@@ -24,6 +24,7 @@
 
 #include <stdbool.h>
 #include <stdio.h>
+#include <iostream>
 #include <stdlib.h>
 #include <limits.h>
 #include <stdarg.h>
@@ -598,17 +599,97 @@ int test_draw_arrays(GLFWwindow* window, int width, int height)
 
     return 0;
 }
+#pragma mark glUniform tests
 
-int test_draw_arrays_uniform(GLFWwindow* window, int width, int height)
+int test_draw_arrays_uniform1i(GLFWwindow* window, int width, int height)
 {
     GLuint vbo = 0;
 
     const char* vertex_shader =
     "#version 450 core\n"
     "layout(location = 0) in vec3 position;\n"
-    "layout(location = 1) uniform int mp = 1;\n"
+    "layout(location = 1) uniform int mp;\n"
     "void main() {\n"
-    "  gl_Position = vec4(position*mp, 1.0);\n"
+    "  gl_Position = vec4(position.x, position.y-mp/10, position.z, 1.0);\n"
+    "}";
+    const char* fragment_shader =
+    "#version 450 core\n"
+    "layout(location = 0) out vec4 frag_colour;\n"
+    "void main() {\n"
+    "  frag_colour = vec4(0.5, 0.5, 0.5, 1.0);\n"
+    "}";
+
+    float points[] = {
+       0.0f,  0.5f,  0.0f,
+       0.5f, -0.5f,  0.0f,
+      -0.5f, -0.5f,  0.0f
+    };
+
+    glGenBuffers(1, &vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, 9 * sizeof(float), points, GL_STATIC_DRAW);
+
+    GLuint vao = 0;
+    glCreateVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+    glEnableVertexAttribArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+
+    GLuint vs = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vs, 1, &vertex_shader, NULL);
+    glCompileShader(vs);
+    GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fs, 1, &fragment_shader, NULL);
+    glCompileShader(fs);
+
+    GLuint shader_program = glCreateProgram();
+    glAttachShader(shader_program, fs);
+    glAttachShader(shader_program, vs);
+    glLinkProgram(shader_program);
+    glUseProgram(shader_program);
+
+    glViewport(0, 0, width, height);
+    
+    GLint mp_loc = glGetUniformLocation(shader_program, "mp");
+    std::cout << mp_loc << std::endl;
+    
+    int a = 0;
+    
+    glUseProgram(shader_program);
+    glClearColor(0.2, 0.2, 0.2, 0.0);
+    //glUniform1i(mp_loc, a);
+    
+    while (!glfwWindowShouldClose(window))
+    {
+        glBindVertexArray(vao);
+        glUniform1i(mp_loc, a);
+        
+        std::cout << a << std::endl;
+        
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+
+        SWAP_BUFFERS;
+
+        glfwPollEvents();
+        a++;
+    }
+
+    return 0;
+}
+
+int test_draw_arrays_uniform1fv(GLFWwindow* window, int width, int height)
+{
+    GLuint vbo = 0;
+
+    const char* vertex_shader =
+    "#version 450 core\n"
+    "layout(location = 0) in vec3 position;\n"
+    "layout(location = 1) uniform float mp[2];\n"
+    "void main() {\n"
+    "  gl_Position = vec4(position*mp[0], 1.0);\n"
     "}";
     const char* fragment_shader =
     "#version 450 core\n"
@@ -650,8 +731,9 @@ int test_draw_arrays_uniform(GLFWwindow* window, int width, int height)
     glViewport(0, 0, width, height);
     
     GLint mp_loc = glGetUniformLocation(shader_program, "mpBlock");
+    const GLfloat mp_val = 4.0f;
     printf("%d\n", mp_loc);
-    glUniform1i(mp_loc, 4);
+    glUniform1fv(mp_loc, sizeof(float), &mp_val);
     
     while (!glfwWindowShouldClose(window))
     {
@@ -2964,7 +3046,7 @@ int main_glfw(int argc, const char * argv[])
 
     // test_clear(window, width, height);
     // test_draw_arrays(window, width, height);
-    test_draw_arrays_uniform(window, width, height);
+    test_draw_arrays_uniform1i(window, width, height);
     // test_draw_elements(window, width, height);
     // test_draw_range_elements(window, width, height);
     // test_draw_arrays_instanced(window, width, height);
