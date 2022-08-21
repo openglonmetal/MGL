@@ -605,19 +605,16 @@ int test_draw_arrays_uniform(GLFWwindow* window, int width, int height)
 
     const char* vertex_shader =
     "#version 450 core\n"
-    "layout(location = 0) in vec3 position;"
-    "layout(binding = 0) uniform mpBlock"
-    "{"
-    "    int mp;"
-    "};"
-    "void main() {"
-    "  gl_Position = vec4(position*mp, 1.0);"
+    "layout(location = 0) in vec3 position;\n"
+    "layout(location = 1) uniform int mp = 1;\n"
+    "void main() {\n"
+    "  gl_Position = vec4(position*mp, 1.0);\n"
     "}";
     const char* fragment_shader =
     "#version 450 core\n"
-    "layout(location = 0) out vec4 frag_colour;"
-    "void main() {"
-    "  frag_colour = vec4(0.5, 0.0, 0.5, 1.0);"
+    "layout(location = 0) out vec4 frag_colour;\n"
+    "void main() {\n"
+    "  frag_colour = vec4(0.5, 0.0, 0.5, 1.0);\n"
     "}";
 
     float points[] = {

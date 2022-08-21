@@ -374,8 +374,9 @@ void logDirtyBits(GLMContext ctx)
     struct {
         int spvc_type;
         int gl_buffer_type;
-    } mapped_types[3] = {
+    } mapped_types[4] = {
         {SPVC_RESOURCE_TYPE_UNIFORM_BUFFER, _UNIFORM_BUFFER},
+        {SPVC_RESOURCE_TYPE_UNIFORM_CONSTANT, _UNIFORM_CONSTANT},
         {SPVC_RESOURCE_TYPE_STORAGE_BUFFER, _SHADER_STORAGE_BUFFER},
         {SPVC_RESOURCE_TYPE_ATOMIC_COUNTER, _ATOMIC_COUNTER_BUFFER}
     };
@@ -1396,6 +1397,7 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
     switch(type)
     {
         case SPVC_RESOURCE_TYPE_UNIFORM_BUFFER:
+        case SPVC_RESOURCE_TYPE_UNIFORM_CONSTANT:
         case SPVC_RESOURCE_TYPE_STORAGE_BUFFER:
         case SPVC_RESOURCE_TYPE_ATOMIC_COUNTER:
         case SPVC_RESOURCE_TYPE_STAGE_INPUT:
@@ -1421,6 +1423,7 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
     switch(type)
     {
        case SPVC_RESOURCE_TYPE_UNIFORM_BUFFER:
+       case SPVC_RESOURCE_TYPE_UNIFORM_CONSTANT:
        case SPVC_RESOURCE_TYPE_STORAGE_BUFFER:
        case SPVC_RESOURCE_TYPE_ATOMIC_COUNTER:
        case SPVC_RESOURCE_TYPE_STAGE_INPUT:

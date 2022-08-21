@@ -7,32 +7,16 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "01EF3520-7AFF-462A-9956-BD274C986F37"
-            shouldBeEnabled = "Yes"
+            uuid = "0F965BD1-82EA-4085-8B65-8263252FCF71"
+            shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "MGL/src/MGLRenderer.m"
+            filePath = "external/SPIRV-Cross/spirv_cross.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "404"
-            endingLineNumber = "404"
-            landmarkName = "-mapGLBuffersToMTLBufferMap:stage:"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "D0C97DB0-84A8-4BB3-A779-82F637F9DD21"
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "MGL/src/MGLRenderer.m"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "406"
-            endingLineNumber = "406"
-            landmarkName = "-mapGLBuffersToMTLBufferMap:stage:"
+            startingLineNumber = "867"
+            endingLineNumber = "867"
+            landmarkName = "Compiler::get_shader_resources(active_variables)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
