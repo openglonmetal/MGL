@@ -383,7 +383,7 @@ void logDirtyBits(GLMContext ctx)
 
     buffer_map->count = 0;
 
-    for(int type=0; type<3; type++)
+    for(int type=0; type<4; type++)
     {
         int spvc_type;
         int gl_buffer_type;

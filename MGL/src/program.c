@@ -559,7 +559,7 @@ GLint  mglGetUniformLocation(GLMContext ctx, GLuint program, const GLchar *name)
         {
             const char *str = ptr->spirv_resources_list[stage][SPVC_RESOURCE_TYPE_UNIFORM_CONSTANT].list[i].name;
 
-            if (strcmp(str, name))
+            if (!strcmp(str, name))
             {
                 GLuint binding;
 
@@ -709,7 +709,7 @@ void mglUniform1i(GLMContext ctx, GLint location, GLint v0)
     }
     initBufferData(ctx, buf, sizeof v0, &v0); // FIXME: is this correct?
     
-    // i think this is correct ?? ?? ?? 
+    // i think this is correct ?? ?? ??
 }
 
 void mglUniform1iv(GLMContext ctx, GLint location, GLsizei count, const GLint *value)
