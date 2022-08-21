@@ -327,7 +327,7 @@ char *parseSPIRVShaderToMetal(GLMContext ctx, Program *ptr, int stage)
     spvc_compiler_create_shader_resources(compiler_msl, &resources);
     for (int res_type=SPVC_RESOURCE_TYPE_UNIFORM_BUFFER; res_type < SPVC_RESOURCE_TYPE_ACCELERATION_STRUCTURE; res_type++)
     {
-        const char *res_name[] = {"NONE", "UNIFORM_BUFFER", "STORAGE_BUFFER", "STAGE_INPUT", "STAGE_OUTPUT",
+        const char *res_name[] = {"NONE", "UNIFORM_BUFFER", "UNIFORM_CONSTANT", "STORAGE_BUFFER", "STAGE_INPUT", "STAGE_OUTPUT",
             "SUBPASS_INPUT", "STORAGE_INPUT", "SAMPLED_IMAGE", "ATOMIC_COUNTER", "PUSH_CONSTANT", "SEPARATE_IMAGE",
             "SEPARATE_SAMPLERS", "ACCELERATION_STRUCTURE", "RAY_QUERY"};
 
@@ -553,18 +553,17 @@ GLint  mglGetUniformLocation(GLMContext ctx, GLuint program, const GLchar *name)
     {
         int count;
 
-        count = ptr->spirv_resources_list[stage][SPVC_RESOURCE_TYPE_UNIFORM_BUFFER].count;
+        count = ptr->spirv_resources_list[stage][SPVC_RESOURCE_TYPE_UNIFORM_CONSTANT].count;
 
         for (int i=0; i<count; i++)
         {
-            const char *str = ptr->spirv_resources_list[stage][SPVC_RESOURCE_TYPE_UNIFORM_BUFFER].list[i].name;
-            printf(strcat(str, "\n"));
+            const char *str = ptr->spirv_resources_list[stage][SPVC_RESOURCE_TYPE_UNIFORM_CONSTANT].list[i].name;
 
             if (strcmp(str, name))
             {
                 GLuint binding;
 
-                binding = ptr->spirv_resources_list[stage][SPVC_RESOURCE_TYPE_UNIFORM_BUFFER].list[i].binding;
+                binding = ptr->spirv_resources_list[stage][SPVC_RESOURCE_TYPE_UNIFORM_CONSTANT].list[i].binding;
 
                 return binding;
             }
@@ -699,12 +698,14 @@ void mglUniform1i(GLMContext ctx, GLint location, GLint v0)
     
     ERROR_CHECK_RETURN(ptr, GL_INVALID_OPERATION)
 
-    Buffer *buf = ctx->state.buffer_base[_UNIFORM_BUFFER].buffers[location].buf;
-    printf("buffer check\n");
+    Buffer *buf = ctx->state.buffer_base[_UNIFORM_CONSTANT].buffers[location].buf;
+    
+    ERROR_CHECK_RETURN(location != -1, GL_INVALID_OPERATION)
+    
     if(buf == NULL)
     {
-        ctx->state.buffer_base[_UNIFORM_BUFFER].buffers[location].buf = newBuffer(ctx, GL_UNIFORM_BUFFER, location);
-        buf = ctx->state.buffer_base[_UNIFORM_BUFFER].buffers[location].buf;
+        ctx->state.buffer_base[_UNIFORM_CONSTANT].buffers[location].buf = newBuffer(ctx, GL_UNIFORM_BUFFER, location);
+        buf = ctx->state.buffer_base[_UNIFORM_CONSTANT].buffers[location].buf;
     }
     initBufferData(ctx, buf, sizeof v0, &v0); // FIXME: is this correct?
     

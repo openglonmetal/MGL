@@ -1,6 +1,6 @@
 if [ ! -d "SPIRV-Cross" ]
 then
-    git clone https://github.com/KhronosGroup/SPIRV-Cross.git --depth 1
+    git clone https://github.com/r58Playz/SPIRV-Cross.git -b uniform-constants
     cd SPIRV-Cross
 else
     cd SPIRV-Cross

@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		DFB50A9928ADD0330084D12B /* libSPIRV-Tools-shared.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = DFC728FA2894855E00990595 /* libSPIRV-Tools-shared.dylib */; };
 		DFB50A9D28ADD2240084D12B /* validate_ray_tracing.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DFB50A9C28ADD2230084D12B /* validate_ray_tracing.cpp */; };
 		DFC728FF28948F3000990595 /* validate_ray_query.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DFC728FE28948F3000990595 /* validate_ray_query.cpp */; };
 		FF33414C278BDD2000FDBD91 /* Fixed_ResourceLimits.h in Headers */ = {isa = PBXBuildFile; fileRef = FF33414B278BDD2000FDBD91 /* Fixed_ResourceLimits.h */; };
@@ -624,7 +623,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				DFB50A9928ADD0330084D12B /* libSPIRV-Tools-shared.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1949,6 +1947,7 @@
 					"$(SRCROOT)/external/SPIRV-Tools/build",
 					"$(SRCROOT)/external/SPIRV-Tools/",
 					"$(SRCROOT)/external/SPIRV-Tools/include",
+					"$(SRCROOT)/external/SPIRV-Cross/",
 					"$(SRCROOT)/external/glslang/build/include",
 					"$(SRCROOT)/external/glslang/",
 					"$(SRCROOT)/MGL/include",
@@ -1997,6 +1996,7 @@
 					"$(SRCROOT)/external/SPIRV-Tools/build",
 					"$(SRCROOT)/external/SPIRV-Tools/",
 					"$(SRCROOT)/external/SPIRV-Tools/include",
+					"$(SRCROOT)/external/SPIRV-Cross/",
 					"$(SRCROOT)/external/glslang/build/include",
 					"$(SRCROOT)/external/glslang/",
 					"$(SRCROOT)/MGL/include",

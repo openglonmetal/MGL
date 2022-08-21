@@ -1,5 +1,5 @@
 git clone https://github.com/KhronosGroup/OpenGL-Registry.git --depth 1
-git clone https://github.com/KhronosGroup/SPIRV-Cross.git --depth 1
+git clone https://github.com/r58Playz/SPIRV-Cross.git -b uniform-constants
 git clone https://github.com/KhronosGroup/SPIRV-Headers.git --depth 1
 git clone https://github.com/KhronosGroup/SPIRV-Tools.git --depth 1
 cd SPIRV-Tools/external
