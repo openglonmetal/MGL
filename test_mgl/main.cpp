@@ -690,15 +690,15 @@ int test_draw_arrays_uniform1fv(GLFWwindow* window, int width, int height)
     const char* vertex_shader =
     "#version 450 core\n"
     "layout(location = 0) in vec3 position;\n"
-    "layout(location = 1) uniform float mp[2];\n"
     "void main() {\n"
-    "  gl_Position = vec4(position*mp[0], 1.0);\n"
+    "  gl_Position = vec4(position, 1.0);\n"
     "}";
     const char* fragment_shader =
     "#version 450 core\n"
     "layout(location = 0) out vec4 frag_colour;\n"
+    "layout(location = 1) uniform float mp[3];\n"
     "void main() {\n"
-    "  frag_colour = vec4(0.5, 0.0, 0.5, 1.0);\n"
+    "  frag_colour = vec4(mp[0], mp[1], mp[2], 1.0);\n"
     "}";
 
     float points[] = {
@@ -733,10 +733,14 @@ int test_draw_arrays_uniform1fv(GLFWwindow* window, int width, int height)
 
     glViewport(0, 0, width, height);
     
-    GLint mp_loc = glGetUniformLocation(shader_program, "mpBlock");
-    const GLfloat mp_val = 4.0f;
-    printf("%d\n", mp_loc);
-    glUniform1fv(mp_loc, sizeof(float), &mp_val);
+    GLint mp_loc = glGetUniformLocation(shader_program, "mp");
+    GLfloat mp_val[3];
+    int ri = 1;
+    int gi = 0;
+    int bi = 0;
+    mp_val[0] = 0.0f;
+    mp_val[1] = 0.0f;
+    mp_val[2] = 0.0f;
     
     while (!glfwWindowShouldClose(window))
     {
@@ -746,12 +750,23 @@ int test_draw_arrays_uniform1fv(GLFWwindow* window, int width, int height)
 
         glClearColor(0.2, 0.2, 0.2, 0.0);
         glClear(GL_COLOR_BUFFER_BIT);
+        
+        glUniform1fv(mp_loc, 3, mp_val);
 
         glDrawArrays(GL_TRIANGLES, 0, 3);
 
         SWAP_BUFFERS;
 
         glfwPollEvents();
+        mp_val[0] += ri/100.0f;
+        mp_val[1] += gi/100.0f;
+        mp_val[2] += bi/100.0f;
+        if(mp_val[0]>1.0f){ri=-1;gi=1;printf("red -> green\n");}
+        if(mp_val[0]<0.0f){ri=0;printf("red end\n");mp_val[0]=0.0f;}
+        if(mp_val[1]>1.0f){gi=-1;bi=1;printf("green -> blue\n");}
+        if(mp_val[1]<0.0f){gi=0;printf("green end\n");mp_val[1]=0.0f;}
+        if(mp_val[2]>1.0f){bi=-1;ri=1;printf("blue -> red\n");}
+        if(mp_val[2]<0.0f){bi=0;printf("blue end\n");mp_val[2]=0.0f;}
     }
 
     return 0;
@@ -3049,7 +3064,7 @@ int main_glfw(int argc, const char * argv[])
 
     // test_clear(window, width, height);
     // test_draw_arrays(window, width, height);
-    test_draw_arrays_uniform1i(window, width, height);
+    test_draw_arrays_uniform1fv(window, width, height);
     // test_draw_elements(window, width, height);
     // test_draw_range_elements(window, width, height);
     // test_draw_arrays_instanced(window, width, height);
