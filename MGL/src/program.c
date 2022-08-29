@@ -707,7 +707,7 @@ void mglUniform1i(GLMContext ctx, GLint location, GLint v0)
         ctx->state.buffer_base[_UNIFORM_CONSTANT].buffers[location].buf = newBuffer(ctx, GL_UNIFORM_BUFFER, location);
         buf = ctx->state.buffer_base[_UNIFORM_CONSTANT].buffers[location].buf;
     }
-    initBufferData(ctx, buf, sizeof v0, &v0); // FIXME: is this correct?
+    initBufferData(ctx, buf, sizeof v0, &v0, true); // FIXME: is this correct?
     
     // i think this is correct ?? ?? ??
 }
