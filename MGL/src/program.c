@@ -686,14 +686,7 @@ void mglUniform1f(GLMContext ctx, GLint location, GLfloat v0)
 
 void mglUniform1fv(GLMContext ctx, GLint location, GLsizei count, const GLfloat *value)
 {
-        assert(0);
-}
-
-void mglUniform1i(GLMContext ctx, GLint location, GLint v0)
-{
-#pragma mark current
     // TODO: actual error checking (am too lazy)
-    // TODO: find a better way to do this (if there is one)
     Program* ptr = ctx->state.program;
     
     ERROR_CHECK_RETURN(ptr, GL_INVALID_OPERATION)
@@ -707,9 +700,27 @@ void mglUniform1i(GLMContext ctx, GLint location, GLint v0)
         ctx->state.buffer_base[_UNIFORM_CONSTANT].buffers[location].buf = newBuffer(ctx, GL_UNIFORM_BUFFER, location);
         buf = ctx->state.buffer_base[_UNIFORM_CONSTANT].buffers[location].buf;
     }
-    initBufferData(ctx, buf, sizeof v0, &v0, true); // FIXME: is this correct?
+    size_t float_size = sizeof(GLfloat);
+    initBufferData(ctx, buf, count*float_size, value, true);
+}
+
+void mglUniform1i(GLMContext ctx, GLint location, GLint v0)
+{
+    // TODO: actual error checking (am too lazy)
+    Program* ptr = ctx->state.program;
     
-    // i think this is correct ?? ?? ??
+    ERROR_CHECK_RETURN(ptr, GL_INVALID_OPERATION)
+
+    Buffer *buf = ctx->state.buffer_base[_UNIFORM_CONSTANT].buffers[location].buf;
+    
+    ERROR_CHECK_RETURN(location != -1, GL_INVALID_OPERATION)
+    
+    if(buf == NULL)
+    {
+        ctx->state.buffer_base[_UNIFORM_CONSTANT].buffers[location].buf = newBuffer(ctx, GL_UNIFORM_BUFFER, location);
+        buf = ctx->state.buffer_base[_UNIFORM_CONSTANT].buffers[location].buf;
+    }
+    initBufferData(ctx, buf, sizeof v0, &v0, true);
 }
 
 void mglUniform1iv(GLMContext ctx, GLint location, GLsizei count, const GLint *value)
