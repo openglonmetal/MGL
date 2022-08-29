@@ -1222,7 +1222,7 @@ extern FBOAttachment *getFBOAttachment(GLMContext ctx, Framebuffer *fbo, GLenum 
 -(void)mtlBlitFramebuffer:(GLMContext)glm_ctx srcX0:(size_t)srcX0 srcY0:(size_t)srcY0 srcX1:(size_t)srcX1 srcY1:(size_t)srcY1 dstX0:(size_t)dstX0 dstY0:(size_t)dstY0 dstX1:(size_t)dstX1 dstY1:(size_t)dstY1 mask:(size_t)mask filter:(GLuint)filter
 {
     Framebuffer * readfbo, * drawfbo;
-    int readtex, drawtex;
+    //int readtex, drawtex;
 
     readfbo = ctx->state.readbuffer;
     assert(readfbo);
