@@ -608,15 +608,15 @@ int test_draw_arrays_uniform1i(GLFWwindow* window, int width, int height)
     const char* vertex_shader =
     "#version 450 core\n"
     "layout(location = 0) in vec3 position;\n"
-    "layout(location = 1) uniform int mp;\n"
     "void main() {\n"
-    "  gl_Position = vec4(position.x, position.y-mp/10, position.z, 1.0);\n"
+    "  gl_Position = vec4(position.x, position.y, position.z, 1.0);\n"
     "}";
     const char* fragment_shader =
     "#version 450 core\n"
     "layout(location = 0) out vec4 frag_colour;\n"
+    "layout(location = 1) uniform int mp;\n"
     "void main() {\n"
-    "  frag_colour = vec4(0.5, 0.5, 0.5, 1.0);\n"
+    "  frag_colour = vec4(0, 0, float(mp)/100.0, 1.0);\n"
     "}";
 
     float points[] = {
@@ -655,6 +655,7 @@ int test_draw_arrays_uniform1i(GLFWwindow* window, int width, int height)
     std::cout << mp_loc << std::endl;
     
     int a = 0;
+    int e = 1;
     
     glUseProgram(shader_program);
     glClearColor(0.2, 0.2, 0.2, 0.0);
@@ -674,7 +675,9 @@ int test_draw_arrays_uniform1i(GLFWwindow* window, int width, int height)
         SWAP_BUFFERS;
 
         glfwPollEvents();
-        a++;
+        a += e;
+        if(a>100){e=-1;}
+        if(a==0){e=1;}
     }
 
     return 0;

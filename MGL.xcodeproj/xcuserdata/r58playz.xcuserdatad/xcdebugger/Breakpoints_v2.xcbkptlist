@@ -30,8 +30,8 @@
             filePath = "MGL/src/MGLRenderer.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "618"
-            endingLineNumber = "618"
+            startingLineNumber = "620"
+            endingLineNumber = "620"
             landmarkName = "-bindBuffersToCurrentRenderEncoder"
             landmarkType = "7">
             <Locations>
@@ -78,8 +78,8 @@
             filePath = "MGL/src/MGLRenderer.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "615"
-            endingLineNumber = "615"
+            startingLineNumber = "617"
+            endingLineNumber = "617"
             landmarkName = "-bindBuffersToCurrentRenderEncoder"
             landmarkType = "7">
             <Locations>
@@ -126,8 +126,8 @@
             filePath = "MGL/src/MGLRenderer.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "617"
-            endingLineNumber = "617"
+            startingLineNumber = "619"
+            endingLineNumber = "619"
             landmarkName = "-bindBuffersToCurrentRenderEncoder"
             landmarkType = "7">
             <Locations>
@@ -168,14 +168,14 @@
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
             uuid = "73A1B011-AB03-481C-BC43-A00FA80C17C7"
-            shouldBeEnabled = "No"
+            shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "MGL/src/MGLRenderer.m"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "407"
-            endingLineNumber = "407"
+            startingLineNumber = "409"
+            endingLineNumber = "409"
             landmarkName = "-mapGLBuffersToMTLBufferMap:stage:"
             landmarkType = "7">
             <Locations>
@@ -209,6 +209,36 @@
                   endingLineNumber = "407"
                   offsetFromSymbolStart = "240">
                </Location>
+               <Location
+                  uuid = "73A1B011-AB03-481C-BC43-A00FA80C17C7 - c83b2f0deeb889a9"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "-[MGLRenderer mapGLBuffersToMTLBufferMap:stage:]"
+                  moduleName = "libMGL.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/r58playz/MGL/MGL/src/MGLRenderer.m"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "409"
+                  endingLineNumber = "409"
+                  offsetFromSymbolStart = "240">
+               </Location>
+               <Location
+                  uuid = "73A1B011-AB03-481C-BC43-A00FA80C17C7 - c83b2f0deeb889a9"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "-[MGLRenderer mapGLBuffersToMTLBufferMap:stage:]"
+                  moduleName = "libMGL.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/r58playz/MGL/MGL/src/MGLRenderer.m"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "409"
+                  endingLineNumber = "409"
+                  offsetFromSymbolStart = "276">
+               </Location>
             </Locations>
          </BreakpointContent>
       </BreakpointProxy>
@@ -222,6 +252,22 @@
             breakpointStackSelectionBehavior = "1"
             type = "8"
             categories = "Metal Diagnostics">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "77D4D6F4-2370-4F25-8812-BD7DCF95DF25"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "MGL/src/MGLRenderer.m"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "393"
+            endingLineNumber = "393"
+            landmarkName = "-mapGLBuffersToMTLBufferMap:stage:"
+            landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>

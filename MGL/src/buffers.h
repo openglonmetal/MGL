@@ -10,7 +10,7 @@
 
 #include <mach/arm/kern_return.h>
 
-kern_return_t initBufferData(GLMContext ctx, Buffer *ptr, GLsizeiptr size, const void *data);
+kern_return_t initBufferData(GLMContext ctx, Buffer *ptr, GLsizeiptr size, const void *data, bool isUC);
 Buffer *newBuffer(GLMContext ctx, GLenum target, GLuint buffer);
 
 #endif /* buffers_h */
