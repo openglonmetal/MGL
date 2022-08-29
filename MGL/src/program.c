@@ -835,7 +835,22 @@ void mglUniform4f(GLMContext ctx, GLint location, GLfloat v0, GLfloat v1, GLfloa
 
 void mglUniform4fv(GLMContext ctx, GLint location, GLsizei count, const GLfloat *value)
 {
-        assert(0);
+    // TODO: actual error checking (am too lazy)
+    Program* ptr = ctx->state.program;
+    
+    ERROR_CHECK_RETURN(ptr, GL_INVALID_OPERATION)
+
+    Buffer *buf = ctx->state.buffer_base[_UNIFORM_CONSTANT].buffers[location].buf;
+    
+    ERROR_CHECK_RETURN(location != -1, GL_INVALID_OPERATION)
+    
+    if(buf == NULL)
+    {
+        ctx->state.buffer_base[_UNIFORM_CONSTANT].buffers[location].buf = newBuffer(ctx, GL_UNIFORM_BUFFER, location);
+        buf = ctx->state.buffer_base[_UNIFORM_CONSTANT].buffers[location].buf;
+    }
+    size_t float_size = sizeof(GLfloat);
+    initBufferData(ctx, buf, count*4*float_size, value, true);
 }
 
 void mglUniform4i(GLMContext ctx, GLint location, GLint v0, GLint v1, GLint v2, GLint v3)
