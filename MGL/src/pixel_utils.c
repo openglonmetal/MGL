@@ -1639,8 +1639,8 @@ MTLPixelFormat mtlFormatForGLInternalFormat(GLenum internal_format)
             return MTLPixelFormatInvalid;
 
         case GL_RGBA8:
-            //return MTLPixelFormatRGBA8Unorm;    // working format
-            return MTLPixelFormatBGRA8Unorm;    // working format
+            return MTLPixelFormatRGBA8Unorm;    // working format
+            //return MTLPixelFormatBGRA8Unorm;    // working format
 
         case GL_RGB10_A2:
             return MTLPixelFormatRGB10A2Unorm;    // working format
