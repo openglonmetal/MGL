@@ -289,77 +289,8 @@ So internal to processGLState the vertex buffer array is taken apart, buffers an
 
 Once you walk a glDrawArrays call through processGLState, you will get a jist of how this all works.
 
-
-## Grabbing the SPIRV sources and building
-
-There is an Xcode project build most of this, but you will need to clone a bunch of external projects from GitHub.
-
-In MGL/external there is a file
-
-```
-clone_external.sh
-```
-
-Run this and all the external repositories will be downloaded.
-
-```
-SPIRV-Cross
-SPIRV-Headers
-SPIRV-Tools
-ezxml
-glfw
-glm
-glslang
-```
-
-You will need to build the following
-
-```
-SPIRV-Cross
-SPIRV-Headers
-SPIRV-Tools
-glslang
-glm
-```
-
-Each is distributed by Khronos with a CMake style build
-
-For each of the projects above build you will need to do the following
-
-```
-cd <Project>
-mkdir build
-cd build
-cmake ..
-make
-make install
-```
-
-Once installed in /usr/local the Xcode project should be able to build all the required dependencies for MGL.
-
-
-## Using the Makefile and uninstalled build dependencies
-
-Install [brew](https://brew.sh).
-
-Then:
-
-```
-brew install make git
-make install-pkgdeps
-```
-
-This will install as-much-as-regular dependencies with brew (including glfw).
-Then it git clones two directories: you should have two new directories next to MGL: SPIRV-Headers and SPIRV-Cross.
-Only SPIRV-Cross requires to be built, which is done on the last line of the `make install-pkgdeps` command.
-
-Finally,
-
-```
-make -j test
-```
-
-should compile everything and launch the test.
+## Build
+See BUILD.md
 
 ## Where to start
 Use the Xcode MGL project to build your own tests and projects... start by building test_mgl_glfw, this is a chunk of test code I used to get most of the functionality up and running. Xcode has all the debugging tools and won't leave you wondering WTF is that assert about, throwing your hands up and walking away without learning anything about the internals of OpenGL or contributing to this project.
