@@ -156,7 +156,7 @@ install-pkgdeps:
 	git submodule init
 	git submodule update --depth 1
 	(cd SPIRV-Cross && mkdir -p build && cd build && cmake .. && make)
-	(cd glslang && mkdir -p build && cd build && cmake .. && make)
+	(cd external/glslang && mkdir -p build && cd build && cmake .. && make)
 
 update-pkdeps:
 	git submodule -q foreach git pull -q origin master
