@@ -20,6 +20,8 @@ This is a start for porting OpenGL 4.6 on top of Metal, most of it is functional
 - Drawbuffers
 - Most of the draw calls
 - Elements / Instancing and such
+- Uniforms (partially)
+- UBOs
 
 ## GLFW support
 I modified a version of GLFW to work with MGL, it replaces the default MacOS OpenGL contexts. The changes are included in the repository and should build correctly with the MGL xcode project.

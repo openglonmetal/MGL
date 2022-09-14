@@ -27,6 +27,7 @@
 #include "spirv.h"
 
 #include "shaders.h"
+#include "buffers.h"
 #include "glm_context.h"
 
 Program *newProgram(GLMContext ctx, GLuint program)
@@ -326,7 +327,7 @@ char *parseSPIRVShaderToMetal(GLMContext ctx, Program *ptr, int stage)
     spvc_compiler_create_shader_resources(compiler_msl, &resources);
     for (int res_type=SPVC_RESOURCE_TYPE_UNIFORM_BUFFER; res_type < SPVC_RESOURCE_TYPE_ACCELERATION_STRUCTURE; res_type++)
     {
-        const char *res_name[] = {"NONE", "UNIFORM_BUFFER", "STORAGE_BUFFER", "STAGE_INPUT", "STAGE_OUTPUT",
+        const char *res_name[] = {"NONE", "UNIFORM_BUFFER", "UNIFORM_CONSTANT", "STORAGE_BUFFER", "STAGE_INPUT", "STAGE_OUTPUT",
             "SUBPASS_INPUT", "STORAGE_INPUT", "SAMPLED_IMAGE", "ATOMIC_COUNTER", "PUSH_CONSTANT", "SEPARATE_IMAGE",
             "SEPARATE_SAMPLERS", "ACCELERATION_STRUCTURE", "RAY_QUERY"};
 
@@ -525,13 +526,51 @@ void mglGetProgramInfoLog(GLMContext ctx, GLuint program, GLsizei bufSize, GLsiz
     assert(0);
 }
 
+#pragma mark uniforms
+
 GLint  mglGetUniformLocation(GLMContext ctx, GLuint program, const GLchar *name)
 {
-    GLint ret = -1;
+    if (isProgram(ctx, program) == GL_FALSE)
+    {
+        ERROR_RETURN(GL_INVALID_OPERATION); // also may be GL_INVALID_VALUE ????
 
-    // Unimplemented function
-    assert(0);
-    return ret;
+        return -1;
+    }
+
+    Program *ptr;
+
+    ptr = getProgram(ctx, program);
+    assert(program);
+
+    if (ptr->linked_glsl_program == NULL)
+    {
+        ERROR_RETURN(GL_INVALID_OPERATION);
+
+        return -1;
+    }
+
+    for (int stage=_VERTEX_SHADER; stage<_MAX_SHADER_TYPES; stage++)
+    {
+        int count;
+
+        count = ptr->spirv_resources_list[stage][SPVC_RESOURCE_TYPE_UNIFORM_CONSTANT].count;
+
+        for (int i=0; i<count; i++)
+        {
+            const char *str = ptr->spirv_resources_list[stage][SPVC_RESOURCE_TYPE_UNIFORM_CONSTANT].list[i].name;
+
+            if (!strcmp(str, name))
+            {
+                GLuint binding;
+
+                binding = ptr->spirv_resources_list[stage][SPVC_RESOURCE_TYPE_UNIFORM_CONSTANT].list[i].binding;
+
+                return binding;
+            }
+        }
+    }
+    
+    return -1;
 }
 
 void mglGetUniformfv(GLMContext ctx, GLuint program, GLint location, GLfloat *params)
@@ -581,9 +620,9 @@ GLuint  mglGetUniformBlockIndex(GLMContext ctx, GLuint program, const GLchar *un
 
     if (ptr->linked_glsl_program == NULL)
     {
-        assert(0);
+        ERROR_RETURN(GL_INVALID_OPERATION);
 
-        return 0;
+        return -1;
     }
 
     for (int stage=_VERTEX_SHADER; stage<_MAX_SHADER_TYPES; stage++)
@@ -628,6 +667,316 @@ void mglUniformBlockBinding(GLMContext ctx, GLuint program, GLuint uniformBlockI
 {
     // Unimplemented function
     assert(0);
+}
+
+void mglUniform1d(GLMContext ctx, GLint location, GLdouble x)
+{
+        assert(0);
+}
+
+void mglUniform1dv(GLMContext ctx, GLint location, GLsizei count, const GLdouble *value)
+{
+        assert(0);
+}
+
+void mglUniform1f(GLMContext ctx, GLint location, GLfloat v0)
+{
+        assert(0);
+}
+
+void mglUniform1fv(GLMContext ctx, GLint location, GLsizei count, const GLfloat *value)
+{
+    // TODO: actual error checking (am too lazy)
+    Program* ptr = ctx->state.program;
+    
+    ERROR_CHECK_RETURN(ptr, GL_INVALID_OPERATION)
+
+    Buffer *buf = ctx->state.buffer_base[_UNIFORM_CONSTANT].buffers[location].buf;
+    
+    ERROR_CHECK_RETURN(location != -1, GL_INVALID_OPERATION)
+    
+    if(buf == NULL)
+    {
+        ctx->state.buffer_base[_UNIFORM_CONSTANT].buffers[location].buf = newBuffer(ctx, GL_UNIFORM_BUFFER, location);
+        buf = ctx->state.buffer_base[_UNIFORM_CONSTANT].buffers[location].buf;
+    }
+    size_t float_size = sizeof(GLfloat);
+    initBufferData(ctx, buf, count*float_size, value, true);
+}
+
+void mglUniform1i(GLMContext ctx, GLint location, GLint v0)
+{
+    // TODO: actual error checking (am too lazy)
+    Program* ptr = ctx->state.program;
+    
+    ERROR_CHECK_RETURN(ptr, GL_INVALID_OPERATION)
+
+    Buffer *buf = ctx->state.buffer_base[_UNIFORM_CONSTANT].buffers[location].buf;
+    
+    ERROR_CHECK_RETURN(location != -1, GL_INVALID_OPERATION)
+    
+    if(buf == NULL)
+    {
+        ctx->state.buffer_base[_UNIFORM_CONSTANT].buffers[location].buf = newBuffer(ctx, GL_UNIFORM_BUFFER, location);
+        buf = ctx->state.buffer_base[_UNIFORM_CONSTANT].buffers[location].buf;
+    }
+    initBufferData(ctx, buf, sizeof v0, &v0, true);
+}
+
+void mglUniform1iv(GLMContext ctx, GLint location, GLsizei count, const GLint *value)
+{
+        assert(0);
+}
+
+void mglUniform1ui(GLMContext ctx, GLint location, GLuint v0)
+{
+        assert(0);
+}
+
+void mglUniform1uiv(GLMContext ctx, GLint location, GLsizei count, const GLuint *value)
+{
+        assert(0);
+}
+
+void mglUniform2d(GLMContext ctx, GLint location, GLdouble x, GLdouble y)
+{
+        assert(0);
+}
+
+void mglUniform2dv(GLMContext ctx, GLint location, GLsizei count, const GLdouble *value)
+{
+        assert(0);
+}
+
+void mglUniform2f(GLMContext ctx, GLint location, GLfloat v0, GLfloat v1)
+{
+        assert(0);
+}
+
+void mglUniform2fv(GLMContext ctx, GLint location, GLsizei count, const GLfloat *value)
+{
+        assert(0);
+}
+
+void mglUniform2i(GLMContext ctx, GLint location, GLint v0, GLint v1)
+{
+        assert(0);
+}
+
+void mglUniform2iv(GLMContext ctx, GLint location, GLsizei count, const GLint *value)
+{
+        assert(0);
+}
+
+void mglUniform2ui(GLMContext ctx, GLint location, GLuint v0, GLuint v1)
+{
+        assert(0);
+}
+
+void mglUniform2uiv(GLMContext ctx, GLint location, GLsizei count, const GLuint *value)
+{
+        assert(0);
+}
+
+void mglUniform3d(GLMContext ctx, GLint location, GLdouble x, GLdouble y, GLdouble z)
+{
+        assert(0);
+}
+
+void mglUniform3dv(GLMContext ctx, GLint location, GLsizei count, const GLdouble *value)
+{
+        assert(0);
+}
+
+void mglUniform3f(GLMContext ctx, GLint location, GLfloat v0, GLfloat v1, GLfloat v2)
+{
+        assert(0);
+}
+
+void mglUniform3fv(GLMContext ctx, GLint location, GLsizei count, const GLfloat *value)
+{
+        assert(0);
+}
+
+void mglUniform3i(GLMContext ctx, GLint location, GLint v0, GLint v1, GLint v2)
+{
+        assert(0);
+}
+
+void mglUniform3iv(GLMContext ctx, GLint location, GLsizei count, const GLint *value)
+{
+        assert(0);
+}
+
+void mglUniform3ui(GLMContext ctx, GLint location, GLuint v0, GLuint v1, GLuint v2)
+{
+        assert(0);
+}
+
+void mglUniform3uiv(GLMContext ctx, GLint location, GLsizei count, const GLuint *value)
+{
+        assert(0);
+}
+
+void mglUniform4d(GLMContext ctx, GLint location, GLdouble x, GLdouble y, GLdouble z, GLdouble w)
+{
+        assert(0);
+}
+
+void mglUniform4dv(GLMContext ctx, GLint location, GLsizei count, const GLdouble *value)
+{
+        assert(0);
+}
+
+void mglUniform4f(GLMContext ctx, GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3)
+{
+        assert(0);
+}
+
+void mglUniform4fv(GLMContext ctx, GLint location, GLsizei count, const GLfloat *value)
+{
+    // TODO: actual error checking (am too lazy)
+    Program* ptr = ctx->state.program;
+    
+    ERROR_CHECK_RETURN(ptr, GL_INVALID_OPERATION)
+
+    Buffer *buf = ctx->state.buffer_base[_UNIFORM_CONSTANT].buffers[location].buf;
+    
+    ERROR_CHECK_RETURN(location != -1, GL_INVALID_OPERATION)
+    
+    if(buf == NULL)
+    {
+        ctx->state.buffer_base[_UNIFORM_CONSTANT].buffers[location].buf = newBuffer(ctx, GL_UNIFORM_BUFFER, location);
+        buf = ctx->state.buffer_base[_UNIFORM_CONSTANT].buffers[location].buf;
+    }
+    size_t float_size = sizeof(GLfloat);
+    initBufferData(ctx, buf, count*4*float_size, value, true);
+}
+
+void mglUniform4i(GLMContext ctx, GLint location, GLint v0, GLint v1, GLint v2, GLint v3)
+{
+        assert(0);
+}
+
+void mglUniform4iv(GLMContext ctx, GLint location, GLsizei count, const GLint *value)
+{
+        assert(0);
+}
+
+void mglUniform4ui(GLMContext ctx, GLint location, GLuint v0, GLuint v1, GLuint v2, GLuint v3)
+{
+        assert(0);
+}
+
+void mglUniform4uiv(GLMContext ctx, GLint location, GLsizei count, const GLuint *value)
+{
+        assert(0);
+}
+
+void mglUniformMatrix2dv(GLMContext ctx, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
+{
+        assert(0);
+}
+
+void mglUniformMatrix2fv(GLMContext ctx, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
+{
+        assert(0);
+}
+
+void mglUniformMatrix2x3dv(GLMContext ctx, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
+{
+        assert(0);
+}
+
+void mglUniformMatrix2x3fv(GLMContext ctx, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
+{
+        assert(0);
+}
+
+void mglUniformMatrix2x4dv(GLMContext ctx, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
+{
+        assert(0);
+}
+
+void mglUniformMatrix2x4fv(GLMContext ctx, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
+{
+        assert(0);
+}
+
+void mglUniformMatrix3dv(GLMContext ctx, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
+{
+        assert(0);
+}
+
+void mglUniformMatrix3fv(GLMContext ctx, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
+{
+        assert(0);
+}
+
+void mglUniformMatrix3x2dv(GLMContext ctx, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
+{
+        assert(0);
+}
+
+void mglUniformMatrix3x2fv(GLMContext ctx, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
+{
+        assert(0);
+}
+
+void mglUniformMatrix3x4dv(GLMContext ctx, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
+{
+        assert(0);
+}
+
+void mglUniformMatrix3x4fv(GLMContext ctx, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
+{
+        assert(0);
+}
+
+void mglUniformMatrix4dv(GLMContext ctx, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
+{
+        assert(0);
+}
+
+void mglUniformMatrix4fv(GLMContext ctx, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
+{
+    // TODO: actual error checking (am too lazy)
+    // TODO: transpose
+    Program* ptr = ctx->state.program;
+    
+    ERROR_CHECK_RETURN(ptr, GL_INVALID_OPERATION)
+
+    Buffer *buf = ctx->state.buffer_base[_UNIFORM_CONSTANT].buffers[location].buf;
+    
+    ERROR_CHECK_RETURN(location != -1, GL_INVALID_OPERATION)
+    
+    if(buf == NULL)
+    {
+        ctx->state.buffer_base[_UNIFORM_CONSTANT].buffers[location].buf = newBuffer(ctx, GL_UNIFORM_BUFFER, location);
+        buf = ctx->state.buffer_base[_UNIFORM_CONSTANT].buffers[location].buf;
+    }
+    size_t float_size = sizeof(GLfloat);
+    initBufferData(ctx, buf, count*4*4*float_size, value, true);
+}
+
+void mglUniformMatrix4x2dv(GLMContext ctx, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
+{
+        assert(0);
+}
+
+void mglUniformMatrix4x2fv(GLMContext ctx, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
+{
+        assert(0);
+}
+
+void mglUniformMatrix4x3dv(GLMContext ctx, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
+{
+        assert(0);
+}
+
+void mglUniformMatrix4x3fv(GLMContext ctx, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
+{
+        assert(0);
 }
 
 

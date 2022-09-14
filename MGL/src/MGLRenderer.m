@@ -374,15 +374,16 @@ void logDirtyBits(GLMContext ctx)
     struct {
         int spvc_type;
         int gl_buffer_type;
-    } mapped_types[3] = {
+    } mapped_types[4] = {
         {SPVC_RESOURCE_TYPE_UNIFORM_BUFFER, _UNIFORM_BUFFER},
+        {SPVC_RESOURCE_TYPE_UNIFORM_CONSTANT, _UNIFORM_CONSTANT},
         {SPVC_RESOURCE_TYPE_STORAGE_BUFFER, _SHADER_STORAGE_BUFFER},
         {SPVC_RESOURCE_TYPE_ATOMIC_COUNTER, _ATOMIC_COUNTER_BUFFER}
     };
 
     buffer_map->count = 0;
 
-    for(int type=0; type<3; type++)
+    for(int type=0; type<4; type++)
     {
         int spvc_type;
         int gl_buffer_type;
@@ -1221,7 +1222,7 @@ extern FBOAttachment *getFBOAttachment(GLMContext ctx, Framebuffer *fbo, GLenum 
 -(void)mtlBlitFramebuffer:(GLMContext)glm_ctx srcX0:(size_t)srcX0 srcY0:(size_t)srcY0 srcX1:(size_t)srcX1 srcY1:(size_t)srcY1 dstX0:(size_t)dstX0 dstY0:(size_t)dstY0 dstX1:(size_t)dstX1 dstY1:(size_t)dstY1 mask:(size_t)mask filter:(GLuint)filter
 {
     Framebuffer * readfbo, * drawfbo;
-    int readtex, drawtex;
+    //int readtex, drawtex;
 
     readfbo = ctx->state.readbuffer;
     assert(readfbo);
@@ -1396,6 +1397,7 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
     switch(type)
     {
         case SPVC_RESOURCE_TYPE_UNIFORM_BUFFER:
+        case SPVC_RESOURCE_TYPE_UNIFORM_CONSTANT:
         case SPVC_RESOURCE_TYPE_STORAGE_BUFFER:
         case SPVC_RESOURCE_TYPE_ATOMIC_COUNTER:
         case SPVC_RESOURCE_TYPE_STAGE_INPUT:
@@ -1421,6 +1423,7 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
     switch(type)
     {
        case SPVC_RESOURCE_TYPE_UNIFORM_BUFFER:
+       case SPVC_RESOURCE_TYPE_UNIFORM_CONSTANT:
        case SPVC_RESOURCE_TYPE_STORAGE_BUFFER:
        case SPVC_RESOURCE_TYPE_ATOMIC_COUNTER:
        case SPVC_RESOURCE_TYPE_STAGE_INPUT:

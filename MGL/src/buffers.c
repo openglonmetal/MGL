@@ -24,6 +24,7 @@
 #include <limits.h>
 
 #include "glm_context.h"
+#include "buffers.h"
 #include "pixel_utils.h"
 
 #pragma mark Utility Functions
@@ -590,7 +591,7 @@ void mglBindBufferRange(GLMContext ctx, GLenum target, GLuint index, GLuint buff
 }
 
 #pragma mark GL Buffer Data Functions
-kern_return_t initBufferData(GLMContext ctx, Buffer *ptr, GLsizeiptr size, const void *data)
+kern_return_t initBufferData(GLMContext ctx, Buffer *ptr, GLsizeiptr size, const void *data, bool isUC)
 {
     kern_return_t err;
     vm_address_t buffer_data;
@@ -604,6 +605,7 @@ kern_return_t initBufferData(GLMContext ctx, Buffer *ptr, GLsizeiptr size, const
             {
                 // the mtl buffer has a deallocator for the vm allocate
                 ctx->mtl_funcs.mtlDeleteMTLObj(ctx, ptr->data.mtl_data);
+                if(isUC){ptr->data.mtl_data = NULL;}
             }
             else
             {
@@ -613,6 +615,7 @@ kern_return_t initBufferData(GLMContext ctx, Buffer *ptr, GLsizeiptr size, const
         else
         {
             ctx->mtl_funcs.mtlDeleteMTLObj(ctx, ptr->data.mtl_data);
+            if(isUC){ptr->data.mtl_data = NULL;}
         }
 
         ptr->data.buffer_data = 0;
@@ -678,7 +681,7 @@ void mglBufferData(GLMContext ctx, GLenum target, GLsizeiptr size, const void *d
         ERROR_RETURN(GL_INVALID_OPERATION);
     }
 
-    initBufferData(ctx, ptr, size, data);
+    initBufferData(ctx, ptr, size, data, false);
 
     // init fields local to buffer data
     ptr->index = index;
@@ -710,7 +713,7 @@ void mglNamedBufferData(GLMContext ctx, GLuint buffer, GLsizeiptr size, const vo
         ERROR_RETURN(GL_INVALID_OPERATION);
     }
 
-    initBufferData(ctx, ptr, size, data);
+    initBufferData(ctx, ptr, size, data,false);
 
     // init fields local to buffer data
     ptr->usage = usage;
