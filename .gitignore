@@ -7,3 +7,4 @@ external/SPIRV-Headers/
 external/SPIRV-Tools/
 external/ezxml/
 external/glslang/
+*.DS_Store
