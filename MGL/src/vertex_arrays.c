@@ -138,7 +138,7 @@ void mglBindVertexArray(GLMContext ctx, GLuint array)
     }
     else
     {
-        ERROR_CHECK_RETURN(isVAO(ctx, array), GL_INVALID_VALUE);
+        //ERROR_CHECK_RETURN(isVAO(ctx, array), GL_INVALID_VALUE);
 
         ptr = getVAO(ctx, array);
 
