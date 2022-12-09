@@ -507,11 +507,47 @@ void mglGetAttachedShaders(GLMContext ctx, GLuint program, GLsizei maxCount, GLs
 
 GLint  mglGetAttribLocation(GLMContext ctx, GLuint program, const GLchar *name)
 {
-    GLint ret = -1;
+	if (isProgram(ctx, program) == GL_FALSE)
+	{
+		ERROR_RETURN(GL_INVALID_OPERATION); // also may be GL_INVALID_VALUE ????
 
-    // Unimplemented function
-    assert(0);
-    return ret;
+		return -1;
+	}
+
+	Program *ptr;
+
+	ptr = getProgram(ctx, program);
+	assert(program);
+
+	if (ptr->linked_glsl_program == NULL)
+	{
+		ERROR_RETURN(GL_INVALID_OPERATION);
+
+		return -1;
+	}
+
+	for (int stage=_VERTEX_SHADER; stage<_MAX_SHADER_TYPES; stage++)
+	{
+		int count;
+
+		count = ptr->spirv_resources_list[stage][SPVC_RESOURCE_TYPE_STAGE_INPUT].count;
+
+		for (int i=0; i<count; i++)
+		{
+			const char *str = ptr->spirv_resources_list[stage][SPVC_RESOURCE_TYPE_STAGE_INPUT].list[i].name;
+
+			if (!strcmp(str, name))
+			{
+				GLuint location;
+
+				location = ptr->spirv_resources_list[stage][SPVC_RESOURCE_TYPE_STAGE_INPUT].list[i].location;
+
+				return location;
+			}
+		}
+	}
+	
+	return -1;
 }
 
 void mglGetProgramiv(GLMContext ctx, GLuint program, GLenum pname, GLint *params)
