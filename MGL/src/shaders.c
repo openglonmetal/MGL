@@ -205,9 +205,8 @@ GLboolean mglIsShader(GLMContext ctx, GLuint shader)
 void mglShaderSource(GLMContext ctx, GLuint shader, GLsizei count, const GLchar *const*string, const GLint *length)
 {
     size_t len;
-    char *src;
+    GLchar *src;
     Shader *ptr;
-    GLint* tmp_length=0;
 
     ERROR_CHECK_RETURN(isShader(ctx, shader), GL_INVALID_VALUE);
     ERROR_CHECK_RETURN(count >= 0, GL_INVALID_VALUE);
@@ -216,17 +215,14 @@ void mglShaderSource(GLMContext ctx, GLuint shader, GLsizei count, const GLchar 
 
     ERROR_CHECK_RETURN(ptr, GL_INVALID_VALUE);
 
-    // calculate storage
     if (count>1)
     {
+        // compute storage requirement
         len = 0;
         if (!length) {
-            tmp_length = (GLint*) malloc(count*sizeof(GLint));
-            ERROR_CHECK_RETURN(tmp_length, GL_OUT_OF_MEMORY);
             for(int i=0; i<count; i++)
             {
-                tmp_length[i] = strlen(string[i]);
-                len += tmp_length[i];
+                len += strlen(string[i]);
             }
         }
         else {
@@ -235,18 +231,30 @@ void mglShaderSource(GLMContext ctx, GLuint shader, GLsizei count, const GLchar 
                 len += length[i];
             }
         }   
-
         ERROR_CHECK_RETURN(len, GL_INVALID_VALUE);
 
-        src = (char *)malloc(len);
+        // allocate storage
+        src = (GLchar *)malloc(len+1); // +1 for NULL
         ERROR_CHECK_RETURN(src, GL_OUT_OF_MEMORY);
 
-        *src = 0;
-        for(int i=0; i<count; i++)
-        {
-            strlcat(src, string[i], len);
+        if (!length) {        
+            // string[i] are null-terminated
+            *src = 0;
+            for(int i=0; i<count; ++i)
+            {
+                strlcat(src, string[i], len+1);
+            }
+            assert(strlen(src) == len);
+        } else {
+            // string[i] may not be null-terminated
+            size_t cum_len = 0;
+            for(int i=0; i<count; ++i)
+            {
+                strncpy(&src[cum_len], string[i], length[i]);
+                cum_len += length[i];
+            }
+            src[len] = 0;
         }
-        if (tmp_length) free(tmp_length);
     }
     else
     {
