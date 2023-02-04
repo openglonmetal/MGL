@@ -7,3 +7,7 @@ external/SPIRV-Headers/
 external/SPIRV-Tools/
 external/ezxml/
 external/glslang/
+/SPIRV-Headers
+/SPIRV-Cross
+/MGL.gputrace
+/Info.plist
