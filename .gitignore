@@ -7,6 +7,7 @@ external/SPIRV-Headers/
 external/SPIRV-Tools/
 external/ezxml/
 external/glslang/
+*.DS_Store
 /SPIRV-Headers
 /SPIRV-Cross
 /MGL.gputrace
