@@ -6,7 +6,7 @@
 
 # Find SDK path via xcode-select, backwards compatible with Xcode vers < 4.5
 # on M1 monterey, comment out the following line
-SDK_ROOT = $(shell xcode-select -p)/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk
+#SDK_ROOT = $(shell xcode-select -p)/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk
 
 # with installed spirv_headers and spirv_cross
 # spirv_headers_include_path ?= /usr/local/include
@@ -21,9 +21,9 @@ spirv_cross_1_2_include_path ?= SPIRV-Headers/include/spirv/1.2
 spirv_cross_config_include_path ?= SPIRV-Cross
 spirv_cross_lib_path ?= SPIRV-Cross/build
 
-glslang_path ?= glslang
-glslang_include_path ?= $(glslang_path)/build/include/glslang $(glslang_path)/glslang/Include
-glslang_lib_path ?= $(glslang_path)/build/glslang $(glslang_path)/build/OGLCompilersDLL $(glslang_path)/build/glslang/OSDependent/Unix $(glslang_path)/build/StandAlone $(glslang_path)/build/SPIRV
+#glslang_path ?= glslang
+#glslang_include_path ?= $(glslang_path)/build/include/glslang $(glslang_path)/glslang/Include
+#glslang_lib_path ?= $(glslang_path)/build/glslang $(glslang_path)/build/OGLCompilersDLL $(glslang_path)/build/glslang/OSDependent/Unix $(glslang_path)/build/StandAlone $(glslang_path)/build/SPIRV
 
 # build dir
 build_dir ?= build
@@ -76,16 +76,20 @@ $(test_exe): $(test_objs)
 	$(CXX) -o $@ $^ -L$(build_dir) -lmgl $(test_libs) -fsanitize=address
 
 CFLAGS += -Wall #-Wunused-parameter #-Wextra
-CFLAGS += -gfull -O0 -fsanitize=address
+CFLAGS += -gfull
+CFLAGS += -O0
 #CFLAGS += -03
+CFLAGS += -fsanitize=address
 LIBS += -fsanitize=address
 CFLAGS += -arch $(shell uname -m)
+LIBS += -arch $(shell uname -m)
+
 CFLAGS += -I$(spirv_cross_1_2_include_path)
 CFLAGS += -I$(spirv_cross_config_include_path)
-#CFLAGS += -I$(brew_prefix)/opt/glslang/include/glslang/Include
-CFLAGS += $(addprefix -I,$(glslang_include_path))
+CFLAGS += -I$(brew_prefix)/include/glslang/Include
 CFLAGS += $(shell pkg-config --cflags SPIRV-Tools)
 CFLAGS += $(shell pkg-config --cflags glm)
+
 CFLAGS += -IMGL/include
 CFLAGS += -IMGL/include/GL # "glcorearb.h"
 CFLAGS += -IMGL/SPIRV/SPIRV-Cross
@@ -95,10 +99,8 @@ CFLAGS += -isysroot $(SDK_ROOT)
 endif
 
 LIBS += -L$(spirv_cross_lib_path) -lspirv-cross-core -lspirv-cross-c -lspirv-cross-cpp -lspirv-cross-msl -lspirv-cross-glsl -lspirv-cross-hlsl -lspirv-cross-reflect
-#LIBS += -L$(brew_prefix)/opt/glslang/lib
-LIBS += $(addprefix -L,$(glslang_lib_path))
+LIBS += -L$(brew_prefix)/lib
 LIBS += -lglslang -lMachineIndependent -lGenericCodeGen -lOGLCompiler -lOSDependent -lglslang-default-resource-limits -lSPIRV
-#LIBS += -framework OpenGL -framework CoreGraphics
 
 # specific rules
 
@@ -134,12 +136,12 @@ dbg: $(test_exe)
 
 $(build_dir)/%.o: %.c
 	@mkdir -p $(dir $@)
-	$(CC) -std=gnu17 -MMD $(CFLAGS) -c $< -o $@
-
+	$(CC) -MMD $(CFLAGS) -c $< -o $@
+#-std=gnu17 
 $(build_dir)/%.o: %.cpp
 	@mkdir -p $(dir $@)
-	$(CXX) -std=c++14 -MMD $(CFLAGS) -c $< -o $@
-
+	$(CXX) -MMD $(CFLAGS) -c $< -o $@
+#-std=c++14 
 $(build_dir)/arc/%.o: %.m
 	@mkdir -p $(dir $@)
 	clang -fobjc-arc -fmodules -MMD $(CFLAGS) -c $< -o $@
@@ -151,12 +153,16 @@ $(build_dir)/%.o: %.m
 clean:
 	rm -rf $(build_dir)
 
-install-pkgdeps:
+install-pkgdeps: download-pkgdeps compile-pkgdeps
+
+download-pkgdeps:
 	brew install glm glslang spirv-tools glfw
 	git submodule init
 	git submodule update --depth 1
+
+compile-pkgdeps:
 	(cd SPIRV-Cross && mkdir -p build && cd build && cmake .. && make)
-	(cd glslang && mkdir -p build && cd build && cmake .. && make)
+	@#(cd glslang && mkdir -p build && cd build && cmake .. && make)
 
 update-pkdeps:
 	git submodule -q foreach git pull -q origin master
