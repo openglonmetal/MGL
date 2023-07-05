@@ -1085,10 +1085,10 @@ void logDirtyBits(GLMContext ctx)
         }
     }
 
-    // @property (nonatomic) BOOL lodAverage API_AVAILABLE(ios(9.0), macos(11.0), macCatalyst(14.0));
+    // @property (nonatomic) BOOL lodAverage MGL_API_AVAILABLE(ios(9.0), macos(11.0), macCatalyst(14.0));
 
 
-    // @property (nonatomic) MTLCompareFunction compareFunction API_AVAILABLE(macos(10.11), ios(9.0));
+    // @property (nonatomic) MTLCompareFunction compareFunction MGL_API_AVAILABLE(macos(10.11), ios(9.0));
     switch(tex_param->compare_func)
     {
         case GL_LEQUAL:
