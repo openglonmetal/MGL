@@ -1,0 +1,73 @@
+diff --git a/spirv_cross.cpp b/spirv_cross.cpp
+index 49cc838..c8e63c0 100644
+--- a/spirv_cross.cpp
++++ b/spirv_cross.cpp
+@@ -1027,6 +1027,12 @@ ShaderResources Compiler::get_shader_resources(const unordered_set<VariableID> *
+ 		{
+ 			res.acceleration_structures.push_back({ var.self, var.basetype, type.self, get_name(var.self) });
+ 		}
++		// Uniform Constants
++        else if (type.storage == StorageClassUniformConstant)
++        {
++            res.uniform_constants.push_back(
++                { var.self, var.basetype, type.self, get_name(var.self) });
++        }
+ 	});
+ 
+ 	return res;
+diff --git a/spirv_cross.hpp b/spirv_cross.hpp
+index b99b7ae..2a2226c 100644
+--- a/spirv_cross.hpp
++++ b/spirv_cross.hpp
+@@ -86,6 +86,7 @@ struct BuiltInResource
+ struct ShaderResources
+ {
+ 	SmallVector<Resource> uniform_buffers;
++	SmallVector<Resource> uniform_constants;
+ 	SmallVector<Resource> storage_buffers;
+ 	SmallVector<Resource> stage_inputs;
+ 	SmallVector<Resource> stage_outputs;
+diff --git a/spirv_cross_c.cpp b/spirv_cross_c.cpp
+index f76c14c..99c6201 100644
+--- a/spirv_cross_c.cpp
++++ b/spirv_cross_c.cpp
+@@ -186,6 +186,7 @@ struct spvc_resources_s : ScratchMemoryAllocation
+ {
+ 	spvc_context context = nullptr;
+ 	SmallVector<spvc_reflected_resource> uniform_buffers;
++	SmallVector<spvc_reflected_resource> uniform_constants;
+ 	SmallVector<spvc_reflected_resource> storage_buffers;
+ 	SmallVector<spvc_reflected_resource> stage_inputs;
+ 	SmallVector<spvc_reflected_resource> stage_outputs;
+@@ -1746,6 +1747,8 @@ bool spvc_resources_s::copy_resources(const ShaderResources &resources)
+ {
+ 	if (!copy_resources(uniform_buffers, resources.uniform_buffers))
+ 		return false;
++	if (!copy_resources(uniform_constants, resources.uniform_constants))
++        return false;
+ 	if (!copy_resources(storage_buffers, resources.storage_buffers))
+ 		return false;
+ 	if (!copy_resources(stage_inputs, resources.stage_inputs))
+@@ -1873,6 +1876,10 @@ spvc_result spvc_resources_get_resource_list_for_type(spvc_resources resources,
+ 		list = &resources->uniform_buffers;
+ 		break;
+ 
++	case SPVC_RESOURCE_TYPE_UNIFORM_CONSTANT:
++        list = &resources->uniform_constants;
++        break;
++
+ 	case SPVC_RESOURCE_TYPE_STORAGE_BUFFER:
+ 		list = &resources->storage_buffers;
+ 		break;
+diff --git a/spirv_cross_c.h b/spirv_cross_c.h
+index 7f8c6fa..11fd6ed 100644
+--- a/spirv_cross_c.h
++++ b/spirv_cross_c.h
+@@ -226,6 +226,7 @@ typedef enum spvc_resource_type
+ 	SPVC_RESOURCE_TYPE_ACCELERATION_STRUCTURE = 12,
+ 	SPVC_RESOURCE_TYPE_RAY_QUERY = 13,
+ 	SPVC_RESOURCE_TYPE_SHADER_RECORD_BUFFER = 14,
++	SPVC_RESOURCE_TYPE_UNIFORM_CONSTANT = 15,
+ 	SPVC_RESOURCE_TYPE_INT_MAX = 0x7fffffff
+ } spvc_resource_type;
+ 

@@ -17,7 +17,7 @@
 
 # with uninstalled spirv_headers and spirv_cross
 # uncomment the following lines 
-spirv_cross_1_2_include_path ?= SPIRV-Headers/include/spirv/1.2
+#spirv_cross_1_2_include_path ?= SPIRV-Headers/include/spirv/1.2
 spirv_cross_config_include_path ?= SPIRV-Cross
 spirv_cross_lib_path ?= SPIRV-Cross/build
 
@@ -84,7 +84,7 @@ LIBS += -fsanitize=address
 CFLAGS += -arch $(shell uname -m)
 LIBS += -arch $(shell uname -m)
 
-CFLAGS += -I$(spirv_cross_1_2_include_path)
+CFLAGS += -I$(brew_prefix)/include/spirv/1.2
 CFLAGS += -I$(spirv_cross_config_include_path)
 CFLAGS += -I$(brew_prefix)/include/glslang/Include
 CFLAGS += $(shell pkg-config --cflags SPIRV-Tools)
@@ -155,17 +155,25 @@ clean:
 
 install-pkgdeps: download-pkgdeps compile-pkgdeps
 
-download-pkgdeps:
-	brew install glm glslang spirv-tools glfw
-	git submodule init
-	git submodule update --depth 1
+download-pkgdeps: install-brew-pkgdeps install-srcs-pkgdeps
+
+install-brew-pkgdeps:
+	brew install glm glslang spirv-tools spirv-headers glfw sdl2
+
+install-srcs-pkgdeps:
+	git clone --depth 1 https://github.com/KhronosGroup/SPIRV-Cross
+	(cd SPIRV-Cross && git apply ../SPIRV-Cross.uniform_constants.diff)
+	
+	@#git submodule init
+	@#git submodule update --depth 1
+	@#git submodule set-branch --branch uniform-constants -- SPIRV-Cross
 
 compile-pkgdeps:
 	(cd SPIRV-Cross && mkdir -p build && cd build && cmake .. && make)
 	@#(cd glslang && mkdir -p build && cd build && cmake .. && make)
 
 update-pkdeps:
-	git submodule -q foreach git pull -q origin master
+	git submodule -q foreach git pull -q origin master # sure?!
 
 test-make:
 	@echo $(glfw_objs)
