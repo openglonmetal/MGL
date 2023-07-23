@@ -323,10 +323,10 @@ char *parseSPIRVShaderToMetal(GLMContext ctx, Program *ptr, int stage)
     }
     
     // Do some basic reflection.
-    err = spvc_compiler_create_shader_resources(compiler_msl, &resources);
-    // spvc_set set;
-    // err = spvc_compiler_get_active_interface_variables(compiler_msl, &set); assert(!err);
-    // err = spvc_compiler_create_shader_resources_for_active_variables(compiler_msl, &resources, set); assert(!err);
+    // err = spvc_compiler_create_shader_resources(compiler_msl, &resources);
+    spvc_set set;
+    err = spvc_compiler_get_active_interface_variables(compiler_msl, &set); assert(!err);
+    err = spvc_compiler_create_shader_resources_for_active_variables(compiler_msl, &resources, set); assert(!err);
 
     //for (int res_type=SPVC_RESOURCE_TYPE_UNIFORM_BUFFER; res_type < SPVC_RESOURCE_TYPE_ACCELERATION_STRUCTURE; res_type++)
     for (int res_type=SPVC_RESOURCE_TYPE_UNIFORM_BUFFER; res_type <= SPVC_RESOURCE_TYPE_UNIFORM_CONSTANT; res_type++)
