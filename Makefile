@@ -38,7 +38,7 @@ brew_prefix := $(shell brew --prefix)
 # mgl
 
 mgl_srcs_c := $(wildcard MGL/src/*.c)
-mgl_srcs_objc := $(wildcard MGL/src/*.m)
+mgl_srcs_objc := MGL/src/MGLRenderer.m
 
 mgl_objs := $(mgl_srcs_c:.c=.o) $(mgl_srcs_cpp:.cpp=.o)
 mgl_objs := $(addprefix $(build_dir)/,$(mgl_objs))
