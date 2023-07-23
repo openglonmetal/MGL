@@ -4137,13 +4137,13 @@ void mtlMultiDrawElementsIndirect(GLMContext glm_ctx, GLenum mode, GLenum type, 
     glm_ctx->mtl_funcs.mtlDispatchComputeIndirect = mtlDispatchComputeIndirect;
 }
 
-//MGLRenderer *renderer
+
 void*
 CppCreateMGLRendererAndBindToContext (void *window, void *glm_ctx)
 {
     assert (window);
     assert (glm_ctx);
-    MGLRenderer *renderer = [[MGLRenderer alloc] init];
+    MGLRenderer* renderer = [[MGLRenderer alloc] init];
     assert (renderer);
     NSWindow * w = (__bridge NSWindow *)(window); // just a plain bridge as the autorelease pool will try to release this and crash on exit
     assert (w);
@@ -4155,6 +4155,16 @@ CppCreateMGLRendererAndBindToContext (void *window, void *glm_ctx)
     [w setContentView:view];
     [renderer createMGLRendererAndBindToContext: glm_ctx view: view];
     return  (__bridge void *)(renderer);
+}
+
+void
+CppDestroyMGLRenderer(void *glm_ctx, void *rendererp)
+{
+    MGLRenderer *renderer = (__bridge MGLRenderer *)rendererp;
+    const char* mgl_trace = getenv("MGL_TRACE");
+    if(mgl_trace && !strcmp(mgl_trace,"1")) {
+        [renderer stopCapture];
+    }
 }
 
 - (void) createMGLRendererAndBindToContext: (GLMContext) glm_ctx view: (NSView *) view
@@ -4207,9 +4217,14 @@ CppCreateMGLRendererAndBindToContext (void *window, void *glm_ctx)
     glm_ctx->mtl_funcs.mtlView = (void *)CFBridgingRetain(view);
 
     // capture Metal commands in MGL.gputrace
-    // necessitates Info.plist in the cwd, see https://stackoverflow.com/a/64172784
-    //MTLCaptureDescriptor *descriptor = [self setupCaptureToFile: _device];
-    //[self startCapture:descriptor];
+    // necessitates Info.plist in the cwd
+    // and export METAL_DEVICE_WRAPPER_TYPE=1
+    // see https://stackoverflow.com/a/64172784
+    const char* mgl_trace = getenv("MGL_TRACE");
+    if(mgl_trace && !strcmp(mgl_trace,"1")) {
+        MTLCaptureDescriptor *descriptor = [self setupCaptureToFile: _device];
+        [self startCapture:descriptor];
+    }
 }
 
 - (MTLCaptureDescriptor *)setupCaptureToFile: (id<MTLDevice>)device//(nonnull MTLDevice* )device // (nonnull MTKView *)view
@@ -4218,7 +4233,8 @@ CppCreateMGLRendererAndBindToContext (void *window, void *glm_ctx)
     descriptor.destination = MTLCaptureDestinationGPUTraceDocument;
     descriptor.outputURL = [NSURL fileURLWithPath:@"MGL.gputrace"];
     descriptor.captureObject = device; //((MTKView *)view).device;
-    
+    NSLog(@"capturing Metal into directory MGL.gputrace/...");
+
     return descriptor;
 }
 
@@ -4228,7 +4244,7 @@ CppCreateMGLRendererAndBindToContext (void *window, void *glm_ctx)
     BOOL success = [MTLCaptureManager.sharedCaptureManager startCaptureWithDescriptor:descriptor
                                                                                 error:&error];
     if (!success) {
-        NSLog(@" error capturing mtl => %@ ", [error localizedDescription] );
+        NSLog(@"error capturing Metal => %@ ", [error localizedDescription] );
     }
 }
 
@@ -4236,6 +4252,7 @@ CppCreateMGLRendererAndBindToContext (void *window, void *glm_ctx)
 - (void)stopCapture
 {
     [MTLCaptureManager.sharedCaptureManager stopCapture];
+    NSLog(@"stopping Metal capture");
 }
 
 @end

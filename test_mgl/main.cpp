@@ -3388,6 +3388,8 @@ int main_sdl(int argc, const char * argv[])
 
     //test_2D_array_textures_perf_mon(window, width, height);
 
+    CppDestroyMGLRenderer(glm_ctx, renderer);
+
     SDL_Quit();
 
     return 0;
