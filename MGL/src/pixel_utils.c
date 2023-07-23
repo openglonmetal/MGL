@@ -2008,7 +2008,7 @@ MTLPixelFormat mtlPixelFormatForGLFormatType(GLenum gl_format, GLenum gl_type)
                 case GL_RG: return MTLPixelFormatRG8Uint;
                 case GL_RGBA: return MTLPixelFormatRGBA8Unorm;
                 default:
-                    return 0;
+                    return MTLPixelFormatInvalid;
             }
             break;
 
@@ -2019,7 +2019,7 @@ MTLPixelFormat mtlPixelFormatForGLFormatType(GLenum gl_format, GLenum gl_type)
                 case GL_RG: return MTLPixelFormatRG8Sint;
                 case GL_RGBA: return MTLPixelFormatRGBA8Sint;
                 default:
-                    return 0;
+                    return MTLPixelFormatInvalid;
             }
             break;
 
@@ -2030,7 +2030,7 @@ MTLPixelFormat mtlPixelFormatForGLFormatType(GLenum gl_format, GLenum gl_type)
                 case GL_RG: return MTLPixelFormatRG16Uint;
                 case GL_RGBA: return MTLPixelFormatRGBA16Uint;
                 default:
-                    return 0;
+                    return MTLPixelFormatInvalid;
             }
             break;
 
@@ -2041,7 +2041,7 @@ MTLPixelFormat mtlPixelFormatForGLFormatType(GLenum gl_format, GLenum gl_type)
                 case GL_RG: return MTLPixelFormatRG16Sint;
                 case GL_RGBA: return MTLPixelFormatRGBA16Sint;
                 default:
-                    return 0;
+                    return MTLPixelFormatInvalid;
             }
             break;
 
@@ -2053,7 +2053,7 @@ MTLPixelFormat mtlPixelFormatForGLFormatType(GLenum gl_format, GLenum gl_type)
                 case GL_RGBA: return MTLPixelFormatRGBA32Uint;
                 case GL_BGRA: return MTLPixelFormatRGBA32Uint;
                 default:
-                    return 0;
+                    return MTLPixelFormatInvalid;
             }
             break;
 
@@ -2064,7 +2064,7 @@ MTLPixelFormat mtlPixelFormatForGLFormatType(GLenum gl_format, GLenum gl_type)
                 case GL_RG: return MTLPixelFormatRG32Uint;
                 case GL_RGBA: return MTLPixelFormatRGBA32Uint;
                 default:
-                    return 0;
+                    return MTLPixelFormatInvalid;
             }
             break;
 
@@ -2078,15 +2078,15 @@ MTLPixelFormat mtlPixelFormatForGLFormatType(GLenum gl_format, GLenum gl_type)
                 case GL_DEPTH_STENCIL: return MTLPixelFormatDepth24Unorm_Stencil8;
 
                 default:
-                    return 0;
+                    return MTLPixelFormatInvalid;
             }
             break;
 
         case GL_UNSIGNED_BYTE_3_3_2:
-            return 0;
+            return MTLPixelFormatInvalid;
 
         case GL_UNSIGNED_BYTE_2_3_3_REV:
-            return 0;
+            return MTLPixelFormatInvalid;
 
         case GL_UNSIGNED_SHORT_5_6_5:
             if (__builtin_available(macOS 11.0, *)) {
@@ -2108,7 +2108,7 @@ MTLPixelFormat mtlPixelFormatForGLFormatType(GLenum gl_format, GLenum gl_type)
         case GL_UNSIGNED_SHORT_4_4_4_4_REV:
         case GL_UNSIGNED_SHORT_5_5_5_1:
         case GL_UNSIGNED_SHORT_1_5_5_5_REV:
-            return 0;
+            return MTLPixelFormatInvalid;
 
         case GL_UNSIGNED_INT_8_8_8_8:
             return MTLPixelFormatRGBA8Unorm;
@@ -2121,7 +2121,7 @@ MTLPixelFormat mtlPixelFormatForGLFormatType(GLenum gl_format, GLenum gl_type)
 
         case GL_UNSIGNED_INT_2_10_10_10_REV:
             return MTLPixelFormatBGR10A2Unorm;
-            return 0;
+            return MTLPixelFormatInvalid;
 
         default:
             assert(0);
