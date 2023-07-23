@@ -1392,7 +1392,7 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
 
 
 #pragma mark programs
-- (int) getProgramBindingCount: (int) stage type: (int) type
+- (SpirvResourceList*) getProgramSpirvResList: (int) stage type: (int) type
 {
     Program *ptr;
 
@@ -1400,77 +1400,48 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
     switch(type)
     {
         case SPVC_RESOURCE_TYPE_UNIFORM_BUFFER:
-        case SPVC_RESOURCE_TYPE_UNIFORM_CONSTANT:
         case SPVC_RESOURCE_TYPE_STORAGE_BUFFER:
         case SPVC_RESOURCE_TYPE_ATOMIC_COUNTER:
         case SPVC_RESOURCE_TYPE_STAGE_INPUT:
         case SPVC_RESOURCE_TYPE_SAMPLED_IMAGE:
         case SPVC_RESOURCE_TYPE_STORAGE_IMAGE:
+        case SPVC_RESOURCE_TYPE_UNIFORM_CONSTANT:
             break;
 
         default:
-           assert(0);
+            assert(0);
     }
 
     ptr = ctx->state.program;
     assert(ptr);
 
-    return ptr->spirv_resources_list[stage][type].count;
+    return &ptr->spirv_resources_list[stage][type];
+}
+
+- (int) getProgramBindingCount: (int) stage type: (int) type
+{
+    return [self getProgramSpirvResList:stage type:type]->count;
 }
 
 - (int) getProgramBinding: (int) stage type: (int) type index: (int) index
 {
-    Program *ptr;
-
-    assert(stage < _MAX_SPIRV_RES);
-    switch(type)
-    {
-       case SPVC_RESOURCE_TYPE_UNIFORM_BUFFER:
-       case SPVC_RESOURCE_TYPE_UNIFORM_CONSTANT:
-       case SPVC_RESOURCE_TYPE_STORAGE_BUFFER:
-       case SPVC_RESOURCE_TYPE_ATOMIC_COUNTER:
-       case SPVC_RESOURCE_TYPE_STAGE_INPUT:
-       case SPVC_RESOURCE_TYPE_SAMPLED_IMAGE:
-       case SPVC_RESOURCE_TYPE_STORAGE_IMAGE:
-           break;
-
-       default:
-          assert(0);
-    }
-
-    ptr = ctx->state.program;
-    assert(ptr);
-
-    assert(index < ptr->spirv_resources_list[stage][type].count);
-
-    return ptr->spirv_resources_list[stage][type].list[index].binding;
+    SpirvResourceList* spirv_res_list = [self getProgramSpirvResList:stage type:type];
+    assert(index < spirv_res_list->count);
+    return spirv_res_list->list[index].binding;
 }
 
 - (int) getProgramLocation: (int) stage type: (int) type index: (int) index
 {
-    Program *ptr;
+    SpirvResourceList* spirv_res_list = [self getProgramSpirvResList:stage type:type];
+    assert(index < spirv_res_list->count);
+    return spirv_res_list->list[index].location;
+}
 
-    assert(stage < _MAX_SPIRV_RES);
-    switch(type)
-    {
-       case SPVC_RESOURCE_TYPE_UNIFORM_BUFFER:
-       case SPVC_RESOURCE_TYPE_STORAGE_BUFFER:
-       case SPVC_RESOURCE_TYPE_ATOMIC_COUNTER:
-       case SPVC_RESOURCE_TYPE_STAGE_INPUT:
-       case SPVC_RESOURCE_TYPE_SAMPLED_IMAGE:
-       case SPVC_RESOURCE_TYPE_STORAGE_IMAGE:
-           break;
-
-       default:
-          assert(0);
-    }
-
-    ptr = ctx->state.program;
-    assert(ptr);
-
-    assert(index < ptr->spirv_resources_list[stage][type].count);
-    
-    return ptr->spirv_resources_list[stage][type].list[index].location;
+- (const char*) getProgramName: (int) stage type: (int) type index: (int) index
+{
+    SpirvResourceList* spirv_res_list = [self getProgramSpirvResList:stage type:type];
+    assert(index < spirv_res_list->count);
+    return spirv_res_list->list[index].name;
 }
 
 - (id<MTLLibrary>) compileShader: (const char *) str
