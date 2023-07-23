@@ -557,7 +557,7 @@ void mglBindBufferRange(GLMContext ctx, GLenum target, GLuint index, GLuint buff
     }
 
     ERROR_CHECK_RETURN(index >= 0, GL_INVALID_VALUE);
-    ERROR_CHECK_RETURN(index < TEXTURE_UNITS, GL_INVALID_VALUE);
+    ERROR_CHECK_RETURN(index < MAX_BINDABLE_BUFFERS, GL_INVALID_VALUE);
 
     ERROR_CHECK_RETURN(isBuffer(ctx, buffer), GL_INVALID_VALUE);
 
