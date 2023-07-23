@@ -307,11 +307,10 @@ char *parseSPIRVShaderToMetal(GLMContext ctx, Program *ptr, int stage)
     // compute shader
     if (stage == _COMPUTE_SHADER)
     {
-        spvc_result res;
         const spvc_entry_point *entry_points;
         size_t num_entry_points;
 
-        res = spvc_compiler_get_entry_points(compiler_msl, &entry_points, &num_entry_points);
+        err = spvc_compiler_get_entry_points(compiler_msl, &entry_points, &num_entry_points); assert(!err);
 
         for(int i=0; i<num_entry_points; i++)
         {
@@ -324,7 +323,11 @@ char *parseSPIRVShaderToMetal(GLMContext ctx, Program *ptr, int stage)
     }
     
     // Do some basic reflection.
-    spvc_compiler_create_shader_resources(compiler_msl, &resources);
+    err = spvc_compiler_create_shader_resources(compiler_msl, &resources);
+    // spvc_set set;
+    // err = spvc_compiler_get_active_interface_variables(compiler_msl, &set); assert(!err);
+    // err = spvc_compiler_create_shader_resources_for_active_variables(compiler_msl, &resources, set); assert(!err);
+
     //for (int res_type=SPVC_RESOURCE_TYPE_UNIFORM_BUFFER; res_type < SPVC_RESOURCE_TYPE_ACCELERATION_STRUCTURE; res_type++)
     for (int res_type=SPVC_RESOURCE_TYPE_UNIFORM_BUFFER; res_type <= SPVC_RESOURCE_TYPE_UNIFORM_CONSTANT; res_type++)
     {
@@ -332,29 +335,34 @@ char *parseSPIRVShaderToMetal(GLMContext ctx, Program *ptr, int stage)
             "SUBPASS_INPUT", "STORAGE_INPUT", "STORAGE_IMAGE", "SAMPLED_IMAGE", "ATOMIC_COUNTER", "PUSH_CONSTANT", "SEPARATE_IMAGE",
             "SEPARATE_SAMPLERS", "ACCELERATION_STRUCTURE", "RAY_QUERY", "SHADER_RECORD", "UNIFORM_CONSTANT"};
 
-        spvc_resources_get_resource_list_for_type(resources, res_type, &list, &count);
+        err = spvc_resources_get_resource_list_for_type(resources, res_type, &list, &count); assert(!err);
 
         ptr->spirv_resources_list[stage][res_type].count = (GLuint)count;
         ptr->spirv_resources_list[stage][res_type].list = (SpirvResource *)malloc(count * sizeof(SpirvResource));
 
         for (i = 0; i < count; i++)
         {
-            printf("res_type: %s ID: %u, BaseTypeID: %u, TypeID: %u, Name: %s ", res_name[res_type], list[i].id, list[i].base_type_id, list[i].type_id,
-                   list[i].name);
-            printf("Set: %u, Binding: %u Location: %d Index: %d, Uniform: %d\n",
-                   spvc_compiler_get_decoration(compiler_msl, list[i].id, SpvDecorationDescriptorSet),
-                   spvc_compiler_get_decoration(compiler_msl, list[i].id, SpvDecorationBinding),
-                   spvc_compiler_get_decoration(compiler_msl, list[i].id, SpvDecorationLocation),
-                   spvc_compiler_get_decoration(compiler_msl, list[i].id, SpvDecorationIndex),
-                   spvc_compiler_get_decoration(compiler_msl, list[i].id, SpvDecorationUniform));
+            const spvc_reflected_resource *spvc_ref_res = &list[i];
+            printf("stage: %d res_type: %15s ID: %u\tBaseTypeID: %u\t TypeID: %u\t Name: %20s\t",
+                    stage, res_name[res_type], spvc_ref_res->id, spvc_ref_res->base_type_id, spvc_ref_res->type_id, spvc_ref_res->name);
+            printf("Set: %u\tBinding: %u\tLocation: %d\tIndex: %d\tUniform: %d\n",
+                   spvc_compiler_get_decoration(compiler_msl, spvc_ref_res->id, SpvDecorationDescriptorSet),
+                   spvc_compiler_get_decoration(compiler_msl, spvc_ref_res->id, SpvDecorationBinding),
+                   spvc_compiler_get_decoration(compiler_msl, spvc_ref_res->id, SpvDecorationLocation),
+                   spvc_compiler_get_decoration(compiler_msl, spvc_ref_res->id, SpvDecorationIndex),
+                   spvc_compiler_get_decoration(compiler_msl, spvc_ref_res->id, SpvDecorationUniform));
 
-            ptr->spirv_resources_list[stage][res_type].list[i]._id = list[i].id;
-            ptr->spirv_resources_list[stage][res_type].list[i].base_type_id = list[i].base_type_id;
-            ptr->spirv_resources_list[stage][res_type].list[i].type_id = list[i].type_id;
-            ptr->spirv_resources_list[stage][res_type].list[i].name = strdup(list[i].name);
-            ptr->spirv_resources_list[stage][res_type].list[i].set = spvc_compiler_get_decoration(compiler_msl, list[i].id, SpvDecorationDescriptorSet);
-            ptr->spirv_resources_list[stage][res_type].list[i].binding = spvc_compiler_get_decoration(compiler_msl, list[i].id, SpvDecorationBinding);
-            ptr->spirv_resources_list[stage][res_type].list[i].location = spvc_compiler_get_decoration(compiler_msl, list[i].id, SpvDecorationLocation);
+            SpirvResource *spirv_resource;
+            spirv_resource = &ptr->spirv_resources_list[stage][res_type].list[i];
+
+            spirv_resource->_id = spvc_ref_res->id;
+            spirv_resource->base_type_id = spvc_ref_res->base_type_id;
+            spirv_resource->type_id = spvc_ref_res->type_id;
+            spirv_resource->name = strdup(spvc_ref_res->name);
+            
+            spirv_resource->set =      spvc_compiler_get_decoration(compiler_msl, spvc_ref_res->id, SpvDecorationDescriptorSet);
+            spirv_resource->binding =  spvc_compiler_get_decoration(compiler_msl, spvc_ref_res->id, SpvDecorationBinding);
+            spirv_resource->location = spvc_compiler_get_decoration(compiler_msl, spvc_ref_res->id, SpvDecorationLocation);
         }
     }
 
