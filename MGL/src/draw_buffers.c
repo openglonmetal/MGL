@@ -463,9 +463,10 @@ void mglMultiDrawElements(GLMContext ctx, GLenum mode, const GLsizei *count, GLe
 {
     ERROR_CHECK_RETURN(check_draw_modes(mode), GL_INVALID_ENUM);
 
-    ERROR_CHECK_RETURN(count > 0, GL_INVALID_VALUE);
+    ERROR_CHECK_RETURN(count != NULL, GL_INVALID_VALUE);
 
-    ERROR_CHECK_RETURN(drawcount > 0, GL_INVALID_VALUE);
+    // GL_INVALID_VALUE is generated if drawcount is negative. 
+    ERROR_CHECK_RETURN(drawcount >= 0, GL_INVALID_VALUE);
 
     ERROR_CHECK_RETURN(check_element_type(type), GL_INVALID_VALUE);
 
@@ -485,9 +486,10 @@ void mglMultiDrawElementsBaseVertex(GLMContext ctx, GLenum mode, const GLsizei *
 {
     ERROR_CHECK_RETURN(check_draw_modes(mode), GL_INVALID_ENUM);
 
-    ERROR_CHECK_RETURN(count > 0, GL_INVALID_VALUE);
+    ERROR_CHECK_RETURN(count != NULL, GL_INVALID_VALUE);
 
-    ERROR_CHECK_RETURN(drawcount > 0, GL_INVALID_VALUE);
+    // GL_INVALID_VALUE is generated if drawcount is negative. 
+    ERROR_CHECK_RETURN(drawcount >= 0, GL_INVALID_VALUE);
 
     ERROR_CHECK_RETURN(check_element_type(type), GL_INVALID_VALUE);
 
