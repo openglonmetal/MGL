@@ -8,6 +8,8 @@
 # on M1 monterey, comment out the following line
 #SDK_ROOT = $(shell xcode-select -p)/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk
 
+external_path := external
+
 # with installed spirv_headers and spirv_cross
 # spirv_headers_include_path ?= /usr/local/include
 # spirv_cross_include_path ?= /usr/local/include/spirv
@@ -18,8 +20,9 @@
 # with uninstalled spirv_headers and spirv_cross
 # uncomment the following lines 
 #spirv_cross_1_2_include_path ?= SPIRV-Headers/include/spirv/1.2
-spirv_cross_config_include_path ?= SPIRV-Cross
-spirv_cross_lib_path ?= SPIRV-Cross/build
+spirv_cross_path ?= $(external_path)/SPIRV-Cross
+spirv_cross_config_include_path ?= $(spirv_cross_path)
+spirv_cross_lib_path ?= $(spirv_cross_path)/build
 
 #glslang_path ?= glslang
 #glslang_include_path ?= $(glslang_path)/build/include/glslang $(glslang_path)/glslang/Include
@@ -66,10 +69,10 @@ test_objs := $(addprefix $(build_dir)/,$(test_objs))
 deps += $(test_objs:.o=.d)
 test_exe := $(build_dir)/test
 $(test_exe): $(mgl_lib)
-$(test_exe): test_libs += $(shell pkg-config --libs glfw3)
-$(test_objs): CFLAGS += -DTEST_MGL_GLFW $(shell pkg-config --cflags glfw3)
-#$(test_exe): test_libs += $(shell pkg-config --libs sdl2)
-#$(test_objs): CFLAGS += -DTEST_MGL_SDL $(shell pkg-config --cflags sdl2)
+#$(test_exe): test_libs += $(shell pkg-config --libs glfw3)
+#$(test_objs): CFLAGS += -DTEST_MGL_GLFW $(shell pkg-config --cflags glfw3)
+$(test_exe): test_libs += $(shell pkg-config --libs sdl2)
+$(test_objs): CFLAGS += -DTEST_MGL_SDL $(shell pkg-config --cflags sdl2)
 
 $(test_exe): $(test_objs)
 	@mkdir -p $(dir $@)
@@ -79,6 +82,7 @@ CFLAGS += -Wall #-Wunused-parameter #-Wextra
 CFLAGS += -gfull
 CFLAGS += -O0
 #CFLAGS += -03
+#CC = $(CXX) -std=c++20 -Wno-deprecated -I$(brew_prefix)/include #glbinding
 CFLAGS += -fsanitize=address
 LIBS += -fsanitize=address
 CFLAGS += -arch $(shell uname -m)
@@ -151,7 +155,13 @@ $(build_dir)/%.o: %.m
 	clang -fmodules -MMD $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -rf $(build_dir)
+	rm -rf build
+	@#not $(build_dir) to prevent from erroneous configuration
+
+distclean: clean
+	rm -rf external/SPIRV-Cross
+	@#not $(spirv_cross_path) to prevent from erroneous configuration
+
 
 install-pkgdeps: download-pkgdeps compile-pkgdeps
 
@@ -161,19 +171,14 @@ install-brew-pkgdeps:
 	brew install glm glslang spirv-tools spirv-headers glfw sdl2
 
 install-srcs-pkgdeps:
-	git clone --depth 1 https://github.com/KhronosGroup/SPIRV-Cross
-	(cd SPIRV-Cross && git apply ../SPIRV-Cross.uniform_constants.diff)
-	
-	@#git submodule init
-	@#git submodule update --depth 1
-	@#git submodule set-branch --branch uniform-constants -- SPIRV-Cross
+	git clone --depth 1 https://github.com/KhronosGroup/SPIRV-Cross $(spirv_cross_path)
+	(cd $(spirv_cross_path) && git apply ../../SPIRV-Cross.uniform_constants.diff)
 
 compile-pkgdeps:
-	(cd SPIRV-Cross && mkdir -p build && cd build && cmake .. && make)
-	@#(cd glslang && mkdir -p build && cd build && cmake .. && make)
+	(cd $(spirv_cross_path) && mkdir -p build && cd build && cmake .. && make)
 
 update-pkdeps:
-	git submodule -q foreach git pull -q origin master # sure?!
+	@#git submodule -q foreach git pull -q origin master # sure?!
 
 test-make:
 	@echo $(glfw_objs)

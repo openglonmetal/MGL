@@ -1,6 +1,6 @@
 # CMake
 
-This is not a production solution and is only enought instructions to get the libraries and test program compiled. Right now thought the test program doesn't actually work and an exception is thrown/seg faults. But hopefully this is enough for other people to come on board and help to get it working. 
+This is not a production solution and is only enough instructions to get the libraries and test program compiled. Right now thought the test program doesn't actually work and an exception is thrown/seg faults. But hopefully this is enough for other people to come on board and help to get it working. 
 
 ## 1. Building Dependencies
 
@@ -31,3 +31,15 @@ Open the xcodeproj and build any of:
 
 If you get errors such as `No account for team "..."` open the affected target and in the `Signing and Capabilities` tab select the correct team.
 If there is no `Signing and Capabilities` tab open `Build Settings`, search for "signing", and select the correct team in `Development Team`.
+
+
+# Make
+
+You should have `brew` installed. Then:
+
+```
+make install-pkgdeps
+make -j test
+```
+
+`libMGL.dylib` should be in `build`, along with the `test` program.
