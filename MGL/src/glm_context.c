@@ -213,7 +213,7 @@ GLMContext createGLMContext(GLenum format, GLenum type,
     
     initHashTable(&STATE(vao_table), 32);
     initHashTable(&STATE(buffer_table), 32);
-    initHashTable(&STATE(texture_table), 32);
+    initHashTable(&STATE(texture_table), 1024);
     initHashTable(&STATE(shader_table), 32);
     initHashTable(&STATE(program_table), 32);
     initHashTable(&STATE(renderbuffer_table), 32);
