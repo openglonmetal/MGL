@@ -198,8 +198,8 @@ void error_callback(void *userdata, const char *error)
     GLMContext err_ctx;
 
     err_ctx = (GLMContext)userdata;
-    assert(error);
-    printf("parseSPIRVShader error:%s\n", error);
+    assert(err_ctx);
+    printf("SPIRV error: '%s'\n", error);
 }
 
 
