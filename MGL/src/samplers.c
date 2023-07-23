@@ -215,7 +215,7 @@ void mglSamplerParameterf(GLMContext ctx, GLuint sampler, GLenum pname, GLfloat 
 
     ptr = findSampler(ctx, sampler);
 
-    ERROR_CHECK_RETURN(ptr, GL_INVALID_OPERATION);
+    ERROR_CHECK_NULL_RETURN(ptr, GL_INVALID_OPERATION);
 
     if (setParam(ctx, &ptr->params, pname, 0, param))
     {
@@ -229,7 +229,7 @@ void mglSamplerParameterfv(GLMContext ctx, GLuint sampler, GLenum pname, const G
 
     ptr = findSampler(ctx, sampler);
 
-    ERROR_CHECK_RETURN(ptr, GL_INVALID_OPERATION);
+    ERROR_CHECK_NULL_RETURN(ptr, GL_INVALID_OPERATION);
 
     if (setTexParamsf(ctx, &ptr->params, pname, param))
     {
@@ -252,7 +252,7 @@ void mglSamplerParameteri(GLMContext ctx, GLuint sampler, GLenum pname, GLint pa
 
     ptr = getSampler(ctx, sampler);
 
-    ERROR_CHECK_RETURN(ptr, GL_INVALID_OPERATION);
+    ERROR_CHECK_NULL_RETURN(ptr, GL_INVALID_OPERATION);
 
     if (setParam(ctx, &ptr->params, pname, 0, param))
     {
@@ -267,7 +267,7 @@ void mglSamplerParameteriv(GLMContext ctx, GLuint sampler, GLenum pname, const G
 
     ptr = getSampler(ctx, sampler);
 
-    ERROR_CHECK_RETURN(ptr, GL_INVALID_OPERATION);
+    ERROR_CHECK_NULL_RETURN(ptr, GL_INVALID_OPERATION);
 
     if (setTexParamsi(ctx, &ptr->params, pname, param))
     {
@@ -289,7 +289,7 @@ void mglSamplerParameterIiv(GLMContext ctx, GLuint sampler, GLenum pname, const 
 
     ptr = getSampler(ctx, sampler);
 
-    ERROR_CHECK_RETURN(ptr, GL_INVALID_OPERATION);
+    ERROR_CHECK_NULL_RETURN(ptr, GL_INVALID_OPERATION);
 
     if (setTexParamsIiv(ctx, &ptr->params, pname, param))
     {
@@ -318,7 +318,7 @@ void mglSamplerParameterIuiv(GLMContext ctx, GLuint sampler, GLenum pname, const
 
     ptr = getSampler(ctx, sampler);
 
-    ERROR_CHECK_RETURN(ptr, GL_INVALID_OPERATION);
+    ERROR_CHECK_NULL_RETURN(ptr, GL_INVALID_OPERATION);
 
     if (setTexParamsIuiv(ctx, &ptr->params, pname, param))
     {
@@ -346,7 +346,7 @@ void mglGetSamplerParameterIiv(GLMContext ctx, GLuint sampler, GLenum pname, GLi
 
     ptr = findSampler(ctx, sampler);
 
-    ERROR_CHECK_RETURN(ptr, GL_INVALID_OPERATION);
+    ERROR_CHECK_NULL_RETURN(ptr, GL_INVALID_OPERATION);
 
     assert(0);
 }
@@ -357,7 +357,7 @@ void mglGetSamplerParameterIuiv(GLMContext ctx, GLuint sampler, GLenum pname, GL
 
     ptr = findSampler(ctx, sampler);
 
-    ERROR_CHECK_RETURN(ptr, GL_INVALID_OPERATION);
+    ERROR_CHECK_NULL_RETURN(ptr, GL_INVALID_OPERATION);
 
     assert(0);
 }
@@ -368,7 +368,7 @@ void mglGetSamplerParameterfv(GLMContext ctx, GLuint sampler, GLenum pname, GLfl
 
     ptr = findSampler(ctx, sampler);
 
-    ERROR_CHECK_RETURN(ptr, GL_INVALID_OPERATION);
+    ERROR_CHECK_NULL_RETURN(ptr, GL_INVALID_OPERATION);
 
     GLint iparam;
     iparam = 0;
@@ -388,7 +388,7 @@ void mglGetSamplerParameteriv(GLMContext ctx, GLuint sampler, GLenum pname, GLin
 
     ptr = findSampler(ctx, sampler);
 
-    ERROR_CHECK_RETURN(ptr, GL_INVALID_OPERATION);
+    ERROR_CHECK_NULL_RETURN(ptr, GL_INVALID_OPERATION);
 
     GLfloat fparam;
     fparam = 0.0;

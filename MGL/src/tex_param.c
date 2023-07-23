@@ -506,7 +506,7 @@ void mglTexParameterf(GLMContext ctx, GLenum target, GLenum pname, GLfloat param
 
     tex = getTex(ctx, 0, target);
 
-    ERROR_CHECK_RETURN(tex, GL_INVALID_OPERATION);
+    ERROR_CHECK_NULL_RETURN(tex, GL_INVALID_OPERATION);
 
     if (setParam(ctx, &tex->params, pname, 0, param))
     {
@@ -520,7 +520,7 @@ void mglTexParameterfv(GLMContext ctx, GLenum target, GLenum pname, const GLfloa
 
     tex = getTex(ctx, 0, target);
 
-    ERROR_CHECK_RETURN(tex, GL_INVALID_OPERATION);
+    ERROR_CHECK_NULL_RETURN(tex, GL_INVALID_OPERATION);
 
    // more than one param... try setTexParamsf
     if (setTexParamsf(ctx, &tex->params, pname, params))
@@ -544,7 +544,7 @@ void mglTexParameteri(GLMContext ctx, GLenum target, GLenum pname, GLint param)
 
     tex = getTex(ctx, 0, target);
 
-    ERROR_CHECK_RETURN(tex, GL_INVALID_OPERATION);
+    ERROR_CHECK_NULL_RETURN(tex, GL_INVALID_OPERATION);
 
     if (setParam(ctx, &tex->params, pname, param, fparam))
         return;
@@ -558,7 +558,7 @@ void mglTexParameteriv(GLMContext ctx, GLenum target, GLenum pname, const GLint 
 
     tex = getTex(ctx, 0, target);
 
-    ERROR_CHECK_RETURN(tex, GL_INVALID_OPERATION);
+    ERROR_CHECK_NULL_RETURN(tex, GL_INVALID_OPERATION);
 
     // more than one param... try setTexParamsi
     if (setTexParamsi(ctx, &tex->params, pname, params))
@@ -580,7 +580,7 @@ void mglTexParameterIiv(GLMContext ctx, GLenum target, GLenum pname, const GLint
 
     tex = getTex(ctx, 0, target);
 
-    ERROR_CHECK_RETURN(tex, GL_INVALID_OPERATION);
+    ERROR_CHECK_NULL_RETURN(tex, GL_INVALID_OPERATION);
 
     if (setTexParamsIiv(ctx, &tex->params, pname, params))
     {
@@ -610,7 +610,7 @@ void mglTexParameterIuiv(GLMContext ctx, GLenum target, GLenum pname, const GLui
 
     tex = getTex(ctx, 0, target);
 
-    ERROR_CHECK_RETURN(tex, GL_INVALID_OPERATION);
+    ERROR_CHECK_NULL_RETURN(tex, GL_INVALID_OPERATION);
 
     if (setTexParamsIuiv(ctx, &tex->params, pname, params))
     {
@@ -640,7 +640,7 @@ void mglTextureParameterf(GLMContext ctx, GLuint texture, GLenum pname, GLfloat 
 
     tex = getTex(ctx, texture, 0);
 
-    ERROR_CHECK_RETURN(tex, GL_INVALID_OPERATION);
+    ERROR_CHECK_NULL_RETURN(tex, GL_INVALID_OPERATION);
 
     if(setTexParmf(ctx, &tex->params, pname, &param))
     {
@@ -654,7 +654,7 @@ void mglTextureParameterfv(GLMContext ctx, GLuint texture, GLenum pname, const G
 
     tex = getTex(ctx, texture, 0);
 
-    ERROR_CHECK_RETURN(tex, GL_INVALID_OPERATION);
+    ERROR_CHECK_NULL_RETURN(tex, GL_INVALID_OPERATION);
 
     if(setTexParmf(ctx, &tex->params, pname, param))
     {
@@ -668,7 +668,7 @@ void mglTextureParameteri(GLMContext ctx, GLuint texture, GLenum pname, GLint pa
 
     tex = getTex(ctx, texture, 0);
 
-    ERROR_CHECK_RETURN(tex, GL_INVALID_OPERATION);
+    ERROR_CHECK_NULL_RETURN(tex, GL_INVALID_OPERATION);
 
     if(setTexParmi(ctx, &tex->params, pname, &param))
     {
@@ -682,7 +682,7 @@ void mglTextureParameteriv(GLMContext ctx, GLuint texture, GLenum pname, const G
 
     tex = getTex(ctx, texture, 0);
 
-    ERROR_CHECK_RETURN(tex, GL_INVALID_OPERATION);
+    ERROR_CHECK_NULL_RETURN(tex, GL_INVALID_OPERATION);
 
     if(setTexParmi(ctx, &tex->params, pname, param))
     {
@@ -696,7 +696,7 @@ void mglTextureParameterIiv(GLMContext ctx, GLuint texture, GLenum pname, const 
 
     tex = getTex(ctx, texture, 0);
 
-    ERROR_CHECK_RETURN(tex, GL_INVALID_OPERATION);
+    ERROR_CHECK_NULL_RETURN(tex, GL_INVALID_OPERATION);
 
     if (setTexParamsIiv(ctx, &tex->params, pname, params))
     {
@@ -726,7 +726,7 @@ void mglTextureParameterIuiv(GLMContext ctx, GLuint texture, GLenum pname, const
 
     tex = getTex(ctx, texture, 0);
 
-    ERROR_CHECK_RETURN(tex, GL_INVALID_OPERATION);
+    ERROR_CHECK_NULL_RETURN(tex, GL_INVALID_OPERATION);
 
     if (setTexParamsIuiv(ctx, &tex->params, pname, params))
     {
@@ -757,7 +757,7 @@ void mglGetTexParameterfv(GLMContext ctx, GLenum target, GLenum pname, GLfloat *
 
     tex = getTex(ctx, 0, target);
 
-    ERROR_CHECK_RETURN(tex, GL_INVALID_OPERATION);
+    ERROR_CHECK_NULL_RETURN(tex, GL_INVALID_OPERATION);
 
     GLint iparam;
     iparam = 0;
@@ -777,7 +777,7 @@ void mglGetTexParameteriv(GLMContext ctx, GLenum target, GLenum pname, GLint *pa
 
     tex = getTex(ctx, 0, target);
 
-    ERROR_CHECK_RETURN(tex, GL_INVALID_OPERATION);
+    ERROR_CHECK_NULL_RETURN(tex, GL_INVALID_OPERATION);
 
     GLfloat fparam;
     fparam = 0.0;

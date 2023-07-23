@@ -53,6 +53,8 @@
 #define ERROR_RETURN_VALUE(_type_, _val_) ctx->error_func(ctx, __FUNCTION__, _type_); return _val_
 #define ERROR_CHECK_RETURN(_expr_, _type_) if ((_expr_) == false) {ctx->error_func(ctx, __FUNCTION__, _type_);}
 #define ERROR_CHECK_RETURN_VALUE(_expr_, _type_, _val_) if ((_expr_) == false) {ctx->error_func(ctx, __FUNCTION__, _type_); return _val_;}
+#define ERROR_CHECK_NULL_RETURN(_expr_, _type_) if ((_expr_) == NULL) {ctx->error_func(ctx, __FUNCTION__, _type_);}
+#define ERROR_CHECK_NULL_RETURN_VALUE(_expr_, _type_, _val_) if ((_expr_) == NULL) {ctx->error_func(ctx, __FUNCTION__, _type_); return _val_;}
 
 enum {
     _TEXTURE_BUFFER = 0, // duplicate of _TEXTURE_BUFFER_TARGET

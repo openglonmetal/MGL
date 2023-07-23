@@ -178,7 +178,7 @@ void mglDeleteShader(GLMContext ctx, GLuint shader)
 
     ptr = findShader(ctx, shader);
 
-    ERROR_CHECK_RETURN(ptr, GL_INVALID_VALUE);
+    ERROR_CHECK_NULL_RETURN(ptr, GL_INVALID_VALUE);
 
     deleteHashElement(&STATE(shader_table), shader);
 
@@ -213,7 +213,7 @@ void mglShaderSource(GLMContext ctx, GLuint shader, GLsizei count, const GLchar 
 
     ptr = findShader(ctx, shader);
 
-    ERROR_CHECK_RETURN(ptr, GL_INVALID_VALUE);
+    ERROR_CHECK_NULL_RETURN(ptr, GL_INVALID_VALUE);
 
     if (count>1)
     {
@@ -235,7 +235,7 @@ void mglShaderSource(GLMContext ctx, GLuint shader, GLsizei count, const GLchar 
 
         // allocate storage
         src = (GLchar *)malloc(len+1); // +1 for NULL
-        ERROR_CHECK_RETURN(src, GL_OUT_OF_MEMORY);
+        ERROR_CHECK_NULL_RETURN(src, GL_OUT_OF_MEMORY);
 
         if (!length) {        
             // string[i] are null-terminated
@@ -258,7 +258,7 @@ void mglShaderSource(GLMContext ctx, GLuint shader, GLsizei count, const GLchar 
     }
     else
     {
-        ERROR_CHECK_RETURN(string, GL_INVALID_VALUE);
+        ERROR_CHECK_NULL_RETURN(string, GL_INVALID_VALUE);
 
         src = strdup(*string);
         len = strlen(src);
@@ -282,7 +282,7 @@ void mglCompileShader(GLMContext ctx, GLuint shader)
 
     ptr = findShader(ctx, shader);
 
-    ERROR_CHECK_RETURN(ptr, GL_INVALID_OPERATION);
+    ERROR_CHECK_NULL_RETURN(ptr, GL_INVALID_OPERATION);
 
     initGLSLInput(ctx, ptr->type, ptr->src, &glsl_input);
 
@@ -379,7 +379,7 @@ void mglGetShaderiv(GLMContext ctx, GLuint shader, GLenum pname, GLint *params)
 
     ptr = findShader(ctx, shader);
 
-    ERROR_CHECK_RETURN(ptr, GL_INVALID_VALUE);
+    ERROR_CHECK_NULL_RETURN(ptr, GL_INVALID_VALUE);
 
     switch(pname)
     {
@@ -432,7 +432,7 @@ void mglGetShaderInfoLog(GLMContext ctx, GLuint shader, GLsizei bufSize, GLsizei
 
     ptr = findShader(ctx, shader);
 
-    ERROR_CHECK_RETURN(ptr, GL_INVALID_VALUE);
+    ERROR_CHECK_NULL_RETURN(ptr, GL_INVALID_VALUE);
 
     if (ptr->log)
     {
@@ -457,7 +457,7 @@ void mglGetShaderSource(GLMContext ctx, GLuint shader, GLsizei bufSize, GLsizei 
 
     ptr = findShader(ctx, shader);
 
-    ERROR_CHECK_RETURN(ptr, GL_INVALID_VALUE);
+    ERROR_CHECK_NULL_RETURN(ptr, GL_INVALID_VALUE);
 
     if (ptr->src)
     {

@@ -208,7 +208,7 @@ void mglDrawElements(GLMContext ctx, GLenum mode, GLsizei count, GLenum type, co
 
     ERROR_CHECK_RETURN(validate_program(ctx), GL_INVALID_OPERATION);
 
-    ERROR_CHECK_RETURN(VAO_STATE(element_array.buffer), GL_INVALID_OPERATION);
+    ERROR_CHECK_RETURN(VAO_STATE(element_array.buffer == NULL), GL_INVALID_OPERATION);
 
     ctx->mtl_funcs.mtlDrawElements(ctx, mode, count, type, indices);
 }
@@ -230,7 +230,7 @@ void mglDrawRangeElements(GLMContext ctx, GLenum mode, GLuint start, GLuint end,
 
     ERROR_CHECK_RETURN(validate_program(ctx), GL_INVALID_OPERATION);
 
-    ERROR_CHECK_RETURN(VAO_STATE(element_array.buffer), GL_INVALID_OPERATION);
+    ERROR_CHECK_RETURN(VAO_STATE(element_array.buffer == NULL), GL_INVALID_OPERATION);
 
     ctx->mtl_funcs.mtlDrawRangeElements(ctx, mode, start, end, count, type, indices);
 }
@@ -272,7 +272,7 @@ void mglDrawElementsInstanced(GLMContext ctx, GLenum mode, GLsizei count, GLenum
 
     ERROR_CHECK_RETURN(validate_program(ctx), GL_INVALID_OPERATION);
 
-    ERROR_CHECK_RETURN(VAO_STATE(element_array.buffer), GL_INVALID_OPERATION);
+    ERROR_CHECK_NULL_RETURN(VAO_STATE(element_array.buffer), GL_INVALID_OPERATION);
 
     ctx->mtl_funcs.mtlDrawElementsInstanced(ctx, mode, count, type, indices, instancecount);
 }
@@ -292,7 +292,7 @@ void mglDrawElementsBaseVertex(GLMContext ctx, GLenum mode, GLsizei count, GLenu
 
     ERROR_CHECK_RETURN(validate_program(ctx), GL_INVALID_OPERATION);
 
-    ERROR_CHECK_RETURN(VAO_STATE(element_array.buffer), GL_INVALID_OPERATION);
+    ERROR_CHECK_RETURN(VAO_STATE(element_array.buffer==NULL), GL_INVALID_OPERATION);
 
     ctx->mtl_funcs.mtlDrawElementsBaseVertex(ctx, mode, count, type, indices, basevertex);
 }
@@ -314,7 +314,7 @@ void mglDrawRangeElementsBaseVertex(GLMContext ctx, GLenum mode, GLuint start, G
 
     ERROR_CHECK_RETURN(validate_program(ctx), GL_INVALID_OPERATION);
 
-    ERROR_CHECK_RETURN(VAO_STATE(element_array.buffer), GL_INVALID_OPERATION);
+    ERROR_CHECK_RETURN(VAO_STATE(element_array.buffer==NULL), GL_INVALID_OPERATION);
 
     ctx->mtl_funcs.mtlDrawRangeElementsBaseVertex(ctx, mode, start, end, count, type, indices, basevertex);
 }
@@ -334,7 +334,7 @@ void mglDrawElementsInstancedBaseVertex(GLMContext ctx, GLenum mode, GLsizei cou
 
     ERROR_CHECK_RETURN(validate_program(ctx), GL_INVALID_OPERATION);
 
-    ERROR_CHECK_RETURN(VAO_STATE(element_array.buffer), GL_INVALID_OPERATION);
+    ERROR_CHECK_NULL_RETURN(VAO_STATE(element_array.buffer), GL_INVALID_OPERATION);
 
     ctx->mtl_funcs.mtlDrawElementsInstancedBaseVertex(ctx, mode, count, type, indices, instancecount, basevertex);
 }
@@ -343,7 +343,7 @@ void mglDrawArraysIndirect(GLMContext ctx, GLenum mode, const void *indirect)
 {
     ERROR_CHECK_RETURN(check_draw_modes(mode), GL_INVALID_ENUM);
 
-    ERROR_CHECK_RETURN(ctx->state.buffers[_DRAW_INDIRECT_BUFFER], GL_INVALID_OPERATION);
+    ERROR_CHECK_NULL_RETURN(ctx->state.buffers[_DRAW_INDIRECT_BUFFER], GL_INVALID_OPERATION);
 
     if(validate_vao(ctx, false) == false)
     {
@@ -368,9 +368,9 @@ void mglDrawElementsIndirect(GLMContext ctx, GLenum mode, GLenum type, const voi
 
     ERROR_CHECK_RETURN(validate_program(ctx), GL_INVALID_OPERATION);
 
-    ERROR_CHECK_RETURN(VAO_STATE(element_array.buffer), GL_INVALID_OPERATION);
+    ERROR_CHECK_RETURN(VAO_STATE(element_array.buffer==NULL), GL_INVALID_OPERATION);
 
-    ERROR_CHECK_RETURN(ctx->state.buffers[_DRAW_INDIRECT_BUFFER], GL_INVALID_OPERATION);
+    ERROR_CHECK_NULL_RETURN(ctx->state.buffers[_DRAW_INDIRECT_BUFFER], GL_INVALID_OPERATION);
 
     ctx->mtl_funcs.mtlDrawArraysIndirect(ctx, mode, indirect);
 }
@@ -416,7 +416,7 @@ void mglDrawElementsInstancedBaseInstance(GLMContext ctx, GLenum mode, GLsizei c
 
     ERROR_CHECK_RETURN(validate_program(ctx), GL_INVALID_OPERATION);
 
-    ERROR_CHECK_RETURN(VAO_STATE(element_array.buffer), GL_INVALID_OPERATION);
+    ERROR_CHECK_NULL_RETURN(VAO_STATE(element_array.buffer), GL_INVALID_OPERATION);
 
     ctx->mtl_funcs.mtlDrawElementsInstancedBaseInstance(ctx, mode, count, type, indices, instancecount, baseinstance);
 }
@@ -440,7 +440,7 @@ void mglDrawElementsInstancedBaseVertexBaseInstance(GLMContext ctx, GLenum mode,
 
     ERROR_CHECK_RETURN(validate_program(ctx), GL_INVALID_OPERATION);
 
-    ERROR_CHECK_RETURN(VAO_STATE(element_array.buffer), GL_INVALID_OPERATION);
+    ERROR_CHECK_NULL_RETURN(VAO_STATE(element_array.buffer), GL_INVALID_OPERATION);
 
     ctx->mtl_funcs.mtlDrawElementsInstancedBaseVertexBaseInstance(ctx, mode, count, type, indices, instancecount, basevertex, baseinstance);
 }
@@ -476,7 +476,7 @@ void mglMultiDrawElements(GLMContext ctx, GLenum mode, const GLsizei *count, GLe
 
     ERROR_CHECK_RETURN(validate_program(ctx), GL_INVALID_OPERATION);
 
-    ERROR_CHECK_RETURN(VAO_STATE(element_array.buffer), GL_INVALID_OPERATION);
+    ERROR_CHECK_NULL_RETURN(VAO_STATE(element_array.buffer), GL_INVALID_OPERATION);
 
     ctx->mtl_funcs.mtlMultiDrawElements(ctx, mode, count, type, indices, drawcount);
 }
@@ -498,7 +498,7 @@ void mglMultiDrawElementsBaseVertex(GLMContext ctx, GLenum mode, const GLsizei *
 
     ERROR_CHECK_RETURN(validate_program(ctx), GL_INVALID_OPERATION);
 
-    ERROR_CHECK_RETURN(VAO_STATE(element_array.buffer), GL_INVALID_OPERATION);
+    ERROR_CHECK_NULL_RETURN(VAO_STATE(element_array.buffer), GL_INVALID_OPERATION);
 
     ctx->mtl_funcs.mtlMultiDrawElementsBaseVertex(ctx, mode, count, type, indices, drawcount, basevertex);
 }
@@ -518,7 +518,7 @@ void mglMultiDrawArraysIndirect(GLMContext ctx, GLenum mode, const void *indirec
 
     ERROR_CHECK_RETURN(validate_program(ctx), GL_INVALID_OPERATION);
 
-    ERROR_CHECK_RETURN(ctx->state.buffers[_DRAW_INDIRECT_BUFFER], GL_INVALID_OPERATION);
+    ERROR_CHECK_NULL_RETURN(ctx->state.buffers[_DRAW_INDIRECT_BUFFER], GL_INVALID_OPERATION);
 
     ctx->mtl_funcs.mtlMultiDrawArraysIndirect(ctx, mode, indirect, drawcount, stride);
 }
@@ -540,9 +540,9 @@ void mglMultiDrawElementsIndirect(GLMContext ctx, GLenum mode, GLenum type, cons
 
     ERROR_CHECK_RETURN(validate_program(ctx), GL_INVALID_OPERATION);
 
-    ERROR_CHECK_RETURN(VAO_STATE(element_array.buffer), GL_INVALID_OPERATION);
+    ERROR_CHECK_NULL_RETURN(VAO_STATE(element_array.buffer), GL_INVALID_OPERATION);
 
-    ERROR_CHECK_RETURN(ctx->state.buffers[_DRAW_INDIRECT_BUFFER], GL_INVALID_OPERATION);
+    ERROR_CHECK_NULL_RETURN(ctx->state.buffers[_DRAW_INDIRECT_BUFFER], GL_INVALID_OPERATION);
 
     ctx->mtl_funcs.mtlMultiDrawElementsIndirect(ctx, mode, type, indirect, drawcount, stride);
 }

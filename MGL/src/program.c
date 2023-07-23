@@ -416,7 +416,7 @@ bool linkAndCompileProgramToMetal(GLMContext ctx, Program *pptr, int stage)
 
     // compile SPIRV to Metal
     pptr->spirv[stage].msl_str = parseSPIRVShaderToMetal(ctx, pptr, stage);
-    ERROR_CHECK_RETURN(pptr->spirv[stage].msl_str, GL_INVALID_OPERATION);
+    ERROR_CHECK_NULL_RETURN(pptr->spirv[stage].msl_str, GL_INVALID_OPERATION);
 
     pptr->linked_glsl_program = glsl_program;
     pptr->dirty_bits |= DIRTY_PROGRAM;
@@ -469,7 +469,7 @@ void mglUseProgram(GLMContext ctx, GLuint program)
             return;
         }
 
-        ERROR_CHECK_RETURN(pptr->linked_glsl_program, GL_INVALID_OPERATION);
+        ERROR_CHECK_NULL_RETURN(pptr->linked_glsl_program, GL_INVALID_OPERATION);
 
         // ERROR_CHECK_RETURN(pptr->mtl_data, GL_INVALID_OPERATION);
     }
@@ -726,7 +726,7 @@ void mglUniform1fv(GLMContext ctx, GLint location, GLsizei count, const GLfloat 
     // TODO: actual error checking (am too lazy)
     Program* ptr = ctx->state.program;
     
-    ERROR_CHECK_RETURN(ptr, GL_INVALID_OPERATION)
+    ERROR_CHECK_NULL_RETURN(ptr, GL_INVALID_OPERATION)
 
     Buffer *buf = ctx->state.buffer_base[_UNIFORM_CONSTANT].buffers[location].buf;
     
@@ -746,7 +746,7 @@ void mglUniform1i(GLMContext ctx, GLint location, GLint v0)
     // TODO: actual error checking (am too lazy)
     Program* ptr = ctx->state.program;
     
-    ERROR_CHECK_RETURN(ptr, GL_INVALID_OPERATION)
+    ERROR_CHECK_NULL_RETURN(ptr, GL_INVALID_OPERATION)
 
     Buffer *buf = ctx->state.buffer_base[_UNIFORM_CONSTANT].buffers[location].buf;
     
@@ -875,7 +875,7 @@ void mglUniform4fv(GLMContext ctx, GLint location, GLsizei count, const GLfloat 
     // TODO: actual error checking (am too lazy)
     Program* ptr = ctx->state.program;
     
-    ERROR_CHECK_RETURN(ptr, GL_INVALID_OPERATION)
+    ERROR_CHECK_NULL_RETURN(ptr, GL_INVALID_OPERATION)
 
     Buffer *buf = ctx->state.buffer_base[_UNIFORM_CONSTANT].buffers[location].buf;
     
@@ -981,7 +981,7 @@ void mglUniformMatrix4fv(GLMContext ctx, GLint location, GLsizei count, GLboolea
     // TODO: transpose
     Program* ptr = ctx->state.program;
     
-    ERROR_CHECK_RETURN(ptr, GL_INVALID_OPERATION)
+    ERROR_CHECK_NULL_RETURN(ptr, GL_INVALID_OPERATION)
 
     Buffer *buf = ctx->state.buffer_base[_UNIFORM_CONSTANT].buffers[location].buf;
     

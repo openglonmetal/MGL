@@ -182,7 +182,7 @@ void *getBufferData(GLMContext ctx, Buffer *ptr)
 
     buffer_data = (void *)ptr->data.buffer_data;
 
-    ERROR_CHECK_RETURN(buffer_data, GL_INVALID_OPERATION);
+    ERROR_CHECK_NULL_RETURN(buffer_data, GL_INVALID_OPERATION);
 
     return buffer_data;
 }
@@ -460,7 +460,7 @@ void mglBindBuffer(GLMContext ctx, GLenum target, GLuint buffer)
     if (buffer)
     {
         ptr = getBuffer(ctx, target, buffer);
-        ERROR_CHECK_RETURN(ptr, GL_INVALID_VALUE);
+        ERROR_CHECK_NULL_RETURN(ptr, GL_INVALID_VALUE);
     }
     else
     {
@@ -503,7 +503,7 @@ void mglBindBufferBase(GLMContext ctx, GLenum target, GLuint index, GLuint buffe
     }
 
     ERROR_CHECK_RETURN(index >= 0, GL_INVALID_VALUE);
-    ERROR_CHECK_RETURN(index < TEXTURE_UNITS, GL_INVALID_VALUE);
+    ERROR_CHECK_RETURN(index < MAX_BINDABLE_BUFFERS, GL_INVALID_VALUE);
 
     ERROR_CHECK_RETURN(isBuffer(ctx, buffer), GL_INVALID_VALUE);
 

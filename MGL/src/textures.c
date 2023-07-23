@@ -282,7 +282,7 @@ void mglBindImageTexture(GLMContext ctx, GLuint unit, GLuint texture, GLint leve
 
     ptr = getTex(ctx, texture, 0);
 
-    ERROR_CHECK_RETURN(ptr, GL_INVALID_VALUE);
+    ERROR_CHECK_NULL_RETURN(ptr, GL_INVALID_VALUE);
 
     ERROR_CHECK_RETURN(level >= 0, GL_INVALID_VALUE);
     ERROR_CHECK_RETURN(layered >= 0, GL_INVALID_VALUE);
@@ -475,7 +475,7 @@ void generateMipmaps(GLMContext ctx, GLuint texture, GLenum target)
 
     ptr = getTex(ctx, texture, target);
 
-    ERROR_CHECK_RETURN(ptr, GL_INVALID_OPERATION);
+    ERROR_CHECK_NULL_RETURN(ptr, GL_INVALID_OPERATION);
 
     // level 0 needs to be filled out for mipmap geneation
     ERROR_CHECK_RETURN(ptr->faces[0].levels[0].complete, GL_INVALID_OPERATION);
@@ -1117,7 +1117,7 @@ void mglTexImage1D(GLMContext ctx, GLenum target, GLint level, GLint internalfor
 
     tex = getTex(ctx, 0, target);
 
-    ERROR_CHECK_RETURN(tex, GL_INVALID_OPERATION);
+    ERROR_CHECK_NULL_RETURN(tex, GL_INVALID_OPERATION);
 
     tex->access = GL_READ_ONLY;
 
@@ -1184,7 +1184,7 @@ void mglTexImage2D(GLMContext ctx, GLenum target, GLint level, GLint internalfor
 
     tex = getTex(ctx, 0, target);
 
-    ERROR_CHECK_RETURN(tex, GL_INVALID_OPERATION);
+    ERROR_CHECK_NULL_RETURN(tex, GL_INVALID_OPERATION);
 
     tex->access = GL_READ_ONLY;
 
@@ -1237,7 +1237,7 @@ void mglTexImage3D(GLMContext ctx, GLenum target, GLint level, GLint internalfor
 
     tex = getTex(ctx, 0, target);
 
-    ERROR_CHECK_RETURN(tex, GL_INVALID_OPERATION);
+    ERROR_CHECK_NULL_RETURN(tex, GL_INVALID_OPERATION);
 
     tex->access = GL_READ_ONLY;
 
@@ -1278,7 +1278,7 @@ bool texSubImage(GLMContext ctx, Texture *tex, GLuint face, GLint level, GLint x
     }
 
     // no src data.. return
-    ERROR_CHECK_RETURN(pixels, GL_INVALID_OPERATION);
+    ERROR_CHECK_NULL_RETURN(pixels, GL_INVALID_OPERATION);
 
     size_t pixel_size;
     size_t src_size;
@@ -1378,7 +1378,7 @@ void texSubImage1D(GLMContext ctx, Texture *tex, GLuint face, GLint level, GLint
 {
     ERROR_CHECK_RETURN(level >= 0, GL_INVALID_VALUE);
 
-    ERROR_CHECK_RETURN(tex, GL_INVALID_OPERATION);
+    ERROR_CHECK_NULL_RETURN(tex, GL_INVALID_OPERATION);
 
     ERROR_CHECK_RETURN(verifyInternalFormatAndFormatType(ctx, tex->internalformat, format, type), 0);
 
@@ -1425,7 +1425,7 @@ bool texSubImage2D(GLMContext ctx, Texture *tex, GLuint face, GLint level, GLint
 {
     ERROR_CHECK_RETURN(level >= 0, GL_INVALID_VALUE);
 
-    ERROR_CHECK_RETURN(tex, GL_INVALID_OPERATION);
+    ERROR_CHECK_NULL_RETURN(tex, GL_INVALID_OPERATION);
 
     ERROR_CHECK_RETURN(verifyInternalFormatAndFormatType(ctx, tex->internalformat, format, type), 0);
 
@@ -1489,7 +1489,7 @@ void texSubImage3D(GLMContext ctx, Texture *tex, GLint level, GLint xoffset, GLi
 
     ERROR_CHECK_RETURN(level >= 0, GL_INVALID_VALUE);
 
-    ERROR_CHECK_RETURN(tex, GL_INVALID_OPERATION);
+    ERROR_CHECK_NULL_RETURN(tex, GL_INVALID_OPERATION);
 
     ERROR_CHECK_RETURN(verifyInternalFormatAndFormatType(ctx, tex->internalformat, format, type), 0);
 
@@ -1564,7 +1564,7 @@ void texStorage(GLMContext ctx, Texture *tex, GLuint faces, GLsizei levels, GLbo
     // bind it to metal
     ctx->mtl_funcs.mtlBindTexture(ctx, tex);
 
-    ERROR_CHECK_RETURN(tex->mtl_data, GL_OUT_OF_MEMORY);
+    ERROR_CHECK_NULL_RETURN(tex->mtl_data, GL_OUT_OF_MEMORY);
 }
 
 void mglTexStorage1D(GLMContext ctx, GLenum target, GLsizei levels, GLenum internalformat, GLsizei width)
@@ -1741,7 +1741,7 @@ void mglTexStorage3D(GLMContext ctx, GLenum target, GLsizei levels, GLenum inter
 
     tex = getTex(ctx, 0, target);
 
-    ERROR_CHECK_RETURN(tex, GL_INVALID_OPERATION);
+    ERROR_CHECK_NULL_RETURN(tex, GL_INVALID_OPERATION);
 
     texStorage(ctx, tex, 1, levels, is_array, internalformat, width, height, depth, proxy);
 }
