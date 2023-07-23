@@ -612,12 +612,12 @@ void logDirtyBits(GLMContext ctx)
 {
     assert(_currentRenderEncoder);
 
-    for(int i=0; i<ctx->state.vertex_buffer_map_list.count; i++)
+    const BufferMapList *buffer_map_list;    
+    buffer_map_list = &ctx->state.vertex_buffer_map_list;
+    for(int i=0; i<buffer_map_list->count; i++)
     {
-        Buffer *ptr;
-
-        ptr = ctx->state.vertex_buffer_map_list.buffers[i].buf;
-
+        const BufferMap *target = &buffer_map_list->buffers[i];
+        const Buffer *ptr = target->buf;
         assert(ptr);
         assert(ptr->data.mtl_data);
 
@@ -627,16 +627,15 @@ void logDirtyBits(GLMContext ctx)
         [_currentRenderEncoder setVertexBuffer:buffer offset:0 atIndex:i ];
     }
 
-    for(int i=0; i<ctx->state.fragment_buffer_map_list.count; i++)
+    buffer_map_list = &ctx->state.fragment_buffer_map_list;
+    for(int i=0; i<buffer_map_list->count; i++)
     {
-        Buffer *ptr;
-
-        ptr = ctx->state.fragment_buffer_map_list.buffers[i].buf;
-
+        const BufferMap *target = &buffer_map_list->buffers[i];
+        const Buffer *ptr = target->buf;
         assert(ptr);
         assert(ptr->data.mtl_data);
 
-        id<MTLBuffer> buffer = (__bridge id<MTLBuffer>)(ptr->data.mtl_data);
+        const id<MTLBuffer> buffer = (__bridge id<MTLBuffer>)(ptr->data.mtl_data);
         assert(buffer);
 
         [_currentRenderEncoder setFragmentBuffer:buffer offset:0 atIndex:i ];
