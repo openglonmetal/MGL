@@ -1,4 +1,5 @@
 /build/
+/libmgl.dylib
 /config.mk
 external/OpenGL-Registry/
 external/SPIRV-Headers/
