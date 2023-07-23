@@ -19,21 +19,12 @@
             "program": "${workspaceFolder}/build/test",
             "cwd": "${workspaceFolder}",
             "args": ["\"\""],
-            
-             "environment": [
+            "env":
                 {
-                    "name": "DYLD_LIBRARY_PATH",
-                    "value": "${DYLD_LIBRARY_PATH}:${workspaceFolder}/build"
-                },
-                {
-                    "name": "PATH",
-                    "value": "${DYLD_LIBRARY_PATH}:${workspaceFolder}/build"
-                }//,
-                // {
-                //     "name": "TSAN_OPTIONS",
-                //     "value": "report_bugs=1 halt_on_error=0 history_size=7"
-                // }
-            ]
+                    "DYLD_LIBRARY_PATH":"${DYLD_LIBRARY_PATH}:${workspaceFolder}/build",
+                    //"METAL_DEVICE_WRAPPER_TYPE":"1"
+                    //"PATH": "${PATH}:${workspaceFolder}/../djnn-cpp/build/lib"
+                }
             //"externalConsole": false
             //"MIMode": "lldb",
             //"miDebuggerPath": "C:/msys64/usr/bin/gdb.exe"

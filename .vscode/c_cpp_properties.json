@@ -1,0 +1,21 @@
+{
+    "configurations": [
+        {
+            "name": "Mac",
+            "includePath": [
+                "${workspaceFolder}/MGL/src",
+                "${workspaceFolder}/MGL/include",
+                "${workspaceFolder}/external/SPIRV-Cross",
+                "/opt/homebrew/Cellar/SDL2/**",
+                "/opt/homebrew/include/spirv/1.2/**",
+                "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/**"
+            ],
+            "defines": [],
+            "macFrameworkPath": [],
+            //"compilerPath": "/usr/bin/clang",
+            "cStandard": "c11",
+            "cppStandard": "c++17"
+        }
+    ],
+    "version": 4
+}
