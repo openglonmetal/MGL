@@ -367,7 +367,7 @@ void logDirtyBits(GLMContext ctx)
     }
 }
 
-- (bool) mapGLBuffersToMTLBufferMap:(BufferMapList *)buffer_map stage: (int) stage
+- (bool) mapGLBuffersToMTLBufferMap:(BufferMapList *)buffer_maps stage: (int) stage
 {
     int count;
     int mapped_buffers;
@@ -381,7 +381,7 @@ void logDirtyBits(GLMContext ctx)
         {SPVC_RESOURCE_TYPE_ATOMIC_COUNTER, _ATOMIC_COUNTER_BUFFER}
     };
 
-    buffer_map->count = 0;
+    buffer_maps->count = 0;
 
     for(int type=0; type<4; type++)
     {
@@ -408,10 +408,14 @@ void logDirtyBits(GLMContext ctx)
 
                 if (buf)
                 {
-                    buffer_map->buffers[buffer_map->count].attribute_mask = 0;
-                    buffer_map->buffers[buffer_map->count].buffer_base_index = spirv_binding;
-                    buffer_map->buffers[buffer_map->count].buf = buf;
-                    buffer_map->count++;
+                    unsigned long index = buffer_maps->count;
+                    
+                    BufferMap * buffer_map = &buffer_maps->buffers[index];
+                    buffer_map->attribute_mask = 0;
+                    buffer_map->buffer_base_index = spirv_binding;
+                    buffer_map->buf = buf;
+
+                    buffer_maps->count++;
                     buffers_to_be_mapped--;
                 }
                 else
@@ -436,9 +440,9 @@ void logDirtyBits(GLMContext ctx)
         mapped_buffers = 0;
 
         // vao buffers start after the uniforms and shader buffers
-        vao_buffer_start = buffer_map->count;
-        assert(buffer_map->count < ctx->state.max_vertex_attribs);
-        buffer_map->buffers[vao_buffer_start].buf = NULL;
+        vao_buffer_start = buffer_maps->count;
+        assert(buffer_maps->count < ctx->state.max_vertex_attribs);
+        buffer_maps->buffers[vao_buffer_start].buf = NULL;
 
         // create attribute map
         //
@@ -458,16 +462,16 @@ void logDirtyBits(GLMContext ctx)
                 gl_buffer = VAO_ATTRIB_STATE(att).buffer;
 
                 // check start for map... then check
-                map_buffer = buffer_map->buffers[vao_buffer_start].buf;
+                map_buffer = buffer_maps->buffers[vao_buffer_start].buf;
 
                 // empty slot map it here, only works on first buffer..
                 if (map_buffer == NULL)
                 {
                     // map the buffer object to a metal vertex index
-                    assert(buffer_map->count < ctx->state.max_vertex_attribs);
-                    buffer_map->buffers[vao_buffer_start].attribute_mask |= (0x1 << att);
-                    buffer_map->buffers[vao_buffer_start].buf = gl_buffer;
-                    buffer_map->count++;
+                    assert(buffer_maps->count < ctx->state.max_vertex_attribs);
+                    buffer_maps->buffers[vao_buffer_start].attribute_mask |= (0x1 << att);
+                    buffer_maps->buffers[vao_buffer_start].buf = gl_buffer;
+                    buffer_maps->count++;
 
                     mapped_buffers++;
                 }
@@ -477,7 +481,7 @@ void logDirtyBits(GLMContext ctx)
 
                     // find vao attrib with same buffer
                     for (int map=vao_buffer_start;
-                         (found_buffer == false) && map<buffer_map->count;
+                         (found_buffer == false) && map<buffer_maps->count;
                          map++)
                     {
                         // we need to check name and target, not pointers..
@@ -485,7 +489,7 @@ void logDirtyBits(GLMContext ctx)
                             (map_buffer->target == gl_buffer->target))
                         {
                             // include it the list of attributes
-                            buffer_map->buffers[map].attribute_mask |= (0x1 << att);
+                            buffer_maps->buffers[map].attribute_mask |= (0x1 << att);
                             found_buffer = true;
                             mapped_buffers++;
                             break;
@@ -495,10 +499,10 @@ void logDirtyBits(GLMContext ctx)
                     if (found_buffer == false)
                     {
                         // map the next buffer object to a metal vertex index
-                        assert(buffer_map->count < ctx->state.max_vertex_attribs);
-                        buffer_map->buffers[buffer_map->count].attribute_mask = (0x1 << att);
-                        buffer_map->buffers[buffer_map->count].buf = gl_buffer;
-                        buffer_map->count++;
+                        assert(buffer_maps->count < ctx->state.max_vertex_attribs);
+                        buffer_maps->buffers[buffer_maps->count].attribute_mask = (0x1 << att);
+                        buffer_maps->buffers[buffer_maps->count].buf = gl_buffer;
+                        buffer_maps->count++;
 
                         mapped_buffers++;
                     }
