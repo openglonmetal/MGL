@@ -641,7 +641,7 @@ void mglGetActiveUniformName(GLMContext ctx, GLuint program, GLuint uniformIndex
     assert(0);
 }
 
-GLuint  mglGetUniformBlockIndex(GLMContext ctx, GLuint program, const GLchar *uniformBlockName)
+static GLuint getIndex(GLMContext ctx, GLuint program, GLuint spvc_type, const GLchar *name)
 {
     if (isProgram(ctx, program) == GL_FALSE)
     {
@@ -662,21 +662,22 @@ GLuint  mglGetUniformBlockIndex(GLMContext ctx, GLuint program, const GLchar *un
         return -1;
     }
 
-    for (int stage=_VERTEX_SHADER; stage<_MAX_SHADER_TYPES; stage++)
+    for (GLuint stage=_VERTEX_SHADER; stage<_MAX_SHADER_TYPES; stage = stage + 1)
     {
         int count;
 
-        count = ptr->spirv_resources_list[stage][SPVC_RESOURCE_TYPE_UNIFORM_BUFFER].count;
+        SpirvResourceList *spirv_res = &ptr->spirv_resources_list[stage][spvc_type];
+        count = spirv_res->count;
 
         for (int i=0; i<count; i++)
         {
-            const char *str = ptr->spirv_resources_list[stage][SPVC_RESOURCE_TYPE_UNIFORM_BUFFER].list[i].name;
+            const char *str = spirv_res->list[i].name;
 
-            if (!strcmp(str, uniformBlockName))
+            if (!strcmp(str, name))
             {
                 GLuint binding;
 
-                binding = ptr->spirv_resources_list[stage][SPVC_RESOURCE_TYPE_UNIFORM_BUFFER].list[i].binding;
+                binding = spirv_res->list[i].binding;
 
                 return binding;
             }
@@ -686,6 +687,23 @@ GLuint  mglGetUniformBlockIndex(GLMContext ctx, GLuint program, const GLchar *un
     assert(0);
 
     return 0xFFFFFFFF;
+}
+
+GLuint mglGetUniformBlockIndex(GLMContext ctx, GLuint program, const GLchar *uniformBlockName)
+{
+    return getIndex(ctx, program, _UNIFORM_BUFFER_RES, uniformBlockName);
+}
+
+GLuint mglGetProgramResourceIndex(GLMContext ctx, GLuint program, GLenum programInterface, const GLchar *name)
+{
+    GLuint spvc_type = _UNKNOWN_RES;
+    switch (programInterface) {
+        case GL_UNIFORM: spvc_type = _UNIFORM_BUFFER_RES; break;
+        case GL_SHADER_STORAGE_BLOCK: spvc_type = _STORAGE_BUFFER_RES; break;
+        default: // Unimplemented
+            assert(0);
+    }
+    return getIndex(ctx, program, spvc_type, name);
 }
 
 void mglGetActiveUniformBlockiv(GLMContext ctx, GLuint program, GLuint uniformBlockIndex, GLenum pname, GLint *params)
