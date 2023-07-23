@@ -172,11 +172,9 @@ size_t page_size_align(size_t size)
     return size;
 }
 
-void *getBufferData(GLMContext ctx, Buffer *ptr)
+void *getBufferData(GLMContext ctx, const Buffer *ptr)
 {
     void *buffer_data;
-
-    ptr = ctx->state.buffers[_PIXEL_UNPACK_BUFFER];
 
     ERROR_CHECK_RETURN(ptr->mapped == false, GL_INVALID_OPERATION);
 
@@ -187,7 +185,7 @@ void *getBufferData(GLMContext ctx, Buffer *ptr)
     return buffer_data;
 }
 
-void bufferStorage(GLMContext ctx, Buffer *ptr, GLenum target, GLuint index, GLsizeiptr size, const void *data, GLbitfield storage_flags, GLenum usage)
+void bufferStorage(GLMContext ctx, Buffer *ptr, GLsizeiptr size, const void *data, GLbitfield storage_flags, GLenum usage)
 {
     kern_return_t err;
     vm_address_t buffer_data;
@@ -218,8 +216,6 @@ void bufferStorage(GLMContext ctx, Buffer *ptr, GLenum target, GLuint index, GLs
     // init
     ptr->data.buffer_data = buffer_data;
     ptr->data.buffer_size = buffer_size;
-    ptr->index = index;
-    ptr->target = target;
     ptr->size = size;
     if (usage == 0)
     {
@@ -252,7 +248,7 @@ void bufferStorage(GLMContext ctx, Buffer *ptr, GLenum target, GLuint index, GLs
     }
 }
 
-bool clearBufferData(GLMContext ctx, Buffer *ptr, GLenum internalformat, GLintptr offset, GLsizeiptr size, GLenum format, GLenum type, const void *data)
+bool clearBufferData(GLMContext ctx, const Buffer *ptr, GLenum internalformat, GLintptr offset, GLsizeiptr size, GLenum format, GLenum type, const void *data)
 {
     switch(format)
     {
@@ -1295,7 +1291,9 @@ void mglBufferStorage(GLMContext ctx, GLenum target, GLsizeiptr size, const void
 
     ERROR_CHECK_RETURN((ptr != NULL), GL_INVALID_OPERATION);
 
-    bufferStorage(ctx, ptr, target, index, size, data, storage_flags, 0);
+    bufferStorage(ctx, ptr, size, data, storage_flags, 0);
+    ptr->index = index; // FIXME should be assert?
+    ptr->target = target; // FIXME should be assert?
 }
 
 void mglNamedBufferStorage(GLMContext ctx, GLuint buffer, GLsizeiptr size, const void *data, GLbitfield storage_flags)
@@ -1317,7 +1315,7 @@ void mglNamedBufferStorage(GLMContext ctx, GLuint buffer, GLsizeiptr size, const
         ERROR_RETURN(GL_INVALID_VALUE);
     }
 
-    bufferStorage(ctx, ptr, 0, 0, size, data, storage_flags, 0);
+    bufferStorage(ctx, ptr, size, data, storage_flags, 0);
 }
 
 void mglInvalidateBufferData(GLMContext ctx, GLuint buffer)
