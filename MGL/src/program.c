@@ -331,10 +331,27 @@ char *parseSPIRVShaderToMetal(GLMContext ctx, Program *ptr, int stage)
     //for (int res_type=SPVC_RESOURCE_TYPE_UNIFORM_BUFFER; res_type < SPVC_RESOURCE_TYPE_ACCELERATION_STRUCTURE; res_type++)
     for (int res_type=SPVC_RESOURCE_TYPE_UNIFORM_BUFFER; res_type <= SPVC_RESOURCE_TYPE_UNIFORM_CONSTANT; res_type++)
     {
-        const char *res_name[] = {"NONE", "UNIFORM_BUFFER", "STORAGE_BUFFER", "STAGE_INPUT", "STAGE_OUTPUT",
-            "SUBPASS_INPUT", "STORAGE_INPUT", "STORAGE_IMAGE", "SAMPLED_IMAGE", "ATOMIC_COUNTER", "PUSH_CONSTANT", "SEPARATE_IMAGE",
-            "SEPARATE_SAMPLERS", "ACCELERATION_STRUCTURE", "RAY_QUERY", "SHADER_RECORD", "UNIFORM_CONSTANT"};
+        const char *res_name[] =
+        {
+            "NONE",
+            "UNIFORM_BUFFER",
+            "STORAGE_BUFFER",
+            "STAGE_INPUT",
+            "STAGE_OUTPUT",
+            "SUBPASS_INPUT",
+            "STORAGE_IMAGE",
+            "SAMPLED_IMAGE",
+            "ATOMIC_COUNTER",
+            "PUSH_CONSTANT",
+            "SEPARATE_IMAGE",
+            "SEPARATE_SAMPLERS",
+            "ACCELERATION_STRUCTURE",
+            "RAY_QUERY",
+            "SHADER_RECORD",
+            "UNIFORM_CONSTANT"
+        };
 
+        if (res_type==SPVC_RESOURCE_TYPE_RAY_QUERY) continue; // => 'Invalid argument.'
         err = spvc_resources_get_resource_list_for_type(resources, res_type, &list, &count); assert(!err);
 
         ptr->spirv_resources_list[stage][res_type].count = (GLuint)count;

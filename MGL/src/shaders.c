@@ -32,9 +32,16 @@ const glslang_resource_t* glslang_default_resource(void);
 
 const char *getShaderTypeStr(GLuint type)
 {
-    static const char *types[] = {"VERTEX_SHADER", "FRAGMENT_SHADER",
-        "GEOMETRY_SHADER", "TESS_CONTROL_SHADER", "TESS_EVALUATION_SHADER",
-        "COMPUTE_SHADER", "MAX_SHADER_TYPES", NULL};
+    static const char *types[]
+    = {
+        "VERTEX_SHADER",
+        "TESS_CONTROL_SHADER",
+        "TESS_EVALUATION_SHADER",
+        "GEOMETRY_SHADER",
+        "FRAGMENT_SHADER",
+        "COMPUTE_SHADER"//,
+        //"MAX_SHADER_TYPES"
+    };
 
     assert(type < _MAX_SHADER_TYPES);
 
