@@ -24,6 +24,8 @@
 
 #include "hash_table.h"
 
+#include "unimpl.h"
+
 void initHashTable(HashTable *ptr, GLuint size)
 {
     size_t len;
@@ -82,5 +84,5 @@ void deleteHashElement(HashTable *table, GLuint name)
     table->keys[name].data = NULL;
 
     // need to have metal delete object
-    assert(0);
+    UNIMPL;
 }
