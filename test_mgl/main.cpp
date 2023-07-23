@@ -57,9 +57,6 @@ extern "C" {
 #include "MGLContext.h"
 }
 #include "MGLRenderer.h"
-#define SWAP_BUFFERS MGLswapBuffers((GLMContext) glfwGetWindowUserPointer(window));
-
-//#define SWAP_BUFFERS glfwSwapBuffers(window);
 
 // change main.c to main.cpp to use glm...
 #include <glm/glm.hpp>
