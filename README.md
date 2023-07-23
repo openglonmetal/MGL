@@ -256,7 +256,7 @@ And now we speak Objective C
 ## processGLState does all the state mapping from OpenGL to Metal
 On OpenGL drawing calls the OpenGL state is processed for any dirty state in processGLState, you have to do this before each draw command to ensure changed state is captured into Metal.
 
-State is transferred from OpenGL to Metal state using a Metal command queue with a MTLRenderCommandEncoder. Occasionally a new MTLRenderCommandEncoder will need to be built if the state changes need to modify the MTLRenderPipelineState so neRenderEncoder is called to create a new encoder with the current OpenGL state.
+State is transferred from OpenGL to Metal state using a Metal command queue with a MTLRenderCommandEncoder. Occasionally a new MTLRenderCommandEncoder will need to be built if the state changes need to modify the MTLRenderPipelineState so newRenderEncoder is called to create a new encoder with the current OpenGL state.
 
 Most of the work is done in MGLRenderer.m, at first it can look like a giant piece of code. But it's simple once you figure out the mapping process.
 
