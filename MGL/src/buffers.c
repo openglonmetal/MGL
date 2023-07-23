@@ -387,7 +387,7 @@ void mglDeleteBuffers(GLMContext ctx, GLsizei n, const GLuint *buffers)
             GLuint target;
 
             target = ptr->target;
-            buffer_type_enum index = bufferIndexFromTarget(ctx, target);
+            GLuint index = bufferIndexFromTarget(ctx, target);
             if (STATE(buffers[index]))
             {
                 if (STATE(buffers[index])->name == buffer)
