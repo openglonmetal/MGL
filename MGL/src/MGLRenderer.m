@@ -1141,7 +1141,7 @@ void logDirtyBits(GLMContext ctx)
 {
     GLuint count;
 
-    // iterate shader storage buffers
+    // iterate sampled images
     count = [self getProgramBindingCount: _FRAGMENT_SHADER type: SPVC_RESOURCE_TYPE_SAMPLED_IMAGE];
     if (count)
     {
@@ -1206,8 +1206,10 @@ void logDirtyBits(GLMContext ctx)
                     assert(sampler);
                 }
 
-                [_currentRenderEncoder setFragmentTexture:texture atIndex:spirv_binding];
-                [_currentRenderEncoder setFragmentSamplerState:sampler atIndex:spirv_binding];
+                //[_currentRenderEncoder setFragmentTexture:texture atIndex:spirv_binding];
+                //[_currentRenderEncoder setFragmentSamplerState:sampler atIndex:spirv_binding];
+                [_currentRenderEncoder setFragmentTexture:texture atIndex:i];
+                [_currentRenderEncoder setFragmentSamplerState:sampler atIndex:i];
 
                 textures_to_be_mapped--;
             }
@@ -2429,6 +2431,7 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
         if (ctx->state.dirty_bits & (DIRTY_PROGRAM | DIRTY_TEX | DIRTY_TEX_BINDING | DIRTY_SAMPLER))
         {
             RETURN_FALSE_ON_FAILURE([self bindActiveTexturesToMTL]);
+            RETURN_FALSE_ON_FAILURE([self bindTexturesToCurrentRenderEncoder]);
 
             // textures / active textures and samplers are all handled in bindActiveTexturesToMTL
             ctx->state.dirty_bits &= ~(DIRTY_TEX | DIRTY_TEX_BINDING | DIRTY_SAMPLER);

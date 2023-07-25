@@ -240,10 +240,7 @@ void mglBindTexture(GLMContext ctx, GLenum target, GLuint texture)
     Texture *ptr;
 
     index = textureIndexFromTarget(ctx, target);
-    if (index == _MAX_TEXTURE_TYPES)
-    {
-        assert(0);
-    }
+    assert (index < _MAX_TEXTURE_TYPES);
 
     if (texture)
     {
@@ -271,7 +268,7 @@ void mglBindTexture(GLMContext ctx, GLenum target, GLuint texture)
 
     STATE(active_textures[active_texture]) = ptr;
     STATE(texture_units[active_texture].textures[index]) = ptr;
-    STATE(dirty_bits) |= DIRTY_TEX;
+    STATE(dirty_bits) |= DIRTY_TEX_BINDING;
 }
 
 void mglBindImageTexture(GLMContext ctx, GLuint unit, GLuint texture, GLint level, GLboolean layered, GLint layer, GLenum access, GLenum internalformat)
@@ -466,7 +463,10 @@ void mglBindTextureUnit(GLMContext ctx, GLuint unit, GLuint texture)
 
     target = ptr->target;
 
-    STATE(texture_units[unit].textures[target]) = ptr;
+    GLuint index;
+    index = textureIndexFromTarget(ctx, target);
+
+    STATE(texture_units[unit].textures[index]) = ptr;
 }
 
 void generateMipmaps(GLMContext ctx, GLuint texture, GLenum target)
