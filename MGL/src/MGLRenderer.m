@@ -2508,6 +2508,9 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
                 [self bindBlendStateToPipelineStateDescriptor: pipelineStateDescriptor];
             }
 
+            // updateCurrentRenderEncoder will update the renderstate outside of creating a new one
+            [self updateCurrentRenderEncoder];
+
             pipelineStateDescriptor.vertexDescriptor = vertexDescriptor;
 
             NSError *error;
@@ -2521,7 +2524,7 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
             NSAssert(_pipelineState, @"Failed to created pipeline state: %@", error);
             RETURN_FALSE_ON_NULL(_pipelineState);
 
-            ctx->state.dirty_bits &= ~(DIRTY_PROGRAM | DIRTY_VAO | DIRTY_FBO);
+            ctx->state.dirty_bits &= ~(DIRTY_PROGRAM | DIRTY_VAO | DIRTY_FBO | DIRTY_RENDER_STATE);
         }
 
         //if (ctx->state.dirty_bits)
