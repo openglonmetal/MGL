@@ -1666,6 +1666,17 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
 
         [_currentRenderEncoder setScissorRect:rect];
     }
+    else
+    {
+        MTLScissorRect rect;
+
+        rect.x = ctx->state.viewport[0];
+        rect.y = ctx->state.viewport[1];
+        rect.width = ctx->state.viewport[2];
+        rect.height = ctx->state.viewport[3];
+
+        [_currentRenderEncoder setScissorRect:rect];
+    }
 
     [_currentRenderEncoder setViewport:(MTLViewport){ctx->state.viewport[0], ctx->state.viewport[1],
                                         ctx->state.viewport[2], ctx->state.viewport[3],
