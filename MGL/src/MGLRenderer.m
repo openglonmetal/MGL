@@ -2466,7 +2466,7 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
             RETURN_FALSE_ON_FAILURE([self newRenderEncoder]);
 
             // clear dirty render state
-            ctx->state.dirty_bits &= ~DIRTY_RENDER_STATE;
+            ctx->state.dirty_bits &= ~(DIRTY_BUFFER | DIRTY_RENDER_STATE);
         }
         else if (ctx->state.dirty_bits & DIRTY_BUFFER)
         {
@@ -2535,7 +2535,7 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
             NSAssert(_pipelineState, @"Failed to created pipeline state: %@", error);
             RETURN_FALSE_ON_NULL(_pipelineState);
 
-            ctx->state.dirty_bits &= ~(DIRTY_PROGRAM | DIRTY_VAO | DIRTY_FBO | DIRTY_RENDER_STATE);
+            ctx->state.dirty_bits &= ~(DIRTY_PROGRAM | DIRTY_VAO | DIRTY_FBO | DIRTY_ALPHA_STATE | DIRTY_RENDER_STATE);
         }
 
         //if (ctx->state.dirty_bits)
@@ -2548,6 +2548,11 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
 
         // we missed something
         //assert(ctx->state.dirty_bits == 0);
+        if (ctx->state.dirty_bits != 0)
+        {
+            logDirtyBits(ctx);
+            assert(0);
+        }
     }
 
     // Create a render command encoder.
