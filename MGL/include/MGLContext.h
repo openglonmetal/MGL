@@ -15,7 +15,7 @@ typedef struct GLMContextRec_t *GLMContext;
 
 GLMContext createGLMContext(GLenum format, GLenum type,
                             GLenum depth_format, GLenum depth_type,
-                            GLenum stencil_format, GLenum stencil_type);
+                            GLenum stencil_format, GLenum stencil_type, GLboolean assert_on_error);
 
 void MGLsetCurrentContext(GLMContext ctx);
 void MGLswapBuffers(GLMContext ctx);

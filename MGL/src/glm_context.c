@@ -33,7 +33,7 @@ GLMContext _ctx = NULL;
 
 GLMContext createGLMContext(GLenum format, GLenum type,
                             GLenum depth_format, GLenum depth_type,
-                            GLenum stencil_format, GLenum stencil_type)
+                            GLenum stencil_format, GLenum stencil_type, GLboolean assert_on_error)
 {
     GLMContext ctx = (GLMContext)malloc(sizeof(GLMContextRec));
     GLMContext save = _ctx;
@@ -222,7 +222,7 @@ GLMContext createGLMContext(GLenum format, GLenum type,
     
     init_dispatch(ctx);
 
-    ctx->assert_on_error = GL_TRUE;
+    ctx->assert_on_error = assert_on_error;
     ctx->error_func = error_func;
 
     ctx->temp_element_buffer = NULL;

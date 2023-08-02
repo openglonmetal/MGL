@@ -3247,7 +3247,7 @@ int main_glfw(int argc, const char * argv[])
         exit(EXIT_FAILURE);
     }	
 
-    GLMContext glm_ctx = createGLMContext(GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, GL_DEPTH_COMPONENT, GL_FLOAT, 0, 0);
+    GLMContext glm_ctx = createGLMContext(GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, GL_DEPTH_COMPONENT, GL_FLOAT, 0, 0, GL_TRUE);
     void *renderer = CppCreateMGLRendererAndBindToContext (glfwGetCocoaWindow (window), glm_ctx); // FIXME should do something later with the renderer
     if (!renderer)
     {
@@ -3329,7 +3329,7 @@ int main_sdl(int argc, const char * argv[])
         exit(EXIT_FAILURE);
     }
 
-    GLMContext glm_ctx = createGLMContext(GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, GL_DEPTH_COMPONENT, GL_FLOAT, 0, 0);
+    GLMContext glm_ctx = createGLMContext(GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, GL_DEPTH_COMPONENT, GL_FLOAT, 0, 0, GL_FALSE);
     MGLsetCurrentContext(glm_ctx);
 
     SDL_SysWMinfo info;
