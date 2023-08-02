@@ -24,7 +24,7 @@
 
 #include "glm_context.h"
 
-void error_func(GLMContext ctx, const char *func, GLenum error);
+void error_func(GLMContext ctx, const char *funcname, const char* filename, unsigned int line, GLenum error);
 
 GLenum  mglGetError(GLMContext ctx);
 

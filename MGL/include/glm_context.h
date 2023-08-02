@@ -49,12 +49,12 @@
 #define VAO_STATE(_val_)   ctx->state.vao->_val_
 #define VAO_ATTRIB_STATE(_index_) ctx->state.vao->attrib[_index_]
 
-#define ERROR_RETURN(_type_) ctx->error_func(ctx, __FUNCTION__, _type_)
-#define ERROR_RETURN_VALUE(_type_, _val_) ctx->error_func(ctx, __FUNCTION__, _type_); return _val_
-#define ERROR_CHECK_RETURN(_expr_, _type_) if ((_expr_) == false) {ctx->error_func(ctx, __FUNCTION__, _type_);}
-#define ERROR_CHECK_RETURN_VALUE(_expr_, _type_, _val_) if ((_expr_) == false) {ctx->error_func(ctx, __FUNCTION__, _type_); return _val_;}
-#define ERROR_CHECK_NULL_RETURN(_expr_, _type_) if ((_expr_) == NULL) {ctx->error_func(ctx, __FUNCTION__, _type_);}
-#define ERROR_CHECK_NULL_RETURN_VALUE(_expr_, _type_, _val_) if ((_expr_) == NULL) {ctx->error_func(ctx, __FUNCTION__, _type_); return _val_;}
+#define ERROR_RETURN(_type_) ctx->error_func(ctx, __FUNCTION__, __FILE__, __LINE__, _type_)
+#define ERROR_RETURN_VALUE(_type_, _val_) ctx->error_func(ctx, __FUNCTION__, __FILE__, __LINE__, _type_); return _val_
+#define ERROR_CHECK_RETURN(_expr_, _type_) if ((_expr_) == false) {ctx->error_func(ctx, __FUNCTION__, __FILE__, __LINE__, _type_);}
+#define ERROR_CHECK_RETURN_VALUE(_expr_, _type_, _val_) if ((_expr_) == false) {ctx->error_func(ctx, __FUNCTION__, __FILE__, __LINE__, _type_); return _val_;}
+#define ERROR_CHECK_NULL_RETURN(_expr_, _type_) if ((_expr_) == NULL) {ctx->error_func(ctx, __FUNCTION__, __FILE__, __LINE__, _type_);}
+#define ERROR_CHECK_NULL_RETURN_VALUE(_expr_, _type_, _val_) if ((_expr_) == NULL) {ctx->error_func(ctx, __FUNCTION__, __FILE__, __LINE__, _type_); return _val_;}
 
 enum {
     _TEXTURE_BUFFER = 0, // duplicate of _TEXTURE_BUFFER_TARGET
@@ -665,7 +665,7 @@ typedef struct GLMContextRec_t {
 
     BufferData  *temp_element_buffer;
 
-    void (* error_func)(GLMContext ctx, const char *func, GLenum type);
+    void (* error_func)(GLMContext ctx, const char *funcname, const char* filename, unsigned int line, GLenum type);
 } GLMContextRec;
 
 

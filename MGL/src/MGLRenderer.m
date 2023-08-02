@@ -420,7 +420,7 @@ void logDirtyBits(GLMContext ctx)
                 }
                 else
                 {
-                    ctx->error_func(ctx, __FUNCTION__, GL_INVALID_OPERATION);
+                    ctx->error_func(ctx, __FUNCTION__, __FILE__, __LINE__, GL_INVALID_OPERATION);
 
                     return false;
                 }
@@ -3196,7 +3196,7 @@ void mtlFlushBufferRange(GLMContext glm_ctx, Buffer *buf, GLintptr offset, GLsiz
     {
         // issue a gl error as we can't read a framebuffer only texture
         NSLog(@"Cannot read from framebuffer only texture\n");
-        ctx->error_func(ctx, __FUNCTION__, GL_INVALID_OPERATION);
+        ctx->error_func(ctx, __FUNCTION__, __FILE__, __LINE__, GL_INVALID_OPERATION);
     }
 }
 

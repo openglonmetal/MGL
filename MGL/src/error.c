@@ -36,10 +36,51 @@ GLenum  mglGetError(GLMContext ctx)
     return err;
 }
 
-
-void error_func(GLMContext ctx, const char *func, GLenum error)
+struct token_string
 {
-    printf("GL Error func: %s type: %d\n", func, error);
+   GLuint Token;
+   const char* String;
+};
+
+#define ERR_MSG(error) {error, #error}
+
+static const struct token_string Errors[]=
+{
+   ERR_MSG(GL_NO_ERROR),
+   ERR_MSG(GL_INVALID_ENUM),
+   ERR_MSG(GL_INVALID_VALUE),
+   ERR_MSG(GL_INVALID_OPERATION),
+   ERR_MSG(GL_STACK_OVERFLOW),
+   ERR_MSG(GL_STACK_UNDERFLOW),
+   ERR_MSG(GL_OUT_OF_MEMORY),
+   ERR_MSG(GL_INVALID_FRAMEBUFFER_OPERATION),
+   ERR_MSG(GL_CONTEXT_LOST),
+   // ERR_MSG(GL_TABLE_TOO_LARGE),
+
+   { ~0, NULL } /* end of list indicator */
+};
+
+
+GLAPI const GLubyte* APIENTRY gluErrorString(GLenum errorCode)
+{
+   int i;
+
+   for (i=0; Errors[i].String; i++)
+   {
+      if (Errors[i].Token==errorCode)
+      {
+         return (const GLubyte*) Errors[i].String;
+      }
+   }
+
+   printf("unknown GL error %d\n", errorCode);
+   return (const GLubyte*)0;
+}
+
+
+void error_func(GLMContext ctx, const char *funcname, const char *filename, unsigned int line, GLenum error)
+{
+    printf("GL Error func: %s type: %d name: %s file: %s:%d\n", funcname, error, gluErrorString(error), filename, line);
 
     if (ctx->state.error)
         return;
