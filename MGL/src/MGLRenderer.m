@@ -34,6 +34,7 @@
 
 #import "MGLRenderer.h"
 #import "glm_context.h"
+#import "glm_limits.h"
 
 #define TRACE_FUNCTION()    printf("%s\n", __FUNCTION__);
 
@@ -600,7 +601,7 @@ void logDirtyBits(GLMContext ctx)
         {
             if (gl_buffer->data.dirty_bits)
             {
-                RETURN_FALSE_ON_FAILURE([self updateDirtyBuffer: gl_buffer]);;
+                RETURN_FALSE_ON_FAILURE([self updateDirtyBuffer: gl_buffer]);
             }
         }
     }
@@ -918,8 +919,7 @@ void logDirtyBits(GLMContext ctx)
                     }
                     else
                     {
-                        printf("tex id data update %d\n", tex->name);
-
+                        // printf("tex id data update %d\n", tex->name);
                         [texture replaceRegion:region mipmapLevel:level slice:face withBytes:(void *)tex->faces[face].levels[level].data bytesPerRow:bytesPerRow bytesPerImage:(NSUInteger)bytesPerImage];
                     }
                 }
