@@ -50,6 +50,7 @@
 #define GLFWwindow SDL_Window
 SDL_Event sdlevent;
 #define glfwPollEvents() SDL_PollEvent(&sdlevent)
+#define glfwWaitEvents() SDL_WaitEvent(&sdlevent)
 #define glfwWindowShouldClose(window) (sdlevent.type==SDL_QUIT ||  (sdlevent.type==SDL_WINDOWEVENT && sdlevent.window.event==SDL_WINDOWEVENT_CLOSE))
 #endif
 
@@ -530,6 +531,8 @@ int test_clear(GLFWwindow* window, int width, int height)
 
     SWAP_BUFFERS;
 
+    while (!glfwWindowShouldClose(window)) glfwWaitEvents();
+
     return 0;
 }
 
@@ -593,6 +596,8 @@ int test_draw_arrays(GLFWwindow* window, int width, int height)
     glDrawArrays(GL_TRIANGLES, 0, 3);
 
     SWAP_BUFFERS;
+
+    while (!glfwWindowShouldClose(window)) glfwWaitEvents();
 
     return 0;
 }
@@ -1054,6 +1059,8 @@ int test_draw_elements(GLFWwindow* window, int width, int height)
 
     SWAP_BUFFERS;
 
+    while (!glfwWindowShouldClose(window)) glfwWaitEvents();
+
     return 0;
 }
 
@@ -1135,6 +1142,8 @@ int test_draw_range_elements(GLFWwindow* window, int width, int height)
 
     SWAP_BUFFERS;
 
+    while (!glfwWindowShouldClose(window)) glfwWaitEvents();
+
     return 0;
 }
 
@@ -1209,6 +1218,8 @@ int test_draw_arrays_instanced(GLFWwindow* window, int width, int height)
 
     SWAP_BUFFERS;
 
+    while (!glfwWindowShouldClose(window)) glfwWaitEvents();
+
     return 0;
 }
 
@@ -1280,6 +1291,263 @@ int test_uniform_buffer(GLFWwindow* window, int width, int height)
     glDrawArrays(GL_TRIANGLES, 0, 3);
 
     SWAP_BUFFERS;
+
+    while (!glfwWindowShouldClose(window)) glfwWaitEvents();
+
+    return 0;
+}
+
+int test_buffer_objects_mix(GLFWwindow* window, int width, int height)
+{
+    GLuint vbo = 0, col_vbo = 0, tex_vbo = 0, mat_bo = 0, scale_bo = 0, col_att_bo = 0;
+
+    const char* vertex_shader =
+    GLSL(450 core,
+        layout(location = 0) in vec3 position;
+        layout(location = 1) in vec3 in_color;
+        layout(location = 2) in vec2 in_texcords;
+
+        layout(location = 0) out vec4 out_color;
+        layout(location = 1) out vec2 out_texcoords;
+
+        layout(binding = 0)
+        uniform           // BUG: uncomment this to make it work
+        //readonly buffer     // BUG: comment this to make it work
+        matrices
+        {
+            mat4 rotMatrix;
+        };
+
+        layout(binding = 1)
+        uniform
+        //readonly buffer
+        scale
+        {
+               float pos_scale;
+        };
+
+        void main() {
+            gl_Position = pos_scale * rotMatrix * vec4(position, 1.0);
+            out_color = vec4(in_color, 1.0);
+            out_texcoords = in_texcords;
+        }
+    );
+
+    const char* fragment_shader =
+    GLSL(450 core,
+        layout(location = 0) in vec4 in_color;
+        layout(location = 1) in vec2 in_texcords;
+
+        layout(location = 0) out vec4 frag_colour;
+
+        layout(binding = 2)
+        uniform
+        //readonly buffer
+        color_att
+        {
+            float att;
+        };
+
+        uniform sampler2D image;
+
+        void main() {
+            vec4 tex_color = texture(image, in_texcords);
+
+            // frag_colour = in_color * att;
+            frag_colour = in_color * att * tex_color;
+            frag_colour.a = 0.5;
+            //frag_colour = tex_color;
+        }
+    );
+
+    float points[] = {
+       0.0f,  0.5f,  0.0f,
+       0.5f, -0.5f,  0.0f,
+      -0.5f, -0.5f,  0.0f
+    };
+
+    float color[] = {
+        1.0f, 0.0f, 0.0f,
+        0.0f, 1.0f, 0.0f,
+        0.0f, 0.0f, 1.0f,
+    };
+
+    float texcoords[] = {
+        0.5f, 0.0f,
+        0.0f, 1.0f,
+        1.0f, 1.0f,
+    };
+
+    glGenBuffers(1, &vbo);
+    printf("bind vbo\n");
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, 9 * sizeof(float), points, GL_STATIC_DRAW);
+    //glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    glGenBuffers(1, &col_vbo);
+    printf("bind col_bo\n");
+    glBindBuffer(GL_ARRAY_BUFFER, col_vbo);
+    glBufferData(GL_ARRAY_BUFFER, 9 * sizeof(float), color, GL_STATIC_DRAW);
+    //glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    glGenBuffers(1, &tex_vbo);
+    printf("bind tex_ubo\n");
+    glBindBuffer(GL_ARRAY_BUFFER, tex_vbo);
+    glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), texcoords, GL_STATIC_DRAW);
+    //glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    //GL_UNIFORM_BUFFER;
+    //GL_SHADER_STORAGE_BUFFER;
+    GLenum mat_target = GL_UNIFORM_BUFFER; // BUG: replace with GL_UNIFORM_BUFFER to make it work
+    GLenum scale_target = GL_UNIFORM_BUFFER;
+    GLenum col_target = GL_UNIFORM_BUFFER;
+
+    mat4  rotZ = glm::identity<mat4>();
+
+    float angle = M_1_PI / 6;
+
+    rotZ = glm::rotate(glm::identity<mat4>(), angle, glm::vec3(0, 0, 1));
+
+    glGenBuffers(1, &mat_bo);
+    printf("bind mat_ubo\n");
+    glBindBuffer(mat_target, mat_bo);
+    glBufferData(mat_target, sizeof(mat4),&rotZ[0][0], GL_STATIC_DRAW);
+    //glBindBuffer(mat_target, 0);
+
+    float scale = 1.0;
+    glGenBuffers(1, &scale_bo);
+    printf("bind scale_ubo\n");
+    glBindBuffer(scale_target, scale_bo);
+    glBufferData(scale_target, sizeof(float), &scale, GL_STATIC_DRAW);
+    //glBindBuffer(scale_target, 0);
+
+    float att = 1.0;
+    glGenBuffers(1, &col_att_bo);
+    printf("bind col_att_ubo\n");
+    glBindBuffer(col_target, col_att_bo);
+    glBufferData(col_target, sizeof(float), &att, GL_STATIC_DRAW);
+    //glBindBuffer(col_target, 0);
+
+    GLuint vao = 0;
+    glCreateVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+
+    glEnableVertexAttribArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+
+    glEnableVertexAttribArray(1);
+    glBindBuffer(GL_ARRAY_BUFFER, col_vbo);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+
+    glEnableVertexAttribArray(2);
+    glBindBuffer(GL_ARRAY_BUFFER, tex_vbo);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, NULL);
+
+    // clear currently bound buffer
+    //glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    GLuint vs = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vs, 1, &vertex_shader, NULL);
+    glCompileShader(vs);
+    GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fs, 1, &fragment_shader, NULL);
+    glCompileShader(fs);
+
+    GLuint shader_program = glCreateProgram();
+    glAttachShader(shader_program, fs);
+    glAttachShader(shader_program, vs);
+    glLinkProgram(shader_program);
+    glUseProgram(shader_program);
+
+    // GLuint matrices_loc = glGetUniformBlockIndex(shader_program, "matrices");
+    // //GLuint matrices_loc = glGetProgramResourceIndex(shader_program, GL_SHADER_STORAGE_BLOCK, "matrices");
+    // assert(matrices_loc == 0);
+
+    // GLuint scale_loc = glGetUniformBlockIndex(shader_program, "scale");
+    // assert(scale_loc == 1);
+
+    // GLuint color_att_loc = glGetUniformBlockIndex(shader_program, "color_att");
+    // assert(color_att_loc == 2);
+
+    printf("bind base mat_ubo\n");
+    glBindBufferBase(mat_target, 0, mat_bo);
+    printf("bind base scale_ubo\n");
+    glBindBufferBase(scale_target, 1, scale_bo);
+    printf("bind base col_att_ubo\n");
+    glBindBufferBase(col_target, 2, col_att_bo);
+
+    GLuint tex;
+    glGenTextures(1, &tex);
+    glBindTexture(GL_TEXTURE_2D, tex);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 256, 256, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+                 genTexturePixels(GL_RGBA, GL_UNSIGNED_BYTE, 0x10, 256,256));
+
+
+    GLuint tex2;
+    glGenTextures(1, &tex2);
+    glBindTexture(GL_TEXTURE_2D, tex2);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 256, 512, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+                 genTexturePixels(GL_RGBA, GL_UNSIGNED_BYTE, 0x10, 256,512));
+
+    glViewport(0, 0, width, height);
+
+    glBindVertexArray(vao);
+
+    glUseProgram(shader_program);
+
+    glClearColor(0.2, 0.2, 0.2, 0.0);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    float att_delta = 0.01;
+
+    while (!glfwWindowShouldClose(window))
+    {
+        //GLsync  sync;
+
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        glBindTexture(GL_TEXTURE_2D, tex2);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glBindTexture(GL_TEXTURE_2D, tex);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+
+        //sync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+
+        SWAP_BUFFERS;
+
+        angle += (M_PI / 180);
+
+        rotZ = glm::rotate(glm::identity<mat4>(), angle, glm::vec3(0, 0, 1));
+
+        //glWaitSync(sync, 0, GL_TIMEOUT_IGNORED);
+
+        // printf("bind mat_ubo\n");
+        glBindBuffer(mat_target, mat_bo);
+        glBufferSubData(mat_target, 0, sizeof(mat4), &rotZ[0][0]);
+        glBindBuffer(mat_target, 0);
+
+        att += att_delta;
+        if (att > 1.0)
+        {
+            att = 1.0;
+            att_delta *= -1.0;
+        }
+        else if (att < 0.0)
+        {
+            att = 0.0;
+            att_delta *= -1.0;
+        }
+
+        // printf("bind col_att_ubo\n");
+        glBindBuffer(col_target, col_att_bo);
+        glBufferSubData(col_target, 0, sizeof(float), &att);
+        glBindBuffer(col_target, 0);
+
+        while (!glfwWindowShouldClose(window)) glfwWaitEvents();
+    }
 
     return 0;
 }
@@ -1414,7 +1682,7 @@ int test_2D_textures(GLFWwindow* window, int width, int height)
         };
 
         void main() {
-            gl_Position = rotMatrix * vec4(position, 1.0);
+            gl_Position = /*pos_scale **/ rotMatrix * vec4(position, 1.0);
             out_color = vec4(in_color, 1.0);
             out_texcoords = in_texcords;
         }
@@ -1487,7 +1755,7 @@ int test_2D_textures(GLFWwindow* window, int width, int height)
     glBufferData(GL_UNIFORM_BUFFER, sizeof(mat4),&rotZ[0][0], GL_STATIC_DRAW);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-    float scale = -1.0;
+    float scale = -1.0; // 1.0
     glGenBuffers(1, &scale_ubo);
     glBindBuffer(GL_UNIFORM_BUFFER, scale_ubo);
     glBufferData(GL_UNIFORM_BUFFER, sizeof(float), &scale, GL_STATIC_DRAW);
@@ -2178,6 +2446,264 @@ int test_textures(GLFWwindow* window, int width, int height, int mipmap, int use
     return 0;
 }
 
+int test_texture_switch(GLFWwindow* window, int width, int height)
+{
+    GLuint vbo = 0, col_vbo = 0, tex_vbo = 0, mat_bo = 0, scale_bo = 0, col_att_bo = 0;
+
+    const char* vertex_shader =
+    GLSL(450 core,
+        layout(location = 0) in vec3 position;
+        layout(location = 1) in vec3 in_color;
+        layout(location = 2) in vec2 in_texcords;
+
+        layout(location = 0) out vec4 out_color;
+        layout(location = 1) out vec2 out_texcoords;
+
+        layout(binding = 0)
+        uniform           // BUG: uncomment this to make it work
+        //readonly buffer     // BUG: comment this to make it work
+        matrices
+        {
+            mat4 rotMatrix;
+        };
+
+        layout(binding = 1)
+        uniform
+        //readonly buffer
+        scale
+        {
+               float pos_scale;
+        };
+
+        void main() {
+            gl_Position = pos_scale * rotMatrix * vec4(position, 1.0);
+            out_color = vec4(in_color, 1.0);
+            out_texcoords = in_texcords;
+        }
+    );
+
+    const char* fragment_shader =
+    GLSL(450 core,
+        layout(location = 0) in vec4 in_color;
+        layout(location = 1) in vec2 in_texcords;
+
+        layout(location = 0) out vec4 frag_colour;
+
+        layout(binding = 2)
+        uniform
+        //readonly buffer
+        color_att
+        {
+            float att;
+        };
+
+        uniform sampler2D image;
+
+        void main() {
+            vec4 tex_color = texture(image, in_texcords);
+
+            // frag_colour = in_color * att;
+            frag_colour = in_color * att * tex_color;
+            frag_colour.a = 0.5;
+            //frag_colour = tex_color;
+        }
+    );
+
+    float points[] = {
+       0.0f,  0.5f,  0.0f,
+       0.5f, -0.5f,  0.0f,
+      -0.5f, -0.5f,  0.0f
+    };
+
+    float color[] = {
+        1.0f, 0.0f, 0.0f,
+        0.0f, 1.0f, 0.0f,
+        0.0f, 0.0f, 1.0f,
+    };
+
+    float texcoords[] = {
+        0.5f, 0.0f,
+        0.0f, 1.0f,
+        1.0f, 1.0f,
+    };
+
+    glGenBuffers(1, &vbo);
+    printf("bind vbo\n");
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, 9 * sizeof(float), points, GL_STATIC_DRAW);
+    //glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    glGenBuffers(1, &col_vbo);
+    printf("bind col_bo\n");
+    glBindBuffer(GL_ARRAY_BUFFER, col_vbo);
+    glBufferData(GL_ARRAY_BUFFER, 9 * sizeof(float), color, GL_STATIC_DRAW);
+    //glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    glGenBuffers(1, &tex_vbo);
+    printf("bind tex_ubo\n");
+    glBindBuffer(GL_ARRAY_BUFFER, tex_vbo);
+    glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), texcoords, GL_STATIC_DRAW);
+    //glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    //GL_UNIFORM_BUFFER;
+    //GL_SHADER_STORAGE_BUFFER;
+    GLenum mat_target = GL_UNIFORM_BUFFER; // BUG: replace with GL_UNIFORM_BUFFER to make it work
+    GLenum scale_target = GL_UNIFORM_BUFFER;
+    GLenum col_target = GL_UNIFORM_BUFFER;
+
+    mat4  rotZ = glm::identity<mat4>();
+
+    float angle = M_1_PI / 6;
+
+    rotZ = glm::rotate(glm::identity<mat4>(), angle, glm::vec3(0, 0, 1));
+
+    glGenBuffers(1, &mat_bo);
+    printf("bind mat_ubo\n");
+    glBindBuffer(mat_target, mat_bo);
+    glBufferData(mat_target, sizeof(mat4),&rotZ[0][0], GL_STATIC_DRAW);
+    //glBindBuffer(mat_target, 0);
+
+    float scale = 1.0;
+    glGenBuffers(1, &scale_bo);
+    printf("bind scale_ubo\n");
+    glBindBuffer(scale_target, scale_bo);
+    glBufferData(scale_target, sizeof(float), &scale, GL_STATIC_DRAW);
+    //glBindBuffer(scale_target, 0);
+
+    float att = 1.0;
+    glGenBuffers(1, &col_att_bo);
+    printf("bind col_att_ubo\n");
+    glBindBuffer(col_target, col_att_bo);
+    glBufferData(col_target, sizeof(float), &att, GL_STATIC_DRAW);
+    //glBindBuffer(col_target, 0);
+
+    GLuint vao = 0;
+    glCreateVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+
+    glEnableVertexAttribArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+
+    glEnableVertexAttribArray(1);
+    glBindBuffer(GL_ARRAY_BUFFER, col_vbo);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+
+    glEnableVertexAttribArray(2);
+    glBindBuffer(GL_ARRAY_BUFFER, tex_vbo);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, NULL);
+
+    // clear currently bound buffer
+    //glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    GLuint vs = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vs, 1, &vertex_shader, NULL);
+    glCompileShader(vs);
+    GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fs, 1, &fragment_shader, NULL);
+    glCompileShader(fs);
+
+    GLuint shader_program = glCreateProgram();
+    glAttachShader(shader_program, fs);
+    glAttachShader(shader_program, vs);
+    glLinkProgram(shader_program);
+    glUseProgram(shader_program);
+
+    // GLuint matrices_loc = glGetUniformBlockIndex(shader_program, "matrices");
+    // //GLuint matrices_loc = glGetProgramResourceIndex(shader_program, GL_SHADER_STORAGE_BLOCK, "matrices");
+    // assert(matrices_loc == 0);
+
+    // GLuint scale_loc = glGetUniformBlockIndex(shader_program, "scale");
+    // assert(scale_loc == 1);
+
+    // GLuint color_att_loc = glGetUniformBlockIndex(shader_program, "color_att");
+    // assert(color_att_loc == 2);
+
+    printf("bind base mat_ubo\n");
+    glBindBufferBase(mat_target, 0, mat_bo);
+    printf("bind base scale_ubo\n");
+    glBindBufferBase(scale_target, 1, scale_bo);
+    printf("bind base col_att_ubo\n");
+    glBindBufferBase(col_target, 2, col_att_bo);
+
+    GLuint tex;
+    glGenTextures(1, &tex);
+    glBindTexture(GL_TEXTURE_2D, tex);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 256, 256, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+                 genTexturePixels(GL_RGBA, GL_UNSIGNED_BYTE, 0x10, 256,256));
+
+
+    GLuint tex2;
+    glGenTextures(1, &tex2);
+    glBindTexture(GL_TEXTURE_2D, tex2);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 256, 512, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+                 genTexturePixels(GL_RGBA, GL_UNSIGNED_BYTE, 0x10, 256,512));
+
+    glViewport(0, 0, width, height);
+
+    glBindVertexArray(vao);
+
+    glUseProgram(shader_program);
+
+    glClearColor(0.2, 0.2, 0.2, 0.0);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    float att_delta = 0.01;
+
+    while (!glfwWindowShouldClose(window))
+    {
+        //GLsync  sync;
+
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        glBindTexture(GL_TEXTURE_2D, tex2);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glBindTexture(GL_TEXTURE_2D, tex);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+
+        //sync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+
+        SWAP_BUFFERS;
+
+        angle += (M_PI / 180);
+
+        rotZ = glm::rotate(glm::identity<mat4>(), angle, glm::vec3(0, 0, 1));
+
+        //glWaitSync(sync, 0, GL_TIMEOUT_IGNORED);
+
+        // printf("bind mat_ubo\n");
+        glBindBuffer(mat_target, mat_bo);
+        glBufferSubData(mat_target, 0, sizeof(mat4), &rotZ[0][0]);
+        glBindBuffer(mat_target, 0);
+
+        att += att_delta;
+        if (att > 1.0)
+        {
+            att = 1.0;
+            att_delta *= -1.0;
+        }
+        else if (att < 0.0)
+        {
+            att = 0.0;
+            att_delta *= -1.0;
+        }
+
+        // printf("bind col_att_ubo\n");
+        glBindBuffer(col_target, col_att_bo);
+        glBufferSubData(col_target, 0, sizeof(float), &att);
+        glBindBuffer(col_target, 0);
+
+        while (!glfwWindowShouldClose(window)) glfwWaitEvents();
+    }
+
+    return 0;
+}
+
+
+
+
 GLuint draw_to_framebuffer(GLFWwindow* window, int width, int height)
 {
     GLuint vbo = 0;
@@ -2300,7 +2826,7 @@ int test_framebuffer(GLFWwindow* window, int width, int height)
         };
 
         void main() {
-            gl_Position = rotMatrix * vec4(position, 1.0);
+            gl_Position = /*pos_scale **/ rotMatrix * vec4(position, 1.0);
             out_color = vec4(in_color, 1.0);
             out_texcoords = in_texcords;
         }
@@ -2321,7 +2847,7 @@ int test_framebuffer(GLFWwindow* window, int width, int height)
         uniform sampler2D image;
 
         void main() {
-            vec4 tex_color = texture(image, in_texcords);
+            vec4 tex_color = att * texture(image, in_texcords);
 
             //frag_colour = in_color * att * tex_color;
             //frag_colour = tex_color;
@@ -2361,7 +2887,7 @@ int test_framebuffer(GLFWwindow* window, int width, int height)
     float angle = M_1_PI / 6;
     rotZ = glm::rotate(glm::identity<mat4>(), angle, glm::vec3(0, 0, 1));
 
-    float scale = -1.0;
+    float scale = -1.0; // 1.0
     float att = 1.0;
 
     mat_ubo = bindDataToVBO(GL_UNIFORM_BUFFER, sizeof(mat4),&rotZ[0][0], GL_STATIC_DRAW);
@@ -3275,14 +3801,15 @@ int main_glfw(int argc, const char * argv[])
 
     // test_clear(window, width, height);
     // test_draw_arrays(window, width, height);
-    test_draw_arrays_uniformMatrix4fv(window, width, height);
-    // test_draw_elements(window, width, height);
+    // test_draw_elements(window, width, height); // ! GL_INVALID_OPERATION
     // test_draw_range_elements(window, width, height);
     // test_draw_arrays_instanced(window, width, height);
     // test_uniform_buffer(window, width, height);
+    // test_buffer_objects_mix(window, width, height);
     // test_1D_textures(window, width, height);
-    // test_1D_array_textures(window, width, height);
+    // test_2D_array_textures(window, width, height);
     // test_2D_textures(window, width, height);
+    // test_texture_switch(window, width, height);
     // test_3D_textures(window, width, height);
     // test_2D_array_textures(window, width, height);
     // test_textures(window, width, height, 0, 0);
@@ -3292,7 +3819,7 @@ int main_glfw(int argc, const char * argv[])
     // test_textures(window, width, height, 1, 1, 8, GL_LINEAR_MIPMAP_NEAREST);
     // test_framebuffer(window, width, height);
     // test_readpixels(window, width, height);
-    // test_compute_shader(window, width, height);
+    //!!!! test_compute_shader(window, width, height);
 
     //test_2D_array_textures_perf_mon(window, width, height);
 
@@ -3365,13 +3892,15 @@ int main_sdl(int argc, const char * argv[])
 
     // test_clear(window, width, height);
     // test_draw_arrays(window, width, height);
-    // test_draw_elements(window, width, height);
+    test_draw_elements(window, width, height); // GL_INVALID_OPERATION
     // test_draw_range_elements(window, width, height);
     // test_draw_arrays_instanced(window, width, height);
     // test_uniform_buffer(window, width, height);
+    // test_buffer_objects_mix(window, width, height);
     // test_1D_textures(window, width, height);
-    // test_1D_array_textures(window, width, height);
-    test_2D_textures(window, width, height);
+    // test_2D_array_textures(window, width, height);
+    // test_2D_textures(window, width, height);  // Assertion failed: (0), function getIndex, file program.c, line 729.
+    // test_texture_switch(window, width, height);
     // test_3D_textures(window, width, height);
     // test_2D_array_textures(window, width, height);
     // test_textures(window, width, height, 0, 0);
@@ -3379,11 +3908,11 @@ int main_sdl(int argc, const char * argv[])
     // test_textures(window, width, height, 0, 0, 0, GL_LINEAR, GL_LINEAR);
     // test_textures(window, width, height, 1, 1, 0, GL_LINEAR_MIPMAP_NEAREST);
     // test_textures(window, width, height, 1, 1, 8, GL_LINEAR_MIPMAP_NEAREST);
-    // test_framebuffer(window, width, height);
+    // test_framebuffer(window, width, height); // Assertion failed: (0), function getIndex, file program.c, line 729.
     // test_readpixels(window, width, height);
-    // test_compute_shader(window, width, height);
+    // test_compute_shader(window, width, height); // GL_INVALID_OPERATION
 
-    //test_2D_array_textures_perf_mon(window, width, height);
+    // test_2D_array_textures_perf_mon(window, width, height); // asan: texSubImage textures.c:1361
 
     CppDestroyMGLRenderer(glm_ctx, renderer);
 
