@@ -44,9 +44,14 @@ MTLPixelFormat mtlFormatForGLInternalFormat(GLenum internal_format);
 MTLPixelFormat mtlPixelFormatForGLFormatType(GLenum gl_format, GLenum gl_type);
 
 
+#ifndef API_AVAILABLE
 #define API_AVAILABLE(...) __API_AVAILABLE_GET_MACRO(__VA_ARGS__,__API_AVAILABLE7, __API_AVAILABLE6, __API_AVAILABLE5, __API_AVAILABLE4, __API_AVAILABLE3, __API_AVAILABLE2, __API_AVAILABLE1, 0)(__VA_ARGS__)
+#endif
 
+#ifndef API_UNAVAILABLE
 #define API_UNAVAILABLE(...) __API_UNAVAILABLE_GET_MACRO(__VA_ARGS__,__API_UNAVAILABLE7,__API_UNAVAILABLE6, __API_UNAVAILABLE5, __API_UNAVAILABLE4,__API_UNAVAILABLE3,__API_UNAVAILABLE2,__API_UNAVAILABLE1, 0)(__VA_ARGS__)
+#endif
+
 
 typedef enum MTLPixelFormat_t {
     MTLPixelFormatInvalid = 0,

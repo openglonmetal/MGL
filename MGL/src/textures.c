@@ -913,11 +913,11 @@ bool createTextureLevel(GLMContext ctx, Texture *tex, GLuint face, GLint level, 
         ERROR_RETURN_VALUE(GL_INVALID_OPERATION, false);
     }
 
-    if (ctx->state.buffers[_PIXEL_UNPACK_BUFFER])
+    if (STATE(vao)->buffer_bindings[_PIXEL_UNPACK_BUFFER].buffer)
     {
         Buffer *ptr;
 
-        ptr = ctx->state.buffers[_PIXEL_UNPACK_BUFFER];
+        ptr = STATE(vao)->buffer_bindings[_PIXEL_UNPACK_BUFFER].buffer;
 
         ERROR_CHECK_RETURN(ptr->mapped == false, GL_INVALID_OPERATION);
 
@@ -1053,11 +1053,11 @@ bool createTextureLevel(GLMContext ctx, Texture *tex, GLuint face, GLint level, 
             }
 
             // unpack from pixel buffer
-            if (ctx->state.buffers[_PIXEL_UNPACK_BUFFER])
+            if (STATE(vao)->buffer_bindings[_PIXEL_UNPACK_BUFFER].buffer)
             {
                 Buffer *ptr;
 
-                ptr = ctx->state.buffers[_PIXEL_UNPACK_BUFFER];
+                ptr = STATE(vao)->buffer_bindings[_PIXEL_UNPACK_BUFFER].buffer;
 
                 ERROR_CHECK_RETURN(ptr->mapped == false, GL_INVALID_OPERATION);
 
@@ -1258,11 +1258,11 @@ bool texSubImage(GLMContext ctx, Texture *tex, GLuint face, GLint level, GLint x
     ERROR_CHECK_RETURN_VALUE(tex->faces[face].levels[level].complete, GL_INVALID_OPERATION, false);
 
     // unpack from pixel buffer
-    if (ctx->state.buffers[_PIXEL_UNPACK_BUFFER])
+    if (STATE(vao)->buffer_bindings[_PIXEL_UNPACK_BUFFER].buffer)
     {
         Buffer *ptr;
 
-        ptr = ctx->state.buffers[_PIXEL_UNPACK_BUFFER];
+        ptr = STATE(vao)->buffer_bindings[_PIXEL_UNPACK_BUFFER].buffer;
 
         ERROR_CHECK_RETURN(ptr->mapped == false, GL_INVALID_OPERATION);
 
@@ -1344,7 +1344,7 @@ bool texSubImage(GLMContext ctx, Texture *tex, GLuint face, GLint level, GLint x
     {
         Buffer *buf;
 
-        buf = ctx->state.buffers[_PIXEL_UNPACK_BUFFER];
+        buf = STATE(vao)->buffer_bindings[_PIXEL_UNPACK_BUFFER].buffer;
 
         if (buf == NULL)
             continue;

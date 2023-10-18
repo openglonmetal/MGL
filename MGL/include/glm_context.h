@@ -523,6 +523,7 @@ typedef struct {
     GLuint viewport[4]; // GL_VIEWPORT
     GLfloat color_clear_value[4]; // GL_COLOR_CLEAR_VALUE
 
+    VertexArray *default_vao;
     VertexArray *vao;
     Texture     *tex;
     Renderbuffer *renderbuffer;
@@ -549,7 +550,6 @@ typedef struct {
 
     Shader      *shaders[_MAX_SHADER_TYPES];
     Program     *program;
-    Buffer      *buffers[_MAX_BUFFER_TYPES];
 
     BufferBase  buffer_base[_MAX_BUFFER_TYPES];
 

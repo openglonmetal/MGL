@@ -265,6 +265,15 @@ char *parseSPIRVShaderToMetal(GLMContext ctx, Program *ptr, int stage)
     // Hand it off to a compiler instance and give it ownership of the IR.
     spvc_context_create_compiler(context, SPVC_BACKEND_MSL, ir, SPVC_CAPTURE_MODE_TAKE_OWNERSHIP, &compiler_msl);
     assert(compiler_msl);
+    ERROR_CHECK_RETURN(spvc_compiler_msl_add_discrete_descriptor_set(compiler_msl, 3) == SPVC_SUCCESS, GL_INVALID_OPERATION);
+
+    // Modify options.
+    ERROR_CHECK_RETURN(spvc_compiler_create_compiler_options(compiler_msl, &options) == SPVC_SUCCESS, GL_INVALID_OPERATION);
+    ERROR_CHECK_RETURN(spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_MSL_ARGUMENT_BUFFERS, SPVC_TRUE) == SPVC_SUCCESS, GL_INVALID_OPERATION);
+    ERROR_CHECK_RETURN(spvc_compiler_options_set_uint(options, SPVC_COMPILER_OPTION_MSL_VERSION, SPVC_MAKE_MSL_VERSION(2,3,0)) == SPVC_SUCCESS, GL_INVALID_OPERATION);
+//    ERROR_CHECK_RETURN(spvc_compiler_options_set_uint(options, SPVC_COMPILER_OPTION_GLSL_VERSION, 4.5) == SPVC_SUCCESS, GL_INVALID_OPERATION);
+    ERROR_CHECK_RETURN(spvc_compiler_install_compiler_options(compiler_msl, options) == SPVC_SUCCESS, GL_INVALID_OPERATION);
+
 
     // create an entry point for metal based on the shader type and name
     GLuint name;
@@ -356,11 +365,6 @@ char *parseSPIRVShaderToMetal(GLMContext ctx, Program *ptr, int stage)
             ptr->spirv_resources_list[stage][res_type].list[i].location = spvc_compiler_get_decoration(compiler_msl, list[i].id, SpvDecorationLocation);
         }
     }
-
-    // Modify options.
-    spvc_compiler_create_compiler_options(compiler_msl, &options);
-    spvc_compiler_options_set_uint(options, SPVC_COMPILER_OPTION_MSL_VERSION, SPVC_MAKE_MSL_VERSION(2,3,0));
-    spvc_compiler_install_compiler_options(compiler_msl, options);
 
     spvc_compiler_compile(compiler_msl, &result);
     printf("\n%s\n", result);

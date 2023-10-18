@@ -78,7 +78,7 @@ void initGLSLInput(GLMContext ctx, GLuint type, const char *src, glslang_input_t
     input->client = GLSLANG_CLIENT_OPENGL;
     input->client_version = GLSLANG_TARGET_OPENGL_450;
     input->target_language = GLSLANG_TARGET_SPV;
-    input->target_language_version = GLSLANG_TARGET_SPV_1_5;
+    input->target_language_version = GLSLANG_TARGET_SPV_1_0;
 
     input->code = src;
     input->default_version = 460;

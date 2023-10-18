@@ -134,7 +134,7 @@ void mglBindVertexArray(GLMContext ctx, GLuint array)
 
     if (array == 0)
     {
-        ptr = NULL;
+        ptr = STATE(default_vao);
     }
     else
     {
@@ -150,14 +150,17 @@ void mglBindVertexArray(GLMContext ctx, GLuint array)
         // bind _ELEMENT_ARRAY_BUFFER if vao element array is null, think this is right
         if (ptr->element_array.buffer == NULL)
         {
-            ptr->element_array.buffer = ctx->state.buffers[_ELEMENT_ARRAY_BUFFER];
+            ptr->element_array.buffer = STATE(vao)->buffer_bindings[_ELEMENT_ARRAY_BUFFER].buffer;
 
             ptr->dirty_bits |= DIRTY_VAO_ATTRIB;
         }
     }
     
-    STATE(vao) = ptr;
-    STATE(dirty_bits) |= DIRTY_VAO;
+    if (STATE(vao) != ptr)
+    {
+        STATE(vao) = ptr;
+        STATE(dirty_bits) |= DIRTY_VAO;
+    }
 }
 
 void mglDeleteVertexArrays(GLMContext ctx, GLsizei n, const GLuint *arrays)
@@ -331,7 +334,8 @@ void setVertexAttrib(GLMContext ctx, GLuint index, GLint size, GLenum type, GLbo
     VAO_ATTRIB_STATE(index).relativeoffset = (GLubyte *)pointer - (GLubyte *)NULL;
 
     // bind current array buffer to attrib
-    VAO_ATTRIB_STATE(index).buffer = STATE(buffers[_ARRAY_BUFFER]);
+    VAO_ATTRIB_STATE(index).buffer = STATE(vao)->buffer_bindings[_ARRAY_BUFFER].buffer;
+    ERROR_CHECK_RETURN(VAO_ATTRIB_STATE(index).buffer, GL_INVALID_OPERATION);
 
     VAO_STATE(dirty_bits) |= DIRTY_VAO;
 }
@@ -350,7 +354,7 @@ void mglVertexAttribPointer(GLMContext ctx, GLuint index, GLint size, GLenum typ
     {
         Buffer *ptr;
 
-        ptr = ctx->state.vao->buffer_bindings[index].buffer;
+        ptr = STATE(vao)->buffer_bindings[_ARRAY_BUFFER].buffer;
 
         ERROR_CHECK_RETURN(ptr, GL_INVALID_OPERATION);
     }

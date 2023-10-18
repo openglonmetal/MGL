@@ -1023,6 +1023,7 @@ int test_draw_elements(GLFWwindow* window, int width, int height)
     GLuint vao = 0;
     glCreateVertexArrays(1, &vao);
     glBindVertexArray(vao);
+    
     glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
@@ -1050,13 +1051,102 @@ int test_draw_elements(GLFWwindow* window, int width, int height)
 
     glUseProgram(shader_program);
 
+    glfwPollEvents();
+
     glClearColor(0.2, 0.2, 0.2, 0.0);
     glClear(GL_COLOR_BUFFER_BIT);
-
+    
     glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
-
+    
     SWAP_BUFFERS;
 
+    return 0;
+}
+
+int test_draw_elements_vertex_attribute(GLFWwindow* window, int width, int height)
+{
+    GLuint vbo = 0, elem_vbo = 0;
+
+    const char* vertex_shader =
+    "#version 450 core\n"
+    "layout(location = 0) in vec3 position;"
+    "layout(location = 1) in vec3 col;"
+    "layout(location = 0) out vec3 col_out;"
+    "void main() {"
+    "  gl_Position = vec4(position, 1.0);"
+    "  col_out = col;"
+    "}";
+
+    const char* fragment_shader =
+    "#version 450 core\n"
+    "layout(location = 0) in vec3 color_in;"
+    "layout(location = 0) out vec4 frag_colour;"
+    "void main() {"
+    "  frag_colour = vec4(color_in, 1.0);"
+    "}";
+
+    GLfloat verts[] = {
+        // pos               // col
+       0.0f,  0.5f,  0.0f,   1.0f, 0.0f, 0.0f,
+       0.5f, -0.5f,  0.0f,   0.0f, 1.0f, 0.0f,
+      -0.5f, -0.5f,  0.0f,   0.0f, 0.0f, 1.0f
+    };
+
+    GLuint indices[] = {0, 1, 2};
+
+    glGenBuffers(1, &elem_vbo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elem_vbo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+    glGenBuffers(1, &vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STATIC_DRAW);
+
+    GLuint vao = 0;
+    glCreateVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elem_vbo);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), 0);
+
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void *)(3 * sizeof(float)));
+    
+    GLuint vs = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vs, 1, &vertex_shader, NULL);
+    glCompileShader(vs);
+    GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fs, 1, &fragment_shader, NULL);
+    glCompileShader(fs);
+
+    GLuint shader_program = glCreateProgram();
+    glAttachShader(shader_program, fs);
+    glAttachShader(shader_program, vs);
+    glLinkProgram(shader_program);
+    glUseProgram(shader_program);
+
+    glViewport(0, 0, width, height);
+
+    glBindVertexArray(vao);
+
+    glUseProgram(shader_program);
+
+    glfwPollEvents();
+    
+    while(glfwGetKey(window, GLFW_KEY_0) != GLFW_PRESS)
+    {
+        glfwPollEvents();
+        
+        glClearColor(0.0, 0.0, 0.0, 1.0);
+        glClear(GL_COLOR_BUFFER_BIT);
+        
+        glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
+        
+        SWAP_BUFFERS;
+    }
+    
     return 0;
 }
 
@@ -3278,8 +3368,9 @@ int main_glfw(int argc, const char * argv[])
 
     // test_clear(window, width, height);
     // test_draw_arrays(window, width, height);
-    test_draw_arrays_uniformMatrix4fv(window, width, height);
+    //test_draw_arrays_uniformMatrix4fv(window, width, height);
     // test_draw_elements(window, width, height);
+    test_draw_elements_vertex_attribute(window, width, height);
     // test_draw_range_elements(window, width, height);
     // test_draw_arrays_instanced(window, width, height);
     // test_uniform_buffer(window, width, height);
@@ -3374,7 +3465,8 @@ int main_sdl(int argc, const char * argv[])
     // test_uniform_buffer(window, width, height);
     // test_1D_textures(window, width, height);
     // test_1D_array_textures(window, width, height);
-    test_2D_textures(window, width, height);
+    // test_2D_textures(window, width, height);
+    
     // test_3D_textures(window, width, height);
     // test_2D_array_textures(window, width, height);
     // test_textures(window, width, height, 0, 0);

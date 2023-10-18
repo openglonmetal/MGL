@@ -1,3 +1,5 @@
+cp ../MGL/include/MGLContext.h glfw/src
+cp ../MGL/include/MGLRenderer.h glfw/src
 cd SPIRV-Cross
 mkdir build
 cd build

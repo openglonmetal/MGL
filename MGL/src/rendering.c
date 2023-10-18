@@ -353,11 +353,11 @@ void mglReadPixels(GLMContext ctx, GLint x, GLint y, GLsizei width, GLsizei heig
             break;
     }
 
-    if (ctx->state.buffers[_PIXEL_PACK_BUFFER])
+    if (STATE(vao)->buffer_bindings[_PIXEL_PACK_BUFFER].buffer)
     {
         Buffer *ptr;
 
-        ptr = ctx->state.buffers[_PIXEL_PACK_BUFFER];
+        ptr = STATE(vao)->buffer_bindings[_PIXEL_PACK_BUFFER].buffer;
 
         ERROR_CHECK_RETURN(ptr->mapped == false, GL_INVALID_OPERATION);
 

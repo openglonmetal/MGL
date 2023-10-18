@@ -70,29 +70,21 @@ bool processVAO(GLMContext ctx)
     if (vao->dirty_bits & DIRTY_VAO_BUFFER_BASE)
     {
         // map buffer bindings to vertex array
-        for(int i=0;i<ctx->state.max_vertex_attribs; i++)
+        for(int i=0; i<ctx->state.max_vertex_attribs; i++)
         {
             if (vao->enabled_attribs & (0x1 << i))
             {
                 BufferBinding *ptr;
-
-                ptr = &vao->buffer_bindings[vao->attrib[i].buffer_bindingindex];
-
-                if (ptr->buffer)
-                {
-                    // bind buffer at buffer bindings
-                    vao->attrib[i].buffer = ptr->buffer;
-                    // weird but this is what the spec says
-                    vao->attrib[i].base_plus_relative_offset = ptr->offset + vao->attrib[i].relativeoffset;
-                    assert(vao->attrib[i].base_plus_relative_offset % 4 == 0);
-                    vao->attrib[i].stride = ptr->stride;
-                    vao->attrib[i].divisor = ptr->divisor;
-                }
-                else if (vao->attrib[i].buffer == NULL)
+             
+                ptr = &vao->buffer_bindings[_ARRAY_BUFFER];
+                
+                if (ptr->buffer == NULL)
                 {
                     // no buffer bound to active attrib...
                     return false;
                 }
+
+                vao->attrib[i].base_plus_relative_offset = ptr->offset + vao->attrib[i].relativeoffset;
             }
 
             // early out
@@ -343,7 +335,7 @@ void mglDrawArraysIndirect(GLMContext ctx, GLenum mode, const void *indirect)
 {
     ERROR_CHECK_RETURN(check_draw_modes(mode), GL_INVALID_ENUM);
 
-    ERROR_CHECK_RETURN(ctx->state.buffers[_DRAW_INDIRECT_BUFFER], GL_INVALID_OPERATION);
+    ERROR_CHECK_RETURN(STATE(vao)->buffer_bindings[_DRAW_INDIRECT_BUFFER].buffer, GL_INVALID_OPERATION);
 
     if(validate_vao(ctx, false) == false)
     {
@@ -370,7 +362,7 @@ void mglDrawElementsIndirect(GLMContext ctx, GLenum mode, GLenum type, const voi
 
     ERROR_CHECK_RETURN(VAO_STATE(element_array.buffer), GL_INVALID_OPERATION);
 
-    ERROR_CHECK_RETURN(ctx->state.buffers[_DRAW_INDIRECT_BUFFER], GL_INVALID_OPERATION);
+    ERROR_CHECK_RETURN(STATE(vao)->buffer_bindings[_DRAW_INDIRECT_BUFFER].buffer, GL_INVALID_OPERATION);
 
     ctx->mtl_funcs.mtlDrawArraysIndirect(ctx, mode, indirect);
 }
@@ -518,7 +510,7 @@ void mglMultiDrawArraysIndirect(GLMContext ctx, GLenum mode, const void *indirec
 
     ERROR_CHECK_RETURN(validate_program(ctx), GL_INVALID_OPERATION);
 
-    ERROR_CHECK_RETURN(ctx->state.buffers[_DRAW_INDIRECT_BUFFER], GL_INVALID_OPERATION);
+    ERROR_CHECK_RETURN(STATE(vao)->buffer_bindings[_DRAW_INDIRECT_BUFFER].buffer, GL_INVALID_OPERATION);
 
     ctx->mtl_funcs.mtlMultiDrawArraysIndirect(ctx, mode, indirect, drawcount, stride);
 }
@@ -542,7 +534,7 @@ void mglMultiDrawElementsIndirect(GLMContext ctx, GLenum mode, GLenum type, cons
 
     ERROR_CHECK_RETURN(VAO_STATE(element_array.buffer), GL_INVALID_OPERATION);
 
-    ERROR_CHECK_RETURN(ctx->state.buffers[_DRAW_INDIRECT_BUFFER], GL_INVALID_OPERATION);
+    ERROR_CHECK_RETURN(STATE(vao)->buffer_bindings[_DRAW_INDIRECT_BUFFER].buffer, GL_INVALID_OPERATION);
 
     ctx->mtl_funcs.mtlMultiDrawElementsIndirect(ctx, mode, type, indirect, drawcount, stride);
 }

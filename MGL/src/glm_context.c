@@ -23,6 +23,7 @@
 #include <assert.h>
 
 #include "glm_context.h"
+#include "vertex_arrays.h"
 #include "MGLRenderer.h"
 #include "error.h"
 
@@ -206,10 +207,12 @@ GLMContext createGLMContext(GLenum format, GLenum type,
 
     STATE(var.cull_face_mode) = GL_BACK;
 
-
     STATE(sync_name) = 1;
 
     STATE(dirty_bits) = DIRTY_ALL;
+
+    STATE(default_vao) = newVAO(ctx, 0);    
+    STATE(vao) = STATE(default_vao);
     
     initHashTable(&STATE(vao_table), 32);
     initHashTable(&STATE(buffer_table), 32);

@@ -1410,7 +1410,8 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
     }
 
     ptr = ctx->state.program;
-    assert(ptr);
+    if (ptr == NULL)
+        return 0;
 
     return ptr->spirv_resources_list[stage][type].count;
 }
@@ -3344,7 +3345,7 @@ Buffer *getElementBuffer(GLMContext ctx)
 
 Buffer *getIndirectBuffer(GLMContext ctx)
 {
-    Buffer *gl_indirect_buffer = ctx->state.buffers[_DRAW_INDIRECT_BUFFER];
+    Buffer *gl_indirect_buffer = STATE(vao)->buffer_bindings[_DRAW_INDIRECT_BUFFER].buffer;
 
     return gl_indirect_buffer;
 }
