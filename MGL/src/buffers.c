@@ -176,7 +176,7 @@ void *getBufferData(GLMContext ctx, Buffer *ptr)
 {
     void *buffer_data;
 
-    ptr = STATE(vao)->buffer_bindings[_PIXEL_UNPACK_BUFFER].buffer;
+    ptr = STATE(buffers[_PIXEL_UNPACK_BUFFER]);
 
     ERROR_CHECK_RETURN(ptr->mapped == false, GL_INVALID_OPERATION);
 
@@ -391,11 +391,11 @@ void mglDeleteBuffers(GLMContext ctx, GLsizei n, const GLuint *buffers)
             GLuint target;
 
             target = ptr->target;
-            if (STATE(vao)->buffer_bindings[target].buffer)
+            if (STATE(buffers[target]))
             {
-                if (STATE(vao)->buffer_bindings[target].buffer->name == buffer)
+                if (STATE(buffers[target])->name == buffer)
                 {
-                    STATE(vao)->buffer_bindings[target].buffer = NULL;
+                    STATE(buffers[target]) = NULL;
                 }
             }
 
@@ -454,9 +454,6 @@ void mglBindBuffer(GLMContext ctx, GLenum target, GLuint buffer)
     // GL_INVALID_ENUM is generated if target is not supported.
     ERROR_CHECK_RETURN(checkTarget(ctx, target), GL_INVALID_ENUM);
 
-    // GL_INVALID_VALUE is generated if buffer is not a name previously returned from a call to glGenBuffers.
-    ERROR_CHECK_RETURN(buffer < ctx->state.buffer_table.current_name, GL_INVALID_VALUE);
-
     if (buffer)
     {
         ptr = getBuffer(ctx, target, buffer);
@@ -469,9 +466,9 @@ void mglBindBuffer(GLMContext ctx, GLenum target, GLuint buffer)
 
     index = bufferIndexFromTarget(ctx, target);
 
-    if (STATE(vao)->buffer_bindings[index].buffer != ptr)
+    if (STATE(buffers[index]) != ptr)
     {
-        STATE(vao)->buffer_bindings[index].buffer = ptr;
+        STATE(buffers[index]) = ptr;
         STATE(dirty_bits) |= DIRTY_BUFFER;
     }
 }
@@ -582,7 +579,7 @@ void mglBindBufferRange(GLMContext ctx, GLenum target, GLuint index, GLuint buff
 }
 
 #pragma mark GL Buffer Data Functions
-kern_return_t initBufferData(GLMContext ctx, Buffer *ptr, GLsizeiptr size, const void *data, bool isUC)
+kern_return_t initBufferData(GLMContext ctx, Buffer *ptr, GLsizeiptr size, const void *data, bool isUniformConstant)
 {
     kern_return_t err;
     vm_address_t buffer_data;
@@ -590,27 +587,55 @@ kern_return_t initBufferData(GLMContext ctx, Buffer *ptr, GLsizeiptr size, const
 
     if (ptr->data.buffer_data)
     {
+        if (isUniformConstant)
+        {
+            // if its a uniform constant then lets not delete and create a buffer
+            // check the old size.. then if it can fit new size then reuse.
+            if (size <= ptr->data.buffer_size)
+            {
+                if (data)
+                {
+                    memcpy((void *)ptr->data.buffer_data, data, size);
+                    
+                    ptr->data.dirty_bits |= DIRTY_BUFFER_DATA;
+                }
+                
+                return 0;
+            }
+        }
+
         if (ptr->storage_flags & GL_CLIENT_STORAGE_BIT)
         {
             if (ptr->data.mtl_data)
             {
                 // the mtl buffer has a deallocator for the vm allocate
                 ctx->mtl_funcs.mtlDeleteMTLObj(ctx, ptr->data.mtl_data);
-                if(isUC){ptr->data.mtl_data = NULL;}
+                
+                if(isUniformConstant)
+                {
+                    ptr->data.mtl_data = NULL;
+                }
             }
             else
             {
                 vm_deallocate(mach_host_self(), ptr->data.buffer_data, ptr->data.buffer_size);
             }
+            
+            ptr->data.buffer_data = 0;
+            ptr->data.buffer_size = 0;
         }
         else
         {
             ctx->mtl_funcs.mtlDeleteMTLObj(ctx, ptr->data.mtl_data);
-            if(isUC){ptr->data.mtl_data = NULL;}
+            
+            if(isUniformConstant)
+            {
+                ptr->data.mtl_data = NULL;
+            }
+            
+            ptr->data.buffer_data = 0;
+            ptr->data.buffer_size = 0;
         }
-
-        ptr->data.buffer_data = 0;
-        ptr->data.buffer_size = 0;
     }
 
     buffer_size = page_size_align(size);
@@ -660,7 +685,7 @@ void mglBufferData(GLMContext ctx, GLenum target, GLsizeiptr size, const void *d
 
     index = bufferIndexFromTarget(ctx, target);
 
-    ptr = STATE(vao)->buffer_bindings[index].buffer;
+    ptr = STATE(buffers[index]);
     if (ptr == NULL)
     {
         ERROR_RETURN(GL_INVALID_OPERATION);
@@ -730,7 +755,7 @@ void mglBufferSubData(GLMContext ctx, GLenum target, GLintptr offset, GLsizeiptr
     }
 
     index = bufferIndexFromTarget(ctx, target);
-    ptr = STATE(vao)->buffer_bindings[index].buffer;
+    ptr = STATE(buffers[index]);
 
     if (ptr == NULL)
     {
@@ -904,7 +929,7 @@ void mglCopyBufferSubData(GLMContext ctx, GLenum readTarget, GLenum writeTarget,
     ERROR_CHECK_RETURN(checkTarget(ctx, writeTarget), GL_INVALID_ENUM);
 
     index = bufferIndexFromTarget(ctx, readTarget);
-    src_buf = STATE(vao)->buffer_bindings[index].buffer;
+    src_buf = STATE(buffers[index]);
 
     if (src_buf == NULL)
     {
@@ -912,7 +937,7 @@ void mglCopyBufferSubData(GLMContext ctx, GLenum readTarget, GLenum writeTarget,
     }
 
     index = bufferIndexFromTarget(ctx, writeTarget);
-    dst_buf = STATE(vao)->buffer_bindings[index].buffer;
+    dst_buf = STATE(buffers[index]);
 
     if (dst_buf == NULL)
     {
@@ -969,7 +994,7 @@ void mglClearBufferData(GLMContext ctx, GLenum target, GLenum internalformat, GL
     ERROR_CHECK_RETURN(checkTarget(ctx, target), GL_INVALID_ENUM);
 
     index = bufferIndexFromTarget(ctx, target);
-    ptr = STATE(vao)->buffer_bindings[index].buffer;
+    ptr = STATE(buffers[index]);
 
     if (ptr == NULL)
     {
@@ -990,7 +1015,7 @@ void mglClearBufferSubData(GLMContext ctx, GLenum target, GLenum internalformat,
     ERROR_CHECK_RETURN(checkTarget(ctx, target), GL_INVALID_ENUM);
 
     index = bufferIndexFromTarget(ctx, target);
-    ptr = STATE(vao)->buffer_bindings[index].buffer;
+    ptr = STATE(buffers[index]);
 
     if (ptr == NULL)
     {
@@ -1054,7 +1079,7 @@ void *mglMapBuffer(GLMContext ctx, GLenum target, GLenum access)
     }
 
     index = bufferIndexFromTarget(ctx, target);
-    ptr = STATE(vao)->buffer_bindings[index].buffer;
+    ptr = STATE(buffers[index]);
 
     ERROR_CHECK_RETURN_VALUE((ptr != NULL), GL_INVALID_OPERATION, NULL);
 
@@ -1082,7 +1107,7 @@ GLboolean mglUnmapBuffer(GLMContext ctx, GLenum target)
     ERROR_CHECK_RETURN_VALUE(checkTarget(ctx, target), GL_INVALID_ENUM, GL_FALSE);
 
     index = bufferIndexFromTarget(ctx, target);
-    ptr = STATE(vao)->buffer_bindings[index].buffer;
+    ptr = STATE(buffers[index]);
 
     ERROR_CHECK_RETURN_VALUE((ptr != NULL), GL_INVALID_OPERATION, GL_FALSE);
 
@@ -1137,7 +1162,7 @@ void *mglMapBufferRange(GLMContext ctx, GLenum target, GLintptr offset, GLsizeip
     }
 
     index = bufferIndexFromTarget(ctx, target);
-    ptr = STATE(vao)->buffer_bindings[index].buffer;
+    ptr = STATE(buffers[index]);
 
     ERROR_CHECK_RETURN_VALUE((ptr != NULL), GL_INVALID_OPERATION, NULL);
 
@@ -1216,7 +1241,7 @@ void mglFlushMappedBufferRange(GLMContext ctx, GLenum target, GLintptr offset, G
     }
 
     index = bufferIndexFromTarget(ctx, target);
-    ptr = STATE(vao)->buffer_bindings[index].buffer;
+    ptr = STATE(buffers[index]);
 
     ERROR_CHECK_RETURN((ptr != NULL), GL_INVALID_OPERATION);
 
@@ -1282,7 +1307,7 @@ void mglBufferStorage(GLMContext ctx, GLenum target, GLsizeiptr size, const void
 
     index = bufferIndexFromTarget(ctx, target);
 
-    ptr = STATE(vao)->buffer_bindings[index].buffer;
+    ptr = STATE(buffers[index]);
 
     ERROR_CHECK_RETURN((ptr != NULL), GL_INVALID_OPERATION);
 
@@ -1335,7 +1360,7 @@ void mglGetBufferParameteriv(GLMContext ctx, GLenum target, GLenum pname, GLint 
     ERROR_CHECK_RETURN((params != NULL), GL_INVALID_OPERATION);
 
     index = bufferIndexFromTarget(ctx, target);
-    ptr = STATE(vao)->buffer_bindings[index].buffer;
+    ptr = STATE(buffers[index]);
 
     ERROR_CHECK_RETURN((ptr != NULL), GL_INVALID_OPERATION);
 
@@ -1406,7 +1431,7 @@ void mglGetBufferPointerv(GLMContext ctx, GLenum target, GLenum pname, void **pa
     ERROR_CHECK_RETURN((params != NULL), GL_INVALID_OPERATION);
 
     index = bufferIndexFromTarget(ctx, target);
-    ptr = STATE(vao)->buffer_bindings[index].buffer;
+    ptr = STATE(buffers[index]);
 
     ERROR_CHECK_RETURN((ptr != NULL), GL_INVALID_OPERATION);
 
@@ -1436,7 +1461,7 @@ void mglGetBufferSubData(GLMContext ctx, GLenum target, GLintptr offset, GLsizei
     }
 
     index = bufferIndexFromTarget(ctx, target);
-    ptr = STATE(vao)->buffer_bindings[index].buffer;
+    ptr = STATE(buffers[index]);
 
     if (ptr == NULL)
     {

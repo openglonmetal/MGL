@@ -211,9 +211,6 @@ GLMContext createGLMContext(GLenum format, GLenum type,
 
     STATE(dirty_bits) = DIRTY_ALL;
 
-    STATE(default_vao) = newVAO(ctx, 0);    
-    STATE(vao) = STATE(default_vao);
-    
     initHashTable(&STATE(vao_table), 32);
     initHashTable(&STATE(buffer_table), 32);
     initHashTable(&STATE(texture_table), 32);

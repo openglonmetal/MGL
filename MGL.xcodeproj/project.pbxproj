@@ -85,7 +85,6 @@
 		FF7B7AD827728C3200C2028F /* glm_limits.h in Headers */ = {isa = PBXBuildFile; fileRef = FF7B7AC827728C3100C2028F /* glm_limits.h */; };
 		FF7B7AF7277290EB00C2028F /* gl_core.c in Sources */ = {isa = PBXBuildFile; fileRef = FF7B7AF6277290EB00C2028F /* gl_core.c */; };
 		FF8F91A82780FBBD00A1E546 /* samplers.c in Sources */ = {isa = PBXBuildFile; fileRef = FF8F91A72780FBBD00A1E546 /* samplers.c */; };
-		FF99BF6B2ADE117A008AE33A /* spirv_cross_c.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FF99BF6A2ADE117A008AE33A /* spirv_cross_c.cpp */; };
 		FF99BF6D2ADF27ED008AE33A /* vertex_arrays.h in Headers */ = {isa = PBXBuildFile; fileRef = FF99BF6C2ADF27ED008AE33A /* vertex_arrays.h */; };
 		FF99BF6E2ADF304A008AE33A /* libglslang.a in Frameworks */ = {isa = PBXBuildFile; fileRef = FF7B788F27717FA400C2028F /* libglslang.a */; };
 		FF99BF6F2ADF304A008AE33A /* libMachineIndependent.a in Frameworks */ = {isa = PBXBuildFile; fileRef = FF7B788E27717FA400C2028F /* libMachineIndependent.a */; };
@@ -108,6 +107,7 @@
 		FF99BF872ADF320E008AE33A /* libglslang-default-resource-limits.a in Frameworks */ = {isa = PBXBuildFile; fileRef = FF99BF722ADF304A008AE33A /* libglslang-default-resource-limits.a */; };
 		FF99BF882ADF3248008AE33A /* libSPVRemapper.a in Frameworks */ = {isa = PBXBuildFile; fileRef = FF7B789D2771804500C2028F /* libSPVRemapper.a */; };
 		FF99BF892ADF3248008AE33A /* libSPIRV.a in Frameworks */ = {isa = PBXBuildFile; fileRef = FF7B789E2771804500C2028F /* libSPIRV.a */; };
+		FF99BF8E2AE05FB6008AE33A /* libspirv-cross-hlsl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DFB50A8928ADD0020084D12B /* libspirv-cross-hlsl.a */; };
 		FFA1EB712782851500EEE5AD /* compute.c in Sources */ = {isa = PBXBuildFile; fileRef = FFA1EB702782851500EEE5AD /* compute.c */; };
 		FFA83047276F9EBF003F1EA0 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FFA83046276F9EBF003F1EA0 /* main.cpp */; };
 		FFA83092277026C5003F1EA0 /* gl.xml in CopyFiles */ = {isa = PBXBuildFile; fileRef = FFA83091277026B6003F1EA0 /* gl.xml */; };
@@ -319,7 +319,6 @@
 		FF7B7AF6277290EB00C2028F /* gl_core.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = gl_core.c; sourceTree = "<group>"; };
 		FF86AEA92794DD0A00C51A88 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		FF8F91A72780FBBD00A1E546 /* samplers.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = samplers.c; sourceTree = "<group>"; };
-		FF99BF6A2ADE117A008AE33A /* spirv_cross_c.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = spirv_cross_c.cpp; path = "external/SPIRV-Cross/spirv_cross_c.cpp"; sourceTree = SOURCE_ROOT; };
 		FF99BF6C2ADF27ED008AE33A /* vertex_arrays.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = vertex_arrays.h; sourceTree = "<group>"; };
 		FF99BF722ADF304A008AE33A /* libglslang-default-resource-limits.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libglslang-default-resource-limits.a"; path = "external/glslang/build/glslang/libglslang-default-resource-limits.a"; sourceTree = "<group>"; };
 		FF99BF742ADF30E0008AE33A /* libSPIRV-Tools-diff.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libSPIRV-Tools-diff.a"; path = "external/SPIRV-Tools/build/source/diff/libSPIRV-Tools-diff.a"; sourceTree = "<group>"; };
@@ -360,6 +359,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FF99BF8E2AE05FB6008AE33A /* libspirv-cross-hlsl.a in Frameworks */,
 				FF99BF882ADF3248008AE33A /* libSPVRemapper.a in Frameworks */,
 				FF99BF892ADF3248008AE33A /* libSPIRV.a in Frameworks */,
 				FF99BF872ADF320E008AE33A /* libglslang-default-resource-limits.a in Frameworks */,
@@ -589,7 +589,6 @@
 		FFA83035276F9CEF003F1EA0 /* MGL */ = {
 			isa = PBXGroup;
 			children = (
-				FF99BF6A2ADE117A008AE33A /* spirv_cross_c.cpp */,
 				FF7B7AB827728C3100C2028F /* include */,
 				FF7B7A8127728C1D00C2028F /* src */,
 			);
@@ -962,7 +961,6 @@
 				FF7B7A9D27728C1D00C2028F /* state.c in Sources */,
 				FF7B7AAA27728C1D00C2028F /* fence.c in Sources */,
 				FF7B7AAE27728C1D00C2028F /* glm_context.c in Sources */,
-				FF99BF6B2ADE117A008AE33A /* spirv_cross_c.cpp in Sources */,
 				FF7B7AA927728C1D00C2028F /* draw_buffers.c in Sources */,
 				FF7B7AA527728C1D00C2028F /* buffers.c in Sources */,
 				FF7B7AA327728C1D00C2028F /* glm_params.c in Sources */,

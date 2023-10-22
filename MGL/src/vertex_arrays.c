@@ -83,9 +83,8 @@ VertexArray *newVAO(GLMContext ctx, GLuint vao)
         ptr->attrib[i].size = 4;
         ptr->attrib[i].type = GL_FLOAT;
         ptr->attrib[i].stride = 0;
-        ptr->attrib[i].divisor = 1;
+        ptr->attrib[i].divisor = 0;
         ptr->attrib[i].relativeoffset = 0;
-        ptr->attrib[i].base_plus_relative_offset = 0;
         ptr->attrib[i].buffer_bindingindex = 0;
     }
 
@@ -134,7 +133,7 @@ void mglBindVertexArray(GLMContext ctx, GLuint array)
 
     if (array == 0)
     {
-        ptr = STATE(default_vao);
+        ptr = NULL;
     }
     else
     {
@@ -145,17 +144,6 @@ void mglBindVertexArray(GLMContext ctx, GLuint array)
         ERROR_CHECK_RETURN(ptr, GL_INVALID_VALUE);
     }
 
-    if (ptr)
-    {
-        // bind _ELEMENT_ARRAY_BUFFER if vao element array is null, think this is right
-        if (ptr->element_array.buffer == NULL)
-        {
-            ptr->element_array.buffer = STATE(vao)->buffer_bindings[_ELEMENT_ARRAY_BUFFER].buffer;
-
-            ptr->dirty_bits |= DIRTY_VAO_ATTRIB;
-        }
-    }
-    
     if (STATE(vao) != ptr)
     {
         STATE(vao) = ptr;
@@ -334,7 +322,7 @@ void setVertexAttrib(GLMContext ctx, GLuint index, GLint size, GLenum type, GLbo
     VAO_ATTRIB_STATE(index).relativeoffset = (GLubyte *)pointer - (GLubyte *)NULL;
 
     // bind current array buffer to attrib
-    VAO_ATTRIB_STATE(index).buffer = STATE(vao)->buffer_bindings[_ARRAY_BUFFER].buffer;
+    VAO_ATTRIB_STATE(index).buffer = STATE(buffers[_ARRAY_BUFFER]);
     ERROR_CHECK_RETURN(VAO_ATTRIB_STATE(index).buffer, GL_INVALID_OPERATION);
 
     VAO_STATE(dirty_bits) |= DIRTY_VAO;
@@ -354,7 +342,7 @@ void mglVertexAttribPointer(GLMContext ctx, GLuint index, GLint size, GLenum typ
     {
         Buffer *ptr;
 
-        ptr = STATE(vao)->buffer_bindings[_ARRAY_BUFFER].buffer;
+        ptr = STATE(buffers[_ARRAY_BUFFER]);
 
         ERROR_CHECK_RETURN(ptr, GL_INVALID_OPERATION);
     }
@@ -783,7 +771,7 @@ void setBindingDivisor(GLMContext ctx, VertexArray *vao, GLuint bindingindex, GL
 {
     ERROR_CHECK_RETURN(bindingindex < MAX_BINDABLE_BUFFERS, GL_INVALID_VALUE);
 
-    vao->buffer_bindings[bindingindex].divisor = divisor;
+    vao->attrib[bindingindex].divisor = divisor;
 
     vao->dirty_bits |= DIRTY_VAO_ATTRIB | DIRTY_VAO_BUFFER_BASE;
 }

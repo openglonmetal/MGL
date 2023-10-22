@@ -314,7 +314,7 @@ void logDirtyBits(GLMContext ctx)
         }
 
         id<MTLBuffer> buffer = [_device newBufferWithBytesNoCopy: (void *)(ptr->data.buffer_data)
-                                                     length: ptr->data.buffer_size
+                                                     length: ptr->size // allocate only size since this is what will be transferred
                                                     options: options
                                                 deallocator: ^(void *pointer, NSUInteger length)
                                                 {
@@ -338,20 +338,19 @@ void logDirtyBits(GLMContext ctx)
             options |= MTLResourceCPUCacheModeWriteCombined;
         }
 
-        id<MTLBuffer> buffer = [_device newBufferWithLength: ptr->data.buffer_size
+        id<MTLBuffer> buffer = [_device newBufferWithLength: ptr->size // allocate by size
                                                     options: options];
         assert(buffer);
 
-        // a backing can allocated initially delete it and point the
+        // a backing can allocated initially, delete it and point the
         // backing data to the MTL buffer
         if (ptr->data.buffer_data)
         {
             void *data;
 
             data = buffer.contents;
-            memcpy(data, (void *)ptr->data.buffer_data, ptr->data.buffer_size);
-
-            [buffer didModifyRange:NSMakeRange(0, ptr->data.buffer_size)];
+            memcpy(data, (void *)ptr->data.buffer_data, ptr->size);
+            [buffer didModifyRange:NSMakeRange(0, ptr->size)];
 
             kern_return_t err;
             err = vm_deallocate((vm_map_t) mach_task_self(),
@@ -374,15 +373,18 @@ void logDirtyBits(GLMContext ctx)
     struct {
         int spvc_type;
         int gl_buffer_type;
+        const char *name;
     } mapped_types[4] = {
-        {SPVC_RESOURCE_TYPE_UNIFORM_BUFFER, _UNIFORM_BUFFER},
-        {SPVC_RESOURCE_TYPE_UNIFORM_CONSTANT, _UNIFORM_CONSTANT},
-        {SPVC_RESOURCE_TYPE_STORAGE_BUFFER, _SHADER_STORAGE_BUFFER},
-        {SPVC_RESOURCE_TYPE_ATOMIC_COUNTER, _ATOMIC_COUNTER_BUFFER}
+        {SPVC_RESOURCE_TYPE_UNIFORM_BUFFER, _UNIFORM_BUFFER, "Uniform Buffer"},
+        {SPVC_RESOURCE_TYPE_UNIFORM_CONSTANT, _UNIFORM_CONSTANT, "Uniform Constant"},
+        {SPVC_RESOURCE_TYPE_STORAGE_BUFFER, _SHADER_STORAGE_BUFFER, "Shader Storage Buffer"},
+        {SPVC_RESOURCE_TYPE_ATOMIC_COUNTER, _ATOMIC_COUNTER_BUFFER, "Atomic Counter Buffer"}
     };
-
+    
+    // init mapped buffer count
     buffer_map->count = 0;
 
+    // bind uniforms, shader storage and atomics to buffer map
     for(int type=0; type<4; type++)
     {
         int spvc_type;
@@ -394,8 +396,11 @@ void logDirtyBits(GLMContext ctx)
         count = [self getProgramBindingCount: stage type: spvc_type];
         if (count)
         {
+            BufferBaseTarget *buffers;
             int buffers_to_be_mapped = count;
 
+            buffers = ctx->state.buffer_base[gl_buffer_type].buffers;
+            
             for (int i=0; buffers_to_be_mapped; i++)
             {
                 GLuint spirv_binding;
@@ -404,15 +409,18 @@ void logDirtyBits(GLMContext ctx)
                 // get the ubo binding from spirv
                 spirv_binding = [self getProgramBinding:stage type:spvc_type index: i];
 
-                buf = ctx->state.buffer_base[gl_buffer_type].buffers[spirv_binding].buf;
+                buf = buffers[spirv_binding].buf;
 
                 if (buf)
                 {
-                    buffer_map->buffers[buffer_map->count].attribute_mask = 0;
+                    buffer_map->buffers[buffer_map->count].attribute_mask = 0; // non attribute.. no bits set
                     buffer_map->buffers[buffer_map->count].buffer_base_index = spirv_binding;
                     buffer_map->buffers[buffer_map->count].buf = buf;
+                    buffer_map->buffers[buffer_map->count].offset = buffers[spirv_binding].offset;
                     buffer_map->count++;
                     buffers_to_be_mapped--;
+                    
+                    printf("Found buffer type: %s buffer_base_index: %d\n", mapped_types[type].name, spirv_binding);
                 }
                 else
                 {
@@ -426,7 +434,7 @@ void logDirtyBits(GLMContext ctx)
             }
         }
     }
-
+    
     // bind vao attribs to buffers (attribs can share the same buffer)
     if (stage == _VERTEX_SHADER)
     {
@@ -481,6 +489,7 @@ void logDirtyBits(GLMContext ctx)
                          map++)
                     {
                         // we need to check name and target, not pointers..
+                        // FIX ME: I think we don't need a target as all attribs should be an array_buffer
                         if ((map_buffer->name == gl_buffer->name) &&
                             (map_buffer->target == gl_buffer->target))
                         {
@@ -596,7 +605,7 @@ void logDirtyBits(GLMContext ctx)
         {
             if (gl_buffer->data.dirty_bits)
             {
-                RETURN_FALSE_ON_FAILURE([self updateDirtyBuffer: gl_buffer]);;
+                RETURN_FALSE_ON_FAILURE([self updateDirtyBuffer: gl_buffer]);
             }
         }
     }
@@ -606,13 +615,18 @@ void logDirtyBits(GLMContext ctx)
 
 - (bool) bindBuffersToCurrentRenderEncoder
 {
+    BufferMap *map;
+    Buffer *ptr;
+    GLintptr offset;
+    
     assert(_currentRenderEncoder);
 
     for(int i=0; i<ctx->state.vertex_buffer_map_list.count; i++)
     {
-        Buffer *ptr;
-
-        ptr = ctx->state.vertex_buffer_map_list.buffers[i].buf;
+        map = &ctx->state.vertex_buffer_map_list.buffers[i];
+        
+        ptr = map->buf;
+        offset = map->offset;
 
         assert(ptr);
         assert(ptr->data.mtl_data);
@@ -620,14 +634,18 @@ void logDirtyBits(GLMContext ctx)
         id<MTLBuffer> buffer = (__bridge id<MTLBuffer>)(ptr->data.mtl_data);
         assert(buffer);
 
-        [_currentRenderEncoder setVertexBuffer:buffer offset:0 atIndex:i ];
+        // for buffers less than 4k we should use this call
+        // - (void)setVertexBytes:(const void *)bytes length:(NSUInteger)length atIndex:(NSUInteger)index API_AVAILABLE(macos(10.11), ios(8.3));
+
+        [_currentRenderEncoder setVertexBuffer:buffer offset:offset atIndex:i ];
     }
 
     for(int i=0; i<ctx->state.fragment_buffer_map_list.count; i++)
     {
-        Buffer *ptr;
+        map = &ctx->state.fragment_buffer_map_list.buffers[i];
 
-        ptr = ctx->state.fragment_buffer_map_list.buffers[i].buf;
+        ptr = map->buf;
+        offset = map->offset;
 
         assert(ptr);
         assert(ptr->data.mtl_data);
@@ -635,7 +653,7 @@ void logDirtyBits(GLMContext ctx)
         id<MTLBuffer> buffer = (__bridge id<MTLBuffer>)(ptr->data.mtl_data);
         assert(buffer);
 
-        [_currentRenderEncoder setFragmentBuffer:buffer offset:0 atIndex:i ];
+        [_currentRenderEncoder setFragmentBuffer:buffer offset:offset atIndex:i ];
     }
 
     return true;
@@ -1986,7 +2004,8 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
     }
 
     return true;
-    }
+        
+    } //     @autoreleasepool
 }
 
 - (bool) newCommandBuffer
@@ -2187,15 +2206,21 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
             mapped_buffer_index = [self getVertexBufferIndexWithAttributeSet: i];
 
             vertexDescriptor.attributes[i].bufferIndex = mapped_buffer_index;
-            vertexDescriptor.attributes[i].offset = ctx->state.vao->attrib[i].base_plus_relative_offset;
+            vertexDescriptor.attributes[i].offset = ctx->state.vao->attrib[i].relativeoffset;
             vertexDescriptor.attributes[i].format = format;
 
             vertexDescriptor.layouts[mapped_buffer_index].stride = VAO_ATTRIB_STATE(i).stride;
+
             if (ctx->state.vao->attrib[i].divisor)
+            {
                 vertexDescriptor.layouts[mapped_buffer_index].stepRate = ctx->state.vao->attrib[i].divisor;
+                vertexDescriptor.layouts[mapped_buffer_index].stepFunction = MTLVertexStepFunctionPerInstance;
+            }
             else
+            {
                 vertexDescriptor.layouts[mapped_buffer_index].stepRate = 1;
-            vertexDescriptor.layouts[mapped_buffer_index].stepFunction = MTLVertexStepFunctionPerVertex;
+                vertexDescriptor.layouts[mapped_buffer_index].stepFunction = MTLVertexStepFunctionPerVertex;
+            }
         }
 
         // early out
@@ -2456,6 +2481,7 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
         if (ctx->state.dirty_bits & (DIRTY_PROGRAM | DIRTY_TEX | DIRTY_TEX_BINDING | DIRTY_SAMPLER))
         {
             RETURN_FALSE_ON_FAILURE([self bindActiveTexturesToMTL]);
+            RETURN_FALSE_ON_FAILURE([self bindTexturesToCurrentRenderEncoder]);
 
             // textures / active textures and samplers are all handled in bindActiveTexturesToMTL
             ctx->state.dirty_bits &= ~(DIRTY_TEX | DIRTY_TEX_BINDING | DIRTY_SAMPLER);
@@ -3345,7 +3371,7 @@ Buffer *getElementBuffer(GLMContext ctx)
 
 Buffer *getIndirectBuffer(GLMContext ctx)
 {
-    Buffer *gl_indirect_buffer = STATE(vao)->buffer_bindings[_DRAW_INDIRECT_BUFFER].buffer;
+    Buffer *gl_indirect_buffer = STATE(buffers[_DRAW_INDIRECT_BUFFER]);
 
     return gl_indirect_buffer;
 }
@@ -3437,13 +3463,10 @@ void mtlDrawElements(GLMContext glm_ctx, GLenum mode, GLsizei count, GLenum type
         case MTLIndexTypeUInt32: start <<= 2; break;
     }
 
-    // for now lets just ignore the range data and use drawIndexedPrimitives
-    //
-    // in the future it would be an idea to use temp buffers for large buffers that would wire
-    // to much memory down.. like a million point galaxy drawing
-    //
-    [_currentRenderEncoder drawIndexedPrimitives:primitiveType indexCount:end - count indexType:indexType
-                                     indexBuffer:indexBuffer indexBufferOffset:offset+start instanceCount:1];
+    offset += start;
+    
+    [_currentRenderEncoder drawIndexedPrimitives:primitiveType indexCount:count indexType:indexType
+                                     indexBuffer:indexBuffer indexBufferOffset:offset instanceCount:1];
 }
 
 void mtlDrawRangeElements(GLMContext glm_ctx, GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const void *indices)

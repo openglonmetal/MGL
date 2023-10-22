@@ -305,6 +305,13 @@ typedef struct ImageUnit_t {
     Texture *tex;
 } ImageUnit;
 
+typedef struct BufferBinding_t {
+    Buffer  *buffer;
+    GLintptr offset;
+    GLsizei stride;
+    GLuint divisor;
+} BufferBinding;
+
 typedef struct VertexAttrib_t {
     Buffer  *buffer;
     GLuint  size;
@@ -313,7 +320,6 @@ typedef struct VertexAttrib_t {
     GLuint  stride;
     GLuint  divisor;
     GLintptr  relativeoffset;
-    GLintptr  base_plus_relative_offset;
     GLuint  buffer_bindingindex;
 } VertexAttrib;
 
@@ -324,20 +330,12 @@ typedef struct VertexElementArray_t {
     const void *ptr;
 } VertexElementArray;
 
-typedef struct BufferBinding_t {
-    Buffer  *buffer;
-    GLintptr offset;
-    GLsizei stride;
-    GLuint divisor;
-} BufferBinding;
-
 typedef struct VertexArray_t {
     GLuint dirty_bits;
     unsigned name;
     unsigned enabled_attribs;
     VertexAttrib attrib[MAX_ATTRIBS];
     VertexElementArray element_array;
-    BufferBinding buffer_bindings[MAX_BINDABLE_BUFFERS];
     void *mtl_data;
 } VertexArray;
 
@@ -384,6 +382,7 @@ typedef struct BufferMap_t {
     GLuint      buffer_base_index;
     GLuint      attribute_mask;
     Buffer      *buf;
+    GLintptr    offset;
 } BufferMap;
 
 typedef struct BufferMapList_t {
@@ -523,7 +522,8 @@ typedef struct {
     GLuint viewport[4]; // GL_VIEWPORT
     GLfloat color_clear_value[4]; // GL_COLOR_CLEAR_VALUE
 
-    VertexArray *default_vao;
+    Buffer *buffers[MAX_BINDABLE_BUFFERS];
+
     VertexArray *vao;
     Texture     *tex;
     Renderbuffer *renderbuffer;

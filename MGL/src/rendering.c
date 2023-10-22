@@ -353,11 +353,11 @@ void mglReadPixels(GLMContext ctx, GLint x, GLint y, GLsizei width, GLsizei heig
             break;
     }
 
-    if (STATE(vao)->buffer_bindings[_PIXEL_PACK_BUFFER].buffer)
+    if (STATE(buffers[_PIXEL_PACK_BUFFER]))
     {
         Buffer *ptr;
 
-        ptr = STATE(vao)->buffer_bindings[_PIXEL_PACK_BUFFER].buffer;
+        ptr = STATE(buffers[_PIXEL_PACK_BUFFER]);
 
         ERROR_CHECK_RETURN(ptr->mapped == false, GL_INVALID_OPERATION);
 
@@ -387,9 +387,9 @@ void mglReadPixels(GLMContext ctx, GLint x, GLint y, GLsizei width, GLsizei heig
     }
 
     GLuint pitch;
-    if (ctx->state.pack.row_length)
+    if (STATE(pack.row_length))
     {
-        pitch = ctx->state.pack.row_length * pixel_size;
+        pitch = STATE(pack.row_length) * pixel_size;
     }
     else
     {

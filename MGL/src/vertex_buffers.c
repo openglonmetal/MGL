@@ -45,22 +45,9 @@ bool bindVertexBuffer(GLMContext ctx, GLuint vaobj, GLuint bindingindex, GLuint 
         ERROR_CHECK_RETURN_VALUE(vao, GL_INVALID_VALUE, false);
     }
 
-    if (buffer == 0)
-    {
-        vao->buffer_bindings[bindingindex].buffer = NULL;
-        vao->buffer_bindings[bindingindex].offset = 0;
-        vao->buffer_bindings[bindingindex].stride = 16;
-
-        return true;
-    }
-
     Buffer *buf;
     buf = findBuffer(ctx, buffer);
     ERROR_CHECK_RETURN_VALUE(buf, GL_INVALID_VALUE, false);
-
-    vao->buffer_bindings[bindingindex].buffer = buf;
-    vao->buffer_bindings[bindingindex].offset = offset;
-    vao->buffer_bindings[bindingindex].stride = stride;
 
     vao->dirty_bits |= DIRTY_VAO_BUFFER_BASE;
 

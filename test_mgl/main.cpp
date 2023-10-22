@@ -437,13 +437,6 @@ GLuint bindDataToVBO(GLenum target, size_t size, void *ptr, GLenum usage)
     return vbo;
 }
 
-void bindVBOToAttrib(GLuint vbo, GLuint index, GLint size, GLenum type, GLboolean normalized=false, GLsizei stride=0, const void *ptr=NULL)
-{
-    glEnableVertexAttribArray(index);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glVertexAttribPointer(index, size, type, normalized, stride, ptr);
-}
-
 GLuint bindVAO(GLuint vao=0)
 {
     if(vao)
@@ -452,11 +445,22 @@ GLuint bindVAO(GLuint vao=0)
     }
     else
     {
-        glCreateVertexArrays(1, &vao);
-        glBindVertexArray(vao);
+        GLuint new_vao;
+
+        glCreateVertexArrays(1, &new_vao);
+        glBindVertexArray(new_vao);
+
+        return new_vao;
     }
 
     return vao;
+}
+
+void bindAttribute(GLuint index, GLuint target, GLuint vbo, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void *pointer)
+{
+    glEnableVertexAttribArray(index);
+    glBindBuffer(target, vbo);
+    glVertexAttribPointer(index, size, type, GL_FALSE, stride, pointer);
 }
 
 GLuint compileGLSLProgram(GLenum shader_count, ...)
@@ -528,31 +532,38 @@ void bufferSubData(GLenum target, GLuint buffer, GLsizei size, const void *ptr)
 
 int test_clear(GLFWwindow* window, int width, int height)
 {
-    glClearColor(0.5, 0.2, 0.2, 0.0);
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    SWAP_BUFFERS;
-
+    while (!glfwWindowShouldClose(window))
+    {
+        glClearColor(0.5, 0.2, 0.2, 0.0);
+        glClear(GL_COLOR_BUFFER_BIT);
+        
+        SWAP_BUFFERS;
+        
+        glfwPollEvents();
+    }
+    
     return 0;
 }
 
 int test_draw_arrays(GLFWwindow* window, int width, int height)
 {
-    GLuint vbo = 0;
+    GLuint vbo = 0, vao = 0;
 
     const char* vertex_shader =
-    "#version 450 core\n"
-    "layout(location = 0) in vec3 position;"
-    "void main() {"
-    "  gl_Position = vec4(position, 1.0);"
-    "}";
+    GLSL(460,
+         layout(location = 0) in vec3 position;
+         void main() {
+            gl_Position = vec4(position, 1.0);
+        }
+    );
 
     const char* fragment_shader =
-    "#version 450 core\n"
-    "layout(location = 0) out vec4 frag_colour;"
-    "void main() {"
-    "  frag_colour = vec4(0.5, 0.0, 0.5, 1.0);"
-    "}";
+    GLSL(460,
+         layout(location = 0) out vec4 frag_colour;
+         void main() {
+            frag_colour = vec4(0.5, 0.0, 0.5, 1.0);
+        }
+    );
 
     float points[] = {
        0.0f,  0.5f,  0.0f,
@@ -560,42 +571,27 @@ int test_draw_arrays(GLFWwindow* window, int width, int height)
       -0.5f, -0.5f,  0.0f
     };
 
-    glGenBuffers(1, &vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, 9 * sizeof(float), points, GL_STATIC_DRAW);
+    vbo = bindDataToVBO(GL_ARRAY_BUFFER, sizeof(points), points, GL_STATIC_DRAW);
+    vao = bindVAO();
 
-    GLuint vao = 0;
-    glCreateVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-    glEnableVertexAttribArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+    bindAttribute(0, GL_ARRAY_BUFFER, vbo, 3, GL_FLOAT, false, 0, NULL);
 
-    GLuint vs = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vs, 1, &vertex_shader, NULL);
-    glCompileShader(vs);
-    GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fs, 1, &fragment_shader, NULL);
-    glCompileShader(fs);
-
-    GLuint shader_program = glCreateProgram();
-    glAttachShader(shader_program, fs);
-    glAttachShader(shader_program, vs);
-    glLinkProgram(shader_program);
+    GLuint shader_program = compileGLSLProgram(2, GL_VERTEX_SHADER, vertex_shader, GL_FRAGMENT_SHADER, fragment_shader);
     glUseProgram(shader_program);
 
     glViewport(0, 0, width, height);
 
-    glBindVertexArray(vao);
-
-    glUseProgram(shader_program);
-
-    glClearColor(0.2, 0.2, 0.2, 0.0);
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    glDrawArrays(GL_TRIANGLES, 0, 3);
-
-    SWAP_BUFFERS;
+    while (!glfwWindowShouldClose(window))
+    {
+        glClearColor(0.2, 0.2, 0.2, 0.0);
+        glClear(GL_COLOR_BUFFER_BIT);
+        
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+        
+        SWAP_BUFFERS;
+        
+        glfwPollEvents();
+    }
 
     return 0;
 }
@@ -603,21 +599,23 @@ int test_draw_arrays(GLFWwindow* window, int width, int height)
 
 int test_draw_arrays_uniform1i(GLFWwindow* window, int width, int height)
 {
-    GLuint vbo = 0;
+    GLuint vbo = 0, vao = 0;
 
     const char* vertex_shader =
-    "#version 450 core\n"
-    "layout(location = 0) in vec3 position;\n"
-    "void main() {\n"
-    "  gl_Position = vec4(position.x, position.y, position.z, 1.0);\n"
-    "}";
+    GLSL(460,
+         layout(location = 0) in vec3 position;
+         void main() {
+            gl_Position = vec4(position.x, position.y, position.z, 1.0);
+        }
+    );
     const char* fragment_shader =
-    "#version 450 core\n"
-    "layout(location = 0) out vec4 frag_colour;\n"
-    "layout(location = 1) uniform int mp;\n"
-    "void main() {\n"
-    "  frag_colour = vec4(0, 0, float(mp)/100.0, 1.0);\n"
-    "}";
+    GLSL(460,
+         layout(location = 0) out vec4 frag_colour;
+         layout(location = 1) uniform int mp;
+         void main() {
+            frag_colour = vec4(0, 0, float(mp)/100.0, 1.0);
+        }
+    );
 
     float points[] = {
        0.0f,  0.5f,  0.0f,
@@ -625,28 +623,12 @@ int test_draw_arrays_uniform1i(GLFWwindow* window, int width, int height)
       -0.5f, -0.5f,  0.0f
     };
 
-    glGenBuffers(1, &vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, 9 * sizeof(float), points, GL_STATIC_DRAW);
+    vbo = bindDataToVBO(GL_ARRAY_BUFFER, sizeof(points), points, GL_STATIC_DRAW);
+    vao = bindVAO();
 
-    GLuint vao = 0;
-    glCreateVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-    glEnableVertexAttribArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+    bindAttribute(0, GL_ARRAY_BUFFER, vbo, 3, GL_FLOAT, false, 0, NULL);
 
-    GLuint vs = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vs, 1, &vertex_shader, NULL);
-    glCompileShader(vs);
-    GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fs, 1, &fragment_shader, NULL);
-    glCompileShader(fs);
-
-    GLuint shader_program = glCreateProgram();
-    glAttachShader(shader_program, fs);
-    glAttachShader(shader_program, vs);
-    glLinkProgram(shader_program);
+    GLuint shader_program = compileGLSLProgram(2, GL_VERTEX_SHADER, vertex_shader, GL_FRAGMENT_SHADER, fragment_shader);
     glUseProgram(shader_program);
 
     glViewport(0, 0, width, height);
@@ -685,21 +667,23 @@ int test_draw_arrays_uniform1i(GLFWwindow* window, int width, int height)
 
 int test_draw_arrays_uniform1fv(GLFWwindow* window, int width, int height)
 {
-    GLuint vbo = 0;
+    GLuint vbo = 0, vao = 0;
 
     const char* vertex_shader =
-    "#version 450 core\n"
-    "layout(location = 0) in vec3 position;\n"
-    "void main() {\n"
-    "  gl_Position = vec4(position, 1.0);\n"
-    "}";
+    GLSL(460,
+         layout(location = 0) in vec3 position;
+         void main() {
+            gl_Position = vec4(position, 1.0);
+        }
+    );
     const char* fragment_shader =
-    "#version 450 core\n"
-    "layout(location = 0) out vec4 frag_colour;\n"
-    "layout(location = 1) uniform float mp[3];\n"
-    "void main() {\n"
-    "  frag_colour = vec4(mp[0], mp[1], mp[2], 1.0);\n"
-    "}";
+    GLSL(460,
+         layout(location = 0) out vec4 frag_colour;
+         layout(location = 1) uniform float mp[3];
+         void main() {
+            frag_colour = vec4(mp[0], mp[1], mp[2], 1.0);
+        }
+    );
 
     float points[] = {
        0.0f,  0.5f,  0.0f,
@@ -707,28 +691,12 @@ int test_draw_arrays_uniform1fv(GLFWwindow* window, int width, int height)
       -0.5f, -0.5f,  0.0f
     };
 
-    glGenBuffers(1, &vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, 9 * sizeof(float), points, GL_STATIC_DRAW);
+    vbo = bindDataToVBO(GL_ARRAY_BUFFER, sizeof(points), points, GL_STATIC_DRAW);
+    vao = bindVAO();
 
-    GLuint vao = 0;
-    glCreateVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-    glEnableVertexAttribArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+    bindAttribute(0, GL_ARRAY_BUFFER, vbo, 3, GL_FLOAT, false, 0, NULL);
 
-    GLuint vs = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vs, 1, &vertex_shader, NULL);
-    glCompileShader(vs);
-    GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fs, 1, &fragment_shader, NULL);
-    glCompileShader(fs);
-
-    GLuint shader_program = glCreateProgram();
-    glAttachShader(shader_program, fs);
-    glAttachShader(shader_program, vs);
-    glLinkProgram(shader_program);
+    GLuint shader_program = compileGLSLProgram(2, GL_VERTEX_SHADER, vertex_shader, GL_FRAGMENT_SHADER, fragment_shader);
     glUseProgram(shader_program);
 
     glViewport(0, 0, width, height);
@@ -776,21 +744,23 @@ int test_draw_arrays_uniform1fv(GLFWwindow* window, int width, int height)
 
 int test_draw_arrays_uniform4fv(GLFWwindow* window, int width, int height)
 {
-    GLuint vbo = 0;
+    GLuint vbo = 0, vao;
 
     const char* vertex_shader =
-    "#version 450 core\n"
-    "layout(location = 0) in vec3 position;\n"
-    "void main() {\n"
-    "  gl_Position = vec4(position, 1.0);\n"
-    "}";
+    GLSL(460,
+         layout(location = 0) in vec3 position;
+         void main() {
+            gl_Position = vec4(position, 1.0);
+        }
+    );
     const char* fragment_shader =
-    "#version 450 core\n"
-    "layout(location = 0) out vec4 frag_colour;\n"
-    "layout(location = 1) uniform vec4 mp[2];\n"
-    "void main() {\n"
-    "  frag_colour = mp[0]*mp[1];\n"
-    "}";
+    GLSL(460,
+         layout(location = 0) out vec4 frag_colour;
+         layout(location = 1) uniform vec4 mp[2];
+         void main() {
+            frag_colour = mp[0]*mp[1];
+        }
+    );
 
     float points[] = {
        0.0f,  0.5f,  0.0f,
@@ -798,28 +768,12 @@ int test_draw_arrays_uniform4fv(GLFWwindow* window, int width, int height)
       -0.5f, -0.5f,  0.0f
     };
 
-    glGenBuffers(1, &vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, 9 * sizeof(float), points, GL_STATIC_DRAW);
+    vbo = bindDataToVBO(GL_ARRAY_BUFFER, sizeof(points), points, GL_STATIC_DRAW);
+    vao = bindVAO();
 
-    GLuint vao = 0;
-    glCreateVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-    glEnableVertexAttribArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+    bindAttribute(0, GL_ARRAY_BUFFER, vbo, 3, GL_FLOAT, false, 0, NULL);
 
-    GLuint vs = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vs, 1, &vertex_shader, NULL);
-    glCompileShader(vs);
-    GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fs, 1, &fragment_shader, NULL);
-    glCompileShader(fs);
-
-    GLuint shader_program = glCreateProgram();
-    glAttachShader(shader_program, fs);
-    glAttachShader(shader_program, vs);
-    glLinkProgram(shader_program);
+    GLuint shader_program = compileGLSLProgram(2, GL_VERTEX_SHADER, vertex_shader, GL_FRAGMENT_SHADER, fragment_shader);
     glUseProgram(shader_program);
 
     glViewport(0, 0, width, height);
@@ -853,7 +807,6 @@ int test_draw_arrays_uniform4fv(GLFWwindow* window, int width, int height)
 
         SWAP_BUFFERS;
 
-        glfwPollEvents();
         mp_val[0] += ri/100.0f;
         mp_val[1] += gi/100.0f;
         mp_val[2] += bi/100.0f;
@@ -863,6 +816,8 @@ int test_draw_arrays_uniform4fv(GLFWwindow* window, int width, int height)
         if(mp_val[1]<0.0f){gi=0;printf("green end\n");mp_val[1]=0.0f;}
         if(mp_val[2]>1.0f){bi=-1;ri=1;printf("blue -> red\n");}
         if(mp_val[2]<0.0f){bi=0;printf("blue end\n");mp_val[2]=0.0f;}
+        
+        glfwPollEvents();
     }
 
     return 0;
@@ -870,56 +825,43 @@ int test_draw_arrays_uniform4fv(GLFWwindow* window, int width, int height)
 
 int test_draw_arrays_uniformMatrix4fv(GLFWwindow* window, int width, int height)
 {
-    GLuint vbo = 0;
+    GLuint vbo = 0, vao = 0;
 
     const char* vertex_shader =
-    "#version 450 core\n"
-    "layout(location = 0) in vec3 position;\n"
-    "void main() {\n"
-    "  gl_Position = vec4(position, 1.0);\n"
-    "}";
+    GLSL(460 core,
+         layout(location = 0) in vec3 position;
+         void main() {
+            gl_Position = vec4(position, 1.0);
+        }
+    );
+    
     const char* fragment_shader =
-    "#version 450 core\n"
-    "layout(location = 0) out vec4 frag_colour;\n"
-    "layout(location = 1) uniform mat4 mp[2];\n"
-    "void main() {\n"
-    "  frag_colour = mp[0][0]*mp[1][1];\n"
-    "}";
-
+    GLSL(460 core,
+         layout(location = 0) out vec4 frag_colour;
+         layout(location = 1) uniform mat4 mp;
+         void main() {
+            frag_colour = mp * vec4(1.0f, 1.0f, 1.0f, 1.0f);
+        }
+    );
+    
     float points[] = {
        0.0f,  0.5f,  0.0f,
        0.5f, -0.5f,  0.0f,
       -0.5f, -0.5f,  0.0f
     };
 
-    glGenBuffers(1, &vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, 9 * sizeof(float), points, GL_STATIC_DRAW);
+    vbo = bindDataToVBO(GL_ARRAY_BUFFER, sizeof(points), points, GL_STATIC_DRAW);
+    vao = bindVAO();
 
-    GLuint vao = 0;
-    glCreateVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-    glEnableVertexAttribArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+    bindAttribute(0, GL_ARRAY_BUFFER, vbo, 3, GL_FLOAT, false, 0, NULL);
 
-    GLuint vs = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vs, 1, &vertex_shader, NULL);
-    glCompileShader(vs);
-    GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fs, 1, &fragment_shader, NULL);
-    glCompileShader(fs);
-
-    GLuint shader_program = glCreateProgram();
-    glAttachShader(shader_program, fs);
-    glAttachShader(shader_program, vs);
-    glLinkProgram(shader_program);
+    GLuint shader_program = compileGLSLProgram(2, GL_VERTEX_SHADER, vertex_shader, GL_FRAGMENT_SHADER, fragment_shader);
     glUseProgram(shader_program);
 
     glViewport(0, 0, width, height);
     
     GLint mp_loc = glGetUniformLocation(shader_program, "mp");
-    GLfloat mp_val[32];
+    GLfloat mp_val[16];
     int ri = 1;
     int gi = 0;
     int bi = 0;
@@ -939,22 +881,7 @@ int test_draw_arrays_uniformMatrix4fv(GLFWwindow* window, int width, int height)
     mp_val[13] = 0.5f;
     mp_val[14] = 0.5f;
     mp_val[15] = 1.0f;
-    mp_val[16] = 0.0f;
-    mp_val[17] = 0.0f;
-    mp_val[18] = 0.0f;
-    mp_val[19] = 1.0f;
-    mp_val[20] = 0.5f;
-    mp_val[21] = 0.5f;
-    mp_val[22] = 0.5f;
-    mp_val[23] = 1.0f;
-    mp_val[24] = 0.0f;
-    mp_val[25] = 0.0f;
-    mp_val[26] = 0.0f;
-    mp_val[27] = 1.0f;
-    mp_val[28] = 0.5f;
-    mp_val[29] = 0.5f;
-    mp_val[30] = 0.5f;
-    mp_val[31] = 1.0f;
+
     
     while (!glfwWindowShouldClose(window))
     {
@@ -965,22 +892,24 @@ int test_draw_arrays_uniformMatrix4fv(GLFWwindow* window, int width, int height)
         glClearColor(0.2, 0.2, 0.2, 0.0);
         glClear(GL_COLOR_BUFFER_BIT);
         
-        glUniformMatrix4fv(mp_loc, 2, false, mp_val);
+        glUniformMatrix4fv(mp_loc, 1, false, mp_val);
 
         glDrawArrays(GL_TRIANGLES, 0, 3);
 
         SWAP_BUFFERS;
 
-        glfwPollEvents();
         mp_val[0] += ri/100.0f;
         mp_val[1] += gi/100.0f;
         mp_val[2] += bi/100.0f;
+        
         if(mp_val[0]>1.0f){ri=-1;gi=1;printf("red -> green\n");}
         if(mp_val[0]<0.0f){ri=0;printf("red end\n");mp_val[0]=0.0f;}
         if(mp_val[1]>1.0f){gi=-1;bi=1;printf("green -> blue\n");}
         if(mp_val[1]<0.0f){gi=0;printf("green end\n");mp_val[1]=0.0f;}
         if(mp_val[2]>1.0f){bi=-1;ri=1;printf("blue -> red\n");}
         if(mp_val[2]<0.0f){bi=0;printf("blue end\n");mp_val[2]=0.0f;}
+        
+        glfwPollEvents();
     }
 
     return 0;
@@ -988,22 +917,24 @@ int test_draw_arrays_uniformMatrix4fv(GLFWwindow* window, int width, int height)
 
 int test_draw_elements(GLFWwindow* window, int width, int height)
 {
-    GLuint vbo = 0, elem_vbo = 0;
+    GLuint vbo = 0, elem_vbo = 0, vao = 0;
 
     const char* vertex_shader =
-    "#version 450 core\n"
-    "layout(location = 0) in vec3 position;"
-    "void main() {"
-    "  gl_Position = vec4(position, 1.0);"
-    "}";
+    GLSL(460,
+        layout(location = 0) in vec3 position;
+        void main() {
+            gl_Position = vec4(position, 1.0);
+        }
+    );
 
     const char* fragment_shader =
-    "#version 450 core\n"
-    "layout(location = 0) out vec4 frag_colour;"
-    "void main() {"
-    "  frag_colour = vec4(0.5, 0.0, 0.5, 1.0);"
-    "}";
-
+    GLSL(460,
+         layout(location = 0) out vec4 frag_colour;
+         void main() {
+            frag_colour = vec4(0.5, 0.0, 0.5, 1.0);
+        }
+    );
+    
     GLfloat points[] = {
        0.0f,  0.5f,  0.0f,
        0.5f, -0.5f,  0.0f,
@@ -1012,78 +943,56 @@ int test_draw_elements(GLFWwindow* window, int width, int height)
 
     GLuint indices[] = {0, 1, 2};
 
-    glGenBuffers(1, &elem_vbo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elem_vbo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 3 * sizeof(GLuint), indices, GL_STATIC_DRAW);
+    vbo = bindDataToVBO(GL_ARRAY_BUFFER, sizeof(points), points, GL_STATIC_DRAW);
+    elem_vbo = bindDataToVBO(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    vao = bindVAO();
+    glVertexArrayElementBuffer(vao, elem_vbo);
 
-    glGenBuffers(1, &vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, 9 * sizeof(GLfloat), points, GL_STATIC_DRAW);
+    bindAttribute(0, GL_ARRAY_BUFFER, vbo, 3, GL_FLOAT, false, 0, NULL);
 
-    GLuint vao = 0;
-    glCreateVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-    
-    glEnableVertexAttribArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-
-    //glVertexArrayElementBuffer(vao, elem_vbo);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elem_vbo);
-
-    GLuint vs = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vs, 1, &vertex_shader, NULL);
-    glCompileShader(vs);
-    GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fs, 1, &fragment_shader, NULL);
-    glCompileShader(fs);
-
-    GLuint shader_program = glCreateProgram();
-    glAttachShader(shader_program, fs);
-    glAttachShader(shader_program, vs);
-    glLinkProgram(shader_program);
+    GLuint shader_program = compileGLSLProgram(2, GL_VERTEX_SHADER, vertex_shader, GL_FRAGMENT_SHADER, fragment_shader);
     glUseProgram(shader_program);
 
     glViewport(0, 0, width, height);
 
-    glBindVertexArray(vao);
+    while(!glfwWindowShouldClose(window))
+    {
+        glClearColor(0.2, 0.2, 0.2, 0.0);
+        glClear(GL_COLOR_BUFFER_BIT);
+        
+        glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
+        
+        SWAP_BUFFERS;
 
-    glUseProgram(shader_program);
-
-    glfwPollEvents();
-
-    glClearColor(0.2, 0.2, 0.2, 0.0);
-    glClear(GL_COLOR_BUFFER_BIT);
-    
-    glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
-    
-    SWAP_BUFFERS;
+        glfwPollEvents();
+    }
 
     return 0;
 }
 
 int test_draw_elements_vertex_attribute(GLFWwindow* window, int width, int height)
 {
-    GLuint vbo = 0, elem_vbo = 0;
+    GLuint vbo = 0, elem_vbo = 0, vao = 0;
 
     const char* vertex_shader =
-    "#version 450 core\n"
-    "layout(location = 0) in vec3 position;"
-    "layout(location = 1) in vec3 col;"
-    "layout(location = 0) out vec3 col_out;"
-    "void main() {"
-    "  gl_Position = vec4(position, 1.0);"
-    "  col_out = col;"
-    "}";
-
+    GLSL(460,
+        layout(location = 0) in vec3 position;
+        layout(location = 1) in vec3 col;
+        layout(location = 0) out vec3 col_out;
+        void main() {
+          gl_Position = vec4(position, 1.0);
+          col_out = col;
+        }
+    );
+    
     const char* fragment_shader =
-    "#version 450 core\n"
-    "layout(location = 0) in vec3 color_in;"
-    "layout(location = 0) out vec4 frag_colour;"
-    "void main() {"
-    "  frag_colour = vec4(color_in, 1.0);"
-    "}";
+    GLSL(460,
+        layout(location = 0) in vec3 color_in;
+        layout(location = 0) out vec4 frag_colour;
+        void main() {
+            frag_colour = vec4(color_in, 1.0);
+        }
+    );
 
     GLfloat verts[] = {
         // pos               // col
@@ -1094,37 +1003,15 @@ int test_draw_elements_vertex_attribute(GLFWwindow* window, int width, int heigh
 
     GLuint indices[] = {0, 1, 2};
 
-    glGenBuffers(1, &elem_vbo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elem_vbo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    vbo = bindDataToVBO(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STATIC_DRAW);
+    elem_vbo = bindDataToVBO(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    vao = bindVAO();
+    glVertexArrayElementBuffer(vao, elem_vbo);
 
-    glGenBuffers(1, &vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STATIC_DRAW);
+    bindAttribute(0, GL_ARRAY_BUFFER, vbo, 3, GL_FLOAT, false, 6 * sizeof(GLfloat), NULL);
+    bindAttribute(1, GL_ARRAY_BUFFER, vbo, 3, GL_FLOAT, false, 6 * sizeof(GLfloat), (void *)(3 * sizeof(float)));
 
-    GLuint vao = 0;
-    glCreateVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elem_vbo);
-
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), 0);
-
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void *)(3 * sizeof(float)));
-    
-    GLuint vs = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vs, 1, &vertex_shader, NULL);
-    glCompileShader(vs);
-    GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fs, 1, &fragment_shader, NULL);
-    glCompileShader(fs);
-
-    GLuint shader_program = glCreateProgram();
-    glAttachShader(shader_program, fs);
-    glAttachShader(shader_program, vs);
-    glLinkProgram(shader_program);
+    GLuint shader_program = compileGLSLProgram(2, GL_VERTEX_SHADER, vertex_shader, GL_FRAGMENT_SHADER, fragment_shader);
     glUseProgram(shader_program);
 
     glViewport(0, 0, width, height);
@@ -1135,16 +1022,16 @@ int test_draw_elements_vertex_attribute(GLFWwindow* window, int width, int heigh
 
     glfwPollEvents();
     
-    while(glfwGetKey(window, GLFW_KEY_0) != GLFW_PRESS)
+    while(!glfwWindowShouldClose(window))
     {
-        glfwPollEvents();
-        
         glClearColor(0.0, 0.0, 0.0, 1.0);
         glClear(GL_COLOR_BUFFER_BIT);
         
         glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
         
         SWAP_BUFFERS;
+
+        glfwPollEvents();
     }
     
     return 0;
@@ -1152,21 +1039,23 @@ int test_draw_elements_vertex_attribute(GLFWwindow* window, int width, int heigh
 
 int test_draw_range_elements(GLFWwindow* window, int width, int height)
 {
-    GLuint vbo = 0, elem_vbo = 0;
+    GLuint vbo = 0, elem_vbo = 0, vao = 0;
 
     const char* vertex_shader =
-    "#version 450 core\n"
-    "layout(location = 0) in vec3 position;"
-    "void main() {"
-    "  gl_Position = vec4(position, 1.0);"
-    "}";
+    GLSL(460,
+         layout(location = 0) in vec3 position;
+         void main() {
+            gl_Position = vec4(position, 1.0);
+         }
+    );
 
     const char* fragment_shader =
-    "#version 450 core\n"
-    "layout(location = 0) out vec4 frag_colour;"
-    "void main() {"
-    "  frag_colour = vec4(0.5, 0.0, 0.5, 1.0);"
-    "}";
+    GLSL(460,
+         layout(location = 0) out vec4 frag_colour;
+         void main() {
+            frag_colour = vec4(0.5, 0.0, 0.5, 1.0);
+        }
+    );
 
     GLfloat points[] = {
         0.0f,  0.5f,  0.0f,
@@ -1180,37 +1069,16 @@ int test_draw_range_elements(GLFWwindow* window, int width, int height)
         0.0f,  0.5f,  0.0f,
     };
 
-    GLuint indices[] = {3, 4, 5};
+    GLuint indices[] = {0, 0, 0, 3, 4, 5, 0, 0};
 
-    GLuint vao = 0;
-    glCreateVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-
-    glGenBuffers(1, &elem_vbo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elem_vbo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 3 * sizeof(GLuint), indices, GL_STATIC_DRAW);
-
-    glGenBuffers(1, &vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, 9 * 3 * sizeof(GLfloat), points, GL_STATIC_DRAW);
-
-    glEnableVertexAttribArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-
+    vbo = bindDataToVBO(GL_ARRAY_BUFFER, sizeof(points), points, GL_STATIC_DRAW);
+    elem_vbo = bindDataToVBO(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    vao = bindVAO();
     glVertexArrayElementBuffer(vao, elem_vbo);
 
-    GLuint vs = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vs, 1, &vertex_shader, NULL);
-    glCompileShader(vs);
-    GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fs, 1, &fragment_shader, NULL);
-    glCompileShader(fs);
+    bindAttribute(0, GL_ARRAY_BUFFER, vbo, 3, GL_FLOAT, false, 0, NULL);
 
-    GLuint shader_program = glCreateProgram();
-    glAttachShader(shader_program, fs);
-    glAttachShader(shader_program, vs);
-    glLinkProgram(shader_program);
+    GLuint shader_program = compileGLSLProgram(2, GL_VERTEX_SHADER, vertex_shader, GL_FRAGMENT_SHADER, fragment_shader);
     glUseProgram(shader_program);
 
     glViewport(0, 0, width, height);
@@ -1219,45 +1087,51 @@ int test_draw_range_elements(GLFWwindow* window, int width, int height)
 
     glUseProgram(shader_program);
 
-    glClearColor(0.2, 0.2, 0.2, 0.0);
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    // void glDrawElements(GLenum mode, GLsizei count, GLenum type, const void *indices)
-
-    glDrawRangeElements(GL_TRIANGLES, 3, 5, 3, GL_UNSIGNED_INT, 0);
-
-    SWAP_BUFFERS;
-
+    while(!glfwWindowShouldClose(window))
+    {
+        glClearColor(0.0, 0.0, 0.0, 1.0);
+        glClear(GL_COLOR_BUFFER_BIT);
+                
+        glDrawRangeElements(GL_TRIANGLES, 3, 5, 3, GL_UNSIGNED_INT, 0);
+        
+        SWAP_BUFFERS;
+        
+        glfwPollEvents();
+    }
+    
     return 0;
 }
 
 int test_draw_arrays_instanced(GLFWwindow* window, int width, int height)
 {
-    GLuint vbo = 0;
+    GLuint vbo = 0, vao = 0;
 
     const char* vertex_shader =
-    "#version 450\n"
-    "layout(location = 0) in vec3 position;"
-    "layout(location = 0) out vec4 color;"
-    "void main() {"
-    "  vec3 instance_position = position;"
-    "  if (gl_InstanceID == 1) instance_position.x += 0.1;"
-    "  else if (gl_InstanceID == 2) instance_position.x += 0.2;"
-    "  else if (gl_InstanceID == 3) instance_position.x += 0.3;"
-    "  if (gl_InstanceID == 1) color = vec4(1.0, 0.0, 0.0, 1.0);"
-    "  else if (gl_InstanceID == 2) color = vec4(0.0, 1.0, 0.0, 1.0);"
-    "  else if (gl_InstanceID == 3) color = vec4(0.0, 0.0, 1.0, 1.0);"
-    "  else color = vec4(0.5, 0.0, 0.5, 1.0);"
-    "  gl_Position = vec4(instance_position, 1.0);"
-    "}";
+    GLSL(460,
+         layout(location = 0) in vec3 position;
+         layout(location = 0) out vec4 color;
+         void main() {
+            vec3 instance_position = position;
+            if (gl_InstanceID == 1) instance_position.x += 0.1;
+            else if (gl_InstanceID == 2) instance_position.x += 0.2;
+            else if (gl_InstanceID == 3) instance_position.x += 0.3;
+            if (gl_InstanceID == 1) color = vec4(1.0, 0.0, 0.0, 1.0);
+            else if (gl_InstanceID == 2) color = vec4(0.0, 1.0, 0.0, 1.0);
+            else if (gl_InstanceID == 3) color = vec4(0.0, 0.0, 1.0, 1.0);
+            else color = vec4(0.5, 0.0, 0.5, 1.0);
+            gl_Position = vec4(instance_position, 1.0);
+        }
+    );
+         
 
     const char* fragment_shader =
-    "#version 450\n"
-    "layout(location = 0) in vec4 color;"
-    "layout(location = 0) out vec4 frag_colour;"
-    "void main() {"
-    "  frag_colour = color;"
-    "}";
+    GLSL(460,
+         layout(location = 0) in vec4 color;
+         layout(location = 0) out vec4 frag_colour;
+         void main() {
+            frag_colour = color;
+        }
+    );
 
     float points[] = {
        0.0f,  0.0f,  0.0f,
@@ -1265,28 +1139,82 @@ int test_draw_arrays_instanced(GLFWwindow* window, int width, int height)
        0.0f, -0.5f,  0.0f
     };
 
-    glGenBuffers(1, &vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, 9 * sizeof(float), points, GL_STATIC_DRAW);
+    vbo = bindDataToVBO(GL_ARRAY_BUFFER, sizeof(points), points, GL_STATIC_DRAW);
+    vao = bindVAO();
 
-    GLuint vao = 0;
-    glCreateVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-    glEnableVertexAttribArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+    bindAttribute(0, GL_ARRAY_BUFFER, vbo, 3, GL_FLOAT, false, 0, NULL);
 
-    GLuint vs = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vs, 1, &vertex_shader, NULL);
-    glCompileShader(vs);
-    GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fs, 1, &fragment_shader, NULL);
-    glCompileShader(fs);
+    GLuint shader_program = compileGLSLProgram(2, GL_VERTEX_SHADER, vertex_shader, GL_FRAGMENT_SHADER, fragment_shader);
+    glUseProgram(shader_program);
+    
+    glViewport(0, 0, width, height);
 
-    GLuint shader_program = glCreateProgram();
-    glAttachShader(shader_program, fs);
-    glAttachShader(shader_program, vs);
-    glLinkProgram(shader_program);
+    while(!glfwWindowShouldClose(window))
+    {
+        glClearColor(0.0, 0.0, 0.0, 1.0);
+        glClear(GL_COLOR_BUFFER_BIT);
+        
+        glDrawArraysInstanced(GL_TRIANGLES, 0, 3, 4);
+        
+        SWAP_BUFFERS;
+        
+        glfwPollEvents();
+    }
+    
+    return 0;
+}
+
+int test_draw_arrays_instanced_divisor(GLFWwindow* window, int width, int height)
+{
+    GLuint vbo[2], vao = 0;
+
+    const char* vertex_shader =
+    GLSL(460,
+         layout(location = 0) in vec3 position;
+         layout(location = 1) in vec4 col_in;
+         layout(location = 0) out vec4 col_out;
+         void main() {
+            vec3 instance_position = position;
+            if (gl_InstanceID == 1) instance_position.x += 0.1;
+            else if (gl_InstanceID == 2) instance_position.x += 0.2;
+            else if (gl_InstanceID == 3) instance_position.x += 0.3;
+            gl_Position = vec4(instance_position, 1.0);
+            col_out = col_in;
+        }
+    );
+
+    const char* fragment_shader =
+    GLSL(460,
+         layout(location = 0) in vec4 color;
+         layout(location = 0) out vec4 frag_colour;
+         void main() {
+            frag_colour = color;
+        }
+    );
+
+    float points[] = {
+       0.0f,  0.0f,  0.0f,
+       0.5f,  0.0f,  0.0f,
+       0.0f, -0.5f,  0.0f
+    };
+
+    float colors[] = {
+       1.0f, 0.0f, 0.0f, 1.0f, // for a red, green, blue, purple triangle
+       0.0f, 1.0f, 0.0f, 1.0f,
+       0.0f, 0.0f, 1.0f, 1.0f,
+       1.0f, 0.0f, 1.0f, 1.0f,
+    };
+
+    vbo[0] = bindDataToVBO(GL_ARRAY_BUFFER, sizeof(points), points, GL_STATIC_DRAW);
+    vbo[1] = bindDataToVBO(GL_ARRAY_BUFFER, sizeof(colors), colors, GL_STATIC_DRAW);
+    vao = bindVAO();
+
+    bindAttribute(0, GL_ARRAY_BUFFER, vbo[0], 3, GL_FLOAT, false, 0, NULL);
+    bindAttribute(1, GL_ARRAY_BUFFER, vbo[1], 4, GL_FLOAT, false, 0, NULL);
+
+    glVertexAttribDivisor(1, 1); // fetch attribute once per instance
+    
+    GLuint shader_program = compileGLSLProgram(2, GL_VERTEX_SHADER, vertex_shader, GL_FRAGMENT_SHADER, fragment_shader);
     glUseProgram(shader_program);
 
     glViewport(0, 0, width, height);
@@ -1295,13 +1223,18 @@ int test_draw_arrays_instanced(GLFWwindow* window, int width, int height)
 
     glUseProgram(shader_program);
 
-    glClearColor(0.2, 0.2, 0.2, 0.0);
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    glDrawArraysInstanced(GL_TRIANGLES, 0, 3, 4);
-
-    SWAP_BUFFERS;
-
+    while(!glfwWindowShouldClose(window))
+    {
+        glClearColor(0.0, 0.0, 0.0, 1.0);
+        glClear(GL_COLOR_BUFFER_BIT);
+        
+        glDrawArraysInstanced(GL_TRIANGLES, 0, 3, 4);
+        
+        SWAP_BUFFERS;
+        
+        glfwPollEvents();
+    }
+    
     return 0;
 }
 
@@ -1312,23 +1245,27 @@ int test_uniform_buffer(GLFWwindow* window, int width, int height)
     const char* vertex_shader =
     GLSL(450 core,
          layout(location = 0) in vec3 position;
-
-         layout(binding = 0) uniform matrices
+         layout(location = 0) out vec4 color;
+         
+         layout(binding = 0) uniform vertex_data
          {
-             mat4 rotMatrix;
+            float colors[16];
          };
 
          void main() {
-            gl_Position = rotMatrix * vec4(position, 1.0);
+            gl_Position = vec4(position, 1.0);
+            color = vec4(colors[0], 0.0, 0.0, 1.0);
          }
     );
 
     const char* fragment_shader =
     GLSL(450 core,
+         layout(location = 0) in vec4 color;
          layout(location = 0) out vec4 frag_colour;
 
          void main() {
-            frag_colour = vec4(0.5, 0.0, 0.5, 1.0);
+            // frag_colour = vec4(0.5, 0.0, 0.5, 1.0);
+            frag_colour = color;
         }
     );
 
@@ -1342,38 +1279,38 @@ int test_uniform_buffer(GLFWwindow* window, int width, int height)
     glCreateVertexArrays(1, &vao);
     glBindVertexArray(vao);
 
-    vbo = bindDataToVBO(GL_ARRAY_BUFFER, 9 * sizeof(float), points, GL_STATIC_DRAW);
+    vbo = bindDataToVBO(GL_ARRAY_BUFFER, sizeof(points), points, GL_STATIC_DRAW);
 
-    mat4  rotZ = glm::identity<mat4>();
-    float angle = M_1_PI / 6;
-    rotZ = glm::rotate(glm::identity<mat4>(), angle, glm::vec3(0, 0, 1));
+    float mptr[16];
+    for(int i=0;i<16;i++) mptr[i] = 1.0f;
 
-    ubo = bindDataToVBO(GL_UNIFORM_BUFFER, sizeof(mat4),&rotZ[0][0], GL_STATIC_DRAW);
+    ubo = bindDataToVBO(GL_UNIFORM_BUFFER, sizeof(mat4), mptr, GL_STATIC_DRAW);
 
-    bindVBOToAttrib(vbo, 0, 3, GL_FLOAT);
+    bindAttribute(0, GL_ARRAY_BUFFER, vbo, 3, GL_FLOAT, false, 0, NULL);
 
     GLuint shader_program;
     shader_program = compileGLSLProgram(2, GL_VERTEX_SHADER, vertex_shader, GL_FRAGMENT_SHADER, fragment_shader);
     glUseProgram(shader_program);
 
-    GLuint matrices_loc = glGetUniformBlockIndex(shader_program, "matrices");
-    assert(matrices_loc == 0);
+    GLuint matrices_loc = glGetUniformBlockIndex(shader_program, "vertex_data");
+    assert(matrices_loc == 0); // if its not zero something is wrong
 
-    glBindBufferBase(GL_UNIFORM_BUFFER, 0, ubo);
+    glBindBufferBase(GL_UNIFORM_BUFFER, matrices_loc, ubo);
 
     glViewport(0, 0, width, height);
-
-    glBindVertexArray(vao);
-
-    glUseProgram(shader_program);
-
-    glClearColor(0.2, 0.2, 0.2, 0.0);
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    glDrawArrays(GL_TRIANGLES, 0, 3);
-
-    SWAP_BUFFERS;
-
+    
+    while(!glfwWindowShouldClose(window))
+    {
+        glClearColor(0.2, 0.2, 0.2, 0.0);
+        glClear(GL_COLOR_BUFFER_BIT);
+        
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+        
+        SWAP_BUFFERS;
+        
+        glfwPollEvents();
+    }
+    
     return 0;
 }
 
@@ -1423,9 +1360,8 @@ int test_1D_textures(GLFWwindow* window, int width, int height)
         1.0f,
     };
 
-    //
-    vbo = bindDataToVBO(GL_ARRAY_BUFFER, 4 * 3 * sizeof(float), points, GL_STATIC_DRAW);
-    tex_vbo = bindDataToVBO(GL_ARRAY_BUFFER, 3 * sizeof(float), texcoords, GL_STATIC_DRAW);
+    vbo = bindDataToVBO(GL_ARRAY_BUFFER, sizeof(points), points, GL_STATIC_DRAW);
+    tex_vbo = bindDataToVBO(GL_ARRAY_BUFFER, sizeof(texcoords), texcoords, GL_STATIC_DRAW);
 
     mat4  rotZ = glm::identity<mat4>();
     float angle = M_1_PI / 6;
@@ -1437,8 +1373,8 @@ int test_1D_textures(GLFWwindow* window, int width, int height)
     glCreateVertexArrays(1, &vao);
     glBindVertexArray(vao);
 
-    bindVBOToAttrib(vbo, 0, 3, GL_FLOAT);
-    bindVBOToAttrib(tex_vbo, 1, 1, GL_FLOAT);
+    bindAttribute(0, GL_ARRAY_BUFFER, vbo, 3, GL_FLOAT, false, 0, NULL);
+    bindAttribute(1, GL_ARRAY_BUFFER, tex_vbo, 1, GL_FLOAT, false, 0, NULL);
 
     GLuint shader_program;
     shader_program = compileGLSLProgram(2, GL_VERTEX_SHADER, vertex_shader, GL_FRAGMENT_SHADER, fragment_shader);
@@ -1485,7 +1421,7 @@ int test_1D_textures(GLFWwindow* window, int width, int height)
 
 int test_2D_textures(GLFWwindow* window, int width, int height)
 {
-    GLuint vbo = 0, col_vbo = 0, tex_vbo = 0, mat_ubo = 0, scale_ubo = 0, col_att_ubo = 0;
+    GLuint vbo = 0, col_vbo = 0, tex_vbo = 0, mat_ubo = 0, scale_ubo = 0, col_att_ubo = 0, vao = 0;
 
     const char* vertex_shader =
     GLSL(450 core,
@@ -1554,20 +1490,9 @@ int test_2D_textures(GLFWwindow* window, int width, int height)
         1.0f, 1.0f,
     };
 
-    glGenBuffers(1, &vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, 9 * sizeof(float), points, GL_STATIC_DRAW);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    glGenBuffers(1, &col_vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, col_vbo);
-    glBufferData(GL_ARRAY_BUFFER, 9 * sizeof(float), color, GL_STATIC_DRAW);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    glGenBuffers(1, &tex_vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, tex_vbo);
-    glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), texcoords, GL_STATIC_DRAW);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    vbo = bindDataToVBO(GL_ARRAY_BUFFER, sizeof(points), points, GL_STATIC_DRAW);
+    col_vbo = bindDataToVBO(GL_ARRAY_BUFFER, sizeof(color), color, GL_STATIC_DRAW);
+    tex_vbo = bindDataToVBO(GL_ARRAY_BUFFER, sizeof(texcoords), texcoords, GL_STATIC_DRAW);
 
     mat4  rotZ = glm::identity<mat4>();
 
@@ -1575,53 +1500,25 @@ int test_2D_textures(GLFWwindow* window, int width, int height)
 
     rotZ = glm::rotate(glm::identity<mat4>(), angle, glm::vec3(0, 0, 1));
 
-    glGenBuffers(1, &mat_ubo);
-    glBindBuffer(GL_UNIFORM_BUFFER, mat_ubo);
-    glBufferData(GL_UNIFORM_BUFFER, sizeof(mat4),&rotZ[0][0], GL_STATIC_DRAW);
-    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+    mat_ubo = bindDataToVBO(GL_ARRAY_BUFFER, sizeof(texcoords), texcoords, GL_STATIC_DRAW);
 
     float scale = -1.0;
-    glGenBuffers(1, &scale_ubo);
-    glBindBuffer(GL_UNIFORM_BUFFER, scale_ubo);
-    glBufferData(GL_UNIFORM_BUFFER, sizeof(float), &scale, GL_STATIC_DRAW);
-    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+    scale_ubo = bindDataToVBO(GL_ARRAY_BUFFER, sizeof(scale), &scale, GL_STATIC_DRAW);
 
     float att = 1.0;
-    glGenBuffers(1, &col_att_ubo);
-    glBindBuffer(GL_UNIFORM_BUFFER, col_att_ubo);
-    glBufferData(GL_UNIFORM_BUFFER, sizeof(float), &att, GL_STATIC_DRAW);
-    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+    col_att_ubo = bindDataToVBO(GL_ARRAY_BUFFER, sizeof(col_att_ubo), &col_att_ubo, GL_STATIC_DRAW);
 
-    GLuint vao = 0;
-    glCreateVertexArrays(1, &vao);
-    glBindVertexArray(vao);
+    vao = bindVAO();
 
-    glEnableVertexAttribArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-
-    glEnableVertexAttribArray(1);
-    glBindBuffer(GL_ARRAY_BUFFER, col_vbo);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-
-    glEnableVertexAttribArray(2);
-    glBindBuffer(GL_ARRAY_BUFFER, tex_vbo);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, NULL);
+    bindAttribute(0, GL_ARRAY_BUFFER, vbo, 3, GL_FLOAT, false, 0, NULL);
+    bindAttribute(1, GL_ARRAY_BUFFER, col_vbo, 3, GL_FLOAT, false, 0, NULL);
+    bindAttribute(2, GL_ARRAY_BUFFER, tex_vbo, 2, GL_FLOAT, false, 0, NULL);
 
     // clear currently bound buffer
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    GLuint vs = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vs, 1, &vertex_shader, NULL);
-    glCompileShader(vs);
-    GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fs, 1, &fragment_shader, NULL);
-    glCompileShader(fs);
-
-    GLuint shader_program = glCreateProgram();
-    glAttachShader(shader_program, fs);
-    glAttachShader(shader_program, vs);
-    glLinkProgram(shader_program);
+    GLuint shader_program;
+    shader_program = compileGLSLProgram(2, GL_VERTEX_SHADER, vertex_shader, GL_FRAGMENT_SHADER, fragment_shader);
     glUseProgram(shader_program);
 
     GLuint matrices_loc = glGetUniformBlockIndex(shader_program, "matrices");
@@ -1644,10 +1541,6 @@ int test_2D_textures(GLFWwindow* window, int width, int height)
                  genTexturePixels(GL_RGBA, GL_UNSIGNED_BYTE, 0x10, 256,256));
 
     glViewport(0, 0, width, height);
-
-    glBindVertexArray(vao);
-
-    glUseProgram(shader_program);
 
     glClearColor(0.2, 0.2, 0.2, 0.0);
 
@@ -2179,8 +2072,8 @@ int test_textures(GLFWwindow* window, int width, int height, int mipmap, int use
     GLuint vao = 0;
     vao = bindVAO();
 
-    bindVBOToAttrib(vbo, 0, 3, GL_FLOAT);
-    bindVBOToAttrib(tex_vbo, 1, 2, GL_FLOAT);
+    bindAttribute(0, GL_ARRAY_BUFFER, vbo, 3, GL_FLOAT, false, 0, NULL);
+    bindAttribute(1, GL_ARRAY_BUFFER, tex_vbo, 2, GL_FLOAT, false, 0, NULL);
 
     // clear currently bound buffer
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -2273,7 +2166,7 @@ int test_textures(GLFWwindow* window, int width, int height, int mipmap, int use
 
 GLuint draw_to_framebuffer(GLFWwindow* window, int width, int height)
 {
-    GLuint vbo = 0;
+    GLuint vbo = 0, vao = 0;
 
     float points[] = {
         -1.0f, -1.0f,
@@ -2318,11 +2211,9 @@ GLuint draw_to_framebuffer(GLFWwindow* window, int width, int height)
          }
     );
 
-    GLuint vao = 0;
-    glCreateVertexArrays(1, &vao);
-    glBindVertexArray(vao);
+    vao = bindVAO();
 
-    bindVBOToAttrib(vbo, 0, 2, GL_FLOAT);
+    bindAttribute(0, GL_ARRAY_BUFFER, vbo, 2, GL_FLOAT, false, 0, NULL);
 
     GLuint shader_program;
     shader_program = compileGLSLProgram(2, GL_VERTEX_SHADER, vertex_shader, GL_FRAGMENT_SHADER, fragment_shader);
@@ -2465,9 +2356,9 @@ int test_framebuffer(GLFWwindow* window, int width, int height)
     glCreateVertexArrays(1, &vao);
     glBindVertexArray(vao);
 
-    bindVBOToAttrib(vbo, 0, 3, GL_FLOAT);
-    bindVBOToAttrib(col_vbo, 1, 3, GL_FLOAT);
-    bindVBOToAttrib(tex_vbo, 2, 2, GL_FLOAT);
+    bindAttribute(0, GL_ARRAY_BUFFER, vbo, 3, GL_FLOAT, false, 0, NULL);
+    bindAttribute(1, GL_ARRAY_BUFFER, col_vbo, 3, GL_FLOAT, false, 0, NULL);
+    bindAttribute(2, GL_ARRAY_BUFFER, tex_vbo, 2, GL_FLOAT, false, 0, NULL);
 
     GLuint shader_program;
     shader_program = compileGLSLProgram(2, GL_VERTEX_SHADER, vertex_texture_shader, GL_FRAGMENT_SHADER, fragment_texture_shader);
@@ -2593,41 +2484,41 @@ int test_readpixels(GLFWwindow* window, int width, int height)
     glCreateVertexArrays(1, &vao);
     glBindVertexArray(vao);
 
-    bindVBOToAttrib(vbo, 0, 3, GL_FLOAT);
-    bindVBOToAttrib(col_vbo, 1, 3, GL_FLOAT);
-    bindVBOToAttrib(tex_vbo, 2, 2, GL_FLOAT);
+    bindAttribute(0, GL_ARRAY_BUFFER, vbo, 3, GL_FLOAT, false, 0, NULL);
+    bindAttribute(1, GL_ARRAY_BUFFER, col_vbo, 3, GL_FLOAT, false, 0, NULL);
+    bindAttribute(2, GL_ARRAY_BUFFER, tex_vbo, 2, GL_FLOAT, false, 0, NULL);
 
     GLuint shader_program = compileGLSLProgram(2, GL_VERTEX_SHADER, vertex_shader, GL_FRAGMENT_SHADER, fragment_shader);
     glUseProgram(shader_program);
 
     GLuint tex;
-
     tex = createTexture(GL_TEXTURE_2D, 256, 256, 0, genTexturePixels(GL_RGBA, GL_UNSIGNED_INT_8_8_8_8, 0x10, 256, 256));
     glBindTexture(GL_TEXTURE_2D, tex);
 
-    glViewport(0, 0, width, height);
-
-    glBindVertexArray(vao);
-
-    glUseProgram(shader_program);
-
-    glClearColor(0.0, 0.0, 0.0, 0.0);
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    glDrawArrays(GL_TRIANGLES, 0, 3);
-
-    uint8_t *buf;
-
-    buf = (uint8_t *)malloc(256*256*4);
-
-    glReadBuffer(GL_FRONT);
-
-    glReadPixels(0, 0, 256, 256, GL_RGBA, GL_UNSIGNED_BYTE, buf);
-
-    glFlush();
-
+    while(!glfwWindowShouldClose(window))
+    {
+        glViewport(0, 0, width, height);
+        
+        glClearColor(0.0, 0.0, 0.0, 0.0);
+        glClear(GL_COLOR_BUFFER_BIT);
+        
+        glClear(GL_COLOR_BUFFER_BIT);
+        
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+        
+        uint8_t *buf;
+        
+        buf = (uint8_t *)malloc(256*256*4);
+        
+        glReadBuffer(GL_FRONT);
+        
+        glReadPixels(0, 0, 256, 256, GL_RGBA, GL_UNSIGNED_BYTE, buf);
+        
+        glFlush();
+        
+        glfwPollEvents();
+    }
+    
     return 0;
 }
 
@@ -3311,8 +3202,10 @@ void error_callback(int error_code, const char* description)
 }
 
 #if TEST_MGL_GLFW
-int main_glfw(int argc, const char * argv[])
+GLFWwindow *newTestWindow(int width, int height, const char *name)
 {
+    GLFWwindow *window;
+    
     glfwSetErrorCallback (error_callback);
 
     if (!glfwInit())
@@ -3326,6 +3219,7 @@ int main_glfw(int argc, const char * argv[])
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GL_TRUE);
+    glfwWindowHint(GLFW_FLOATING, GLFW_TRUE);
 
     // force MGL
     //glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_NATIVE_CONTEXT_API);
@@ -3333,12 +3227,12 @@ int main_glfw(int argc, const char * argv[])
 
     fprintf(stderr, "creating window...\n");
 
-    GLFWwindow* window = glfwCreateWindow(600, 600, "MGL Test", NULL, NULL);
+    window = glfwCreateWindow(width, width, name, NULL, NULL);
     if (!window)
     {
         glfwTerminate();
         exit(EXIT_FAILURE);
-    }	
+    }
 
     GLMContext glm_ctx = createGLMContext(GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, GL_DEPTH_COMPONENT, GL_FLOAT, 0, 0);
     void *renderer = CppCreateMGLRendererAndBindToContext (glfwGetCocoaWindow (window), glm_ctx); // FIXME should do something later with the renderer
@@ -3356,43 +3250,154 @@ int main_glfw(int argc, const char * argv[])
 
     glfwGetError(NULL);
 
-    int width, height;
-
     glfwGetWindowSize(window, &width, &height);
     
     // hidpi
     width *= 2;
     height *= 2;
 
-    fprintf(stderr, "setup complete. testing...\n");
+    return window;
+}
 
-    // test_clear(window, width, height);
-    // test_draw_arrays(window, width, height);
-    //test_draw_arrays_uniformMatrix4fv(window, width, height);
-    // test_draw_elements(window, width, height);
-    test_draw_elements_vertex_attribute(window, width, height);
-    // test_draw_range_elements(window, width, height);
-    // test_draw_arrays_instanced(window, width, height);
-    // test_uniform_buffer(window, width, height);
-    // test_1D_textures(window, width, height);
-    // test_1D_array_textures(window, width, height);
-    // test_2D_textures(window, width, height);
-    // test_3D_textures(window, width, height);
-    // test_2D_array_textures(window, width, height);
-    // test_textures(window, width, height, 0, 0);
-    // test_textures(window, width, height, 0, 0, 0, GL_NEAREST, GL_NEAREST);
-    // test_textures(window, width, height, 0, 0, 0, GL_LINEAR, GL_LINEAR);
-    // test_textures(window, width, height, 1, 1, 0, GL_LINEAR_MIPMAP_NEAREST);
-    // test_textures(window, width, height, 1, 1, 8, GL_LINEAR_MIPMAP_NEAREST);
-    // test_framebuffer(window, width, height);
-    // test_readpixels(window, width, height);
-    // test_compute_shader(window, width, height);
+int run_test_case(int test_num, int width, int height)
+{
+    GLFWwindow *window;
 
-    //test_2D_array_textures_perf_mon(window, width, height);
+    switch(test_num)
+    {
+        case 0:
+            window = newTestWindow(width, height, "test_clear");
+            test_clear(window, width, height);
+            break;
 
-
+        case 1:
+            window = newTestWindow(width, height, "test_draw_arrays");
+            test_draw_arrays(window, width, height);
+            break;
+            
+        case 2:
+            //window = newTestWindow(width, height, "test_draw_arrays_uniformMatrix4fv");
+            //test_draw_arrays_uniformMatrix4fv(window, width, height);
+            break;
+            
+        case 3:
+            window = newTestWindow(width, height, "test_draw_elements");
+            test_draw_elements(window, width, height);
+            break;
+            
+        case 4:
+            window = newTestWindow(width, height, "test_draw_elements_vertex_attribute");
+            test_draw_elements_vertex_attribute(window, width, height);
+            break;
+            
+        case 5:
+            window = newTestWindow(width, height, "test_draw_range_elements");
+            test_draw_range_elements(window, width, height);
+            break;
+            
+        case 6:
+            window = newTestWindow(width, height, "test_draw_arrays_instanced");
+            test_draw_arrays_instanced(window, width, height);
+            break;
+            
+        case 7:
+            window = newTestWindow(width, height, "test_draw_arrays_instanced_divisor");
+            test_draw_arrays_instanced_divisor(window, width, height);
+            break;
+            
+        case 8:
+            window = newTestWindow(width, height, "test_uniform_buffer");
+            test_uniform_buffer(window, width, height);
+            break;
+            
+        case 9:
+            window = newTestWindow(width, height, "test_1D_textures");
+            test_1D_textures(window, width, height);
+            break;
+            
+        case 10:
+            window = newTestWindow(width, height, "test_2D_textures");
+            test_2D_textures(window, width, height);
+            break;
+            
+        case 11:
+            window = newTestWindow(width, height, "test_3D_textures");
+            test_3D_textures(window, width, height);
+            break;
+            
+        case 12:
+            window = newTestWindow(width, height, "test_2D_array_textures");
+            test_2D_array_textures(window, width, height);
+            break;
+            
+        case 13:
+            window = newTestWindow(width, height, "test_textures 0, 0, 0, GL_NEAREST, GL_NEAREST");
+            test_textures(window, width, height, 0, 0, 0, GL_NEAREST, GL_NEAREST);
+            break;
+            
+        case 14:
+            window = newTestWindow(width, height, "test_textures 0, 0, 0, GL_LINEAR, GL_LINEAR");
+            test_textures(window, width, height, 0, 0, 0, GL_LINEAR, GL_LINEAR);
+            break;
+            
+        case 15:
+            window = newTestWindow(width, height, "test_textures");
+            test_textures(window, width, height, 1, 1, 0, GL_LINEAR_MIPMAP_NEAREST);
+            break;
+            
+        case 16:
+            window = newTestWindow(width, height, "test_textures");
+            test_textures(window, width, height, 1, 1, 8, GL_LINEAR_MIPMAP_NEAREST);
+            break;
+            
+        case 17:
+            window = newTestWindow(width, height, "test_framebuffer");
+            test_framebuffer(window, width, height);
+            break;
+            
+        case 18:
+            window = newTestWindow(width, height, "test_readpixels");
+            test_readpixels(window, width, height);
+            break;
+            
+        case 19:
+            window = newTestWindow(width, height, "test_compute_shader");
+            test_compute_shader(window, width, height);
+            break;
+            
+        case 20:
+            window = newTestWindow(width, height, "test_2D_array_textures_perf_mon");
+            test_2D_array_textures_perf_mon(window, width, height);
+            break;
+        
+        default:
+            return 0;
+            break;
+    }
+    
     glfwTerminate();
+    
+    return 1;
+}
 
+int main_glfw(int argc, const char * argv[])
+{
+    int width, height;
+    
+    width = 512;
+    height = 512;
+    
+#if 1
+    run_test_case(8, width, height);
+#else
+    int test_num;
+    test_num = 0;
+    while(run_test_case(test_num, width, height))
+    {
+        test_num++;
+    }
+#endif
+    
     return 0;
 }
 #endif

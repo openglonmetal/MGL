@@ -270,7 +270,7 @@ char *parseSPIRVShaderToMetal(GLMContext ctx, Program *ptr, int stage)
     // Modify options.
     ERROR_CHECK_RETURN(spvc_compiler_create_compiler_options(compiler_msl, &options) == SPVC_SUCCESS, GL_INVALID_OPERATION);
     ERROR_CHECK_RETURN(spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_MSL_ARGUMENT_BUFFERS, SPVC_TRUE) == SPVC_SUCCESS, GL_INVALID_OPERATION);
-    ERROR_CHECK_RETURN(spvc_compiler_options_set_uint(options, SPVC_COMPILER_OPTION_MSL_VERSION, SPVC_MAKE_MSL_VERSION(2,3,0)) == SPVC_SUCCESS, GL_INVALID_OPERATION);
+    ERROR_CHECK_RETURN(spvc_compiler_options_set_uint(options, SPVC_COMPILER_OPTION_MSL_VERSION, SPVC_MAKE_MSL_VERSION(3,1,0)) == SPVC_SUCCESS, GL_INVALID_OPERATION);
 //    ERROR_CHECK_RETURN(spvc_compiler_options_set_uint(options, SPVC_COMPILER_OPTION_GLSL_VERSION, 4.5) == SPVC_SUCCESS, GL_INVALID_OPERATION);
     ERROR_CHECK_RETURN(spvc_compiler_install_compiler_options(compiler_msl, options) == SPVC_SUCCESS, GL_INVALID_OPERATION);
 
@@ -349,13 +349,48 @@ char *parseSPIRVShaderToMetal(GLMContext ctx, Program *ptr, int stage)
         {
             printf("res_type: %s ID: %u, BaseTypeID: %u, TypeID: %u, Name: %s ", res_name[res_type], list[i].id, list[i].base_type_id, list[i].type_id,
                    list[i].name);
-            printf("Set: %u, Binding: %u Location: %d Index: %d, Uniform: %d\n",
-                   spvc_compiler_get_decoration(compiler_msl, list[i].id, SpvDecorationDescriptorSet),
-                   spvc_compiler_get_decoration(compiler_msl, list[i].id, SpvDecorationBinding),
-                   spvc_compiler_get_decoration(compiler_msl, list[i].id, SpvDecorationLocation),
-                   spvc_compiler_get_decoration(compiler_msl, list[i].id, SpvDecorationIndex),
-                   spvc_compiler_get_decoration(compiler_msl, list[i].id, SpvDecorationUniform));
+            
+            switch(res_type)
+            {
+                case SPVC_RESOURCE_TYPE_UNIFORM_BUFFER:
+                case SPVC_RESOURCE_TYPE_UNIFORM_CONSTANT:
+                case SPVC_RESOURCE_TYPE_STORAGE_BUFFER:
+                case SPVC_RESOURCE_TYPE_ATOMIC_COUNTER:
+                    printf("Set: %u, Binding: %u Uniform: %d offset: %d\n",
+                           spvc_compiler_get_decoration(compiler_msl, list[i].id, SpvDecorationDescriptorSet),
+                           spvc_compiler_get_decoration(compiler_msl, list[i].id, SpvDecorationBinding),
+                           spvc_compiler_get_decoration(compiler_msl, list[i].id, SpvDecorationUniform),
+                           spvc_compiler_get_decoration(compiler_msl, list[i].id, SpvDecorationOffset));
+                    break;
 
+                case SPVC_RESOURCE_TYPE_STAGE_INPUT:
+                case SPVC_RESOURCE_TYPE_STAGE_OUTPUT:
+                case SPVC_RESOURCE_TYPE_SUBPASS_INPUT:
+                    printf("Set: %u, Location: %d Index: %d, offset: %d\n",
+                           spvc_compiler_get_decoration(compiler_msl, list[i].id, SpvDecorationDescriptorSet),
+                           spvc_compiler_get_decoration(compiler_msl, list[i].id, SpvDecorationLocation),
+                           spvc_compiler_get_decoration(compiler_msl, list[i].id, SpvDecorationIndex),
+                           spvc_compiler_get_decoration(compiler_msl, list[i].id, SpvDecorationOffset));
+                    break;
+                    
+                case SPVC_RESOURCE_TYPE_SAMPLED_IMAGE:
+                case SPVC_RESOURCE_TYPE_SEPARATE_IMAGE:
+                    printf("Set: %u, Location: %d\n",
+                           spvc_compiler_get_decoration(compiler_msl, list[i].id, SpvDecorationDescriptorSet),
+                           spvc_compiler_get_decoration(compiler_msl, list[i].id, SpvDecorationLocation));
+                    break;
+
+                default:
+                    printf("Set: %u, Binding: %u Location: %d Index: %d, Uniform: %d offset: %d\n",
+                           spvc_compiler_get_decoration(compiler_msl, list[i].id, SpvDecorationDescriptorSet),
+                           spvc_compiler_get_decoration(compiler_msl, list[i].id, SpvDecorationBinding),
+                           spvc_compiler_get_decoration(compiler_msl, list[i].id, SpvDecorationLocation),
+                           spvc_compiler_get_decoration(compiler_msl, list[i].id, SpvDecorationIndex),
+                           spvc_compiler_get_decoration(compiler_msl, list[i].id, SpvDecorationUniform),
+                           spvc_compiler_get_decoration(compiler_msl, list[i].id, SpvDecorationOffset));
+                    break;
+            }
+            
             ptr->spirv_resources_list[stage][res_type].list[i]._id = list[i].id;
             ptr->spirv_resources_list[stage][res_type].list[i].base_type_id = list[i].base_type_id;
             ptr->spirv_resources_list[stage][res_type].list[i].type_id = list[i].type_id;
