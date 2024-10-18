@@ -303,16 +303,16 @@ void logDirtyBits(GLMContext ctx)
 {
     MTLResourceOptions options;
 
+    options = MTLResourceCPUCacheModeDefaultCache | MTLResourceStorageModeManaged;
+
+    // ways we will only write to this
+    if ((ptr->storage_flags & GL_MAP_READ_BIT) == 0)
+    {
+        options |= MTLResourceCPUCacheModeWriteCombined;
+    }
+
     if (ptr->storage_flags & GL_CLIENT_STORAGE_BIT)
     {
-        options = MTLResourceCPUCacheModeDefaultCache | MTLResourceStorageModeManaged;
-
-        // ways we will only write to this
-        if ((ptr->storage_flags & GL_MAP_READ_BIT) == 0)
-        {
-            options |= MTLResourceCPUCacheModeWriteCombined;
-        }
-
         id<MTLBuffer> buffer = [_device newBufferWithBytesNoCopy: (void *)(ptr->data.buffer_data)
                                                      length: ptr->size // allocate only size since this is what will be transferred
                                                     options: options
@@ -329,37 +329,43 @@ void logDirtyBits(GLMContext ctx)
     }
     else
     {
-        // need to figure this out for non-client storage
-        options = MTLResourceCPUCacheModeDefaultCache | MTLResourceStorageModeManaged;
-
-        // we will only write to this
-        if ((ptr->storage_flags & GL_MAP_READ_BIT) == 0)
-        {
-            options |= MTLResourceCPUCacheModeWriteCombined;
-        }
-
-        id<MTLBuffer> buffer = [_device newBufferWithLength: ptr->size // allocate by size
-                                                    options: options];
-        assert(buffer);
-
+        id<MTLBuffer> buffer;
+        
         // a backing can allocated initially, delete it and point the
         // backing data to the MTL buffer
         if (ptr->data.buffer_data)
         {
-            void *data;
+            // check the GL allocated size, not the vm_allocated size as these are page aligned
+            if (ptr->size > 4095)
+            {
+                buffer = [_device newBufferWithBytes:(void *)ptr->data.buffer_data
+                                                            length:ptr->data.buffer_size
+                                                           options:options];
+                assert(buffer);
 
-            data = buffer.contents;
-            memcpy(data, (void *)ptr->data.buffer_data, ptr->size);
-            [buffer didModifyRange:NSMakeRange(0, ptr->size)];
+                kern_return_t err;
+                err = vm_deallocate((vm_map_t) mach_task_self(),
+                                    (vm_address_t) ptr->data.buffer_data,
+                                    ptr->data.buffer_size);
+                assert(err == 0);
 
-            kern_return_t err;
-            err = vm_deallocate((vm_map_t) mach_task_self(),
-                                (vm_address_t) ptr->data.buffer_data,
-                                ptr->data.buffer_size);
+                ptr->data.buffer_data = (vm_address_t)buffer.contents;
+            }
+            else
+            {
+                ptr->data.mtl_data = (void *)NULL;
+                
+                // early return, do nothing
+                return;
+            }
+        }
+        else
+        {
+            buffer = [_device newBufferWithLength: ptr->size // allocate by size
+                                                        options: options];
+            assert(buffer);
 
-            assert(err == 0);
-
-            ptr->data.buffer_data = (vm_address_t)data;
+            ptr->data.buffer_data = (vm_address_t)NULL;
         }
 
         ptr->data.mtl_data = (void *)CFBridgingRetain(buffer);
@@ -540,6 +546,14 @@ void logDirtyBits(GLMContext ctx)
 
 - (bool) updateDirtyBuffer:(Buffer *)ptr
 {
+    // buffers less than 4k will be uploaded using setVertexBytes
+    if (ptr->size < 4096)
+    {
+        ptr->data.dirty_bits &= ~DIRTY_BUFFER_ADDR;
+        
+        return true;
+    }
+    
     if (ptr->data.dirty_bits & DIRTY_BUFFER_ADDR)
     {
         if (ptr->data.mtl_data == NULL)
@@ -629,15 +643,26 @@ void logDirtyBits(GLMContext ctx)
         offset = map->offset;
 
         assert(ptr);
-        assert(ptr->data.mtl_data);
-
-        id<MTLBuffer> buffer = (__bridge id<MTLBuffer>)(ptr->data.mtl_data);
-        assert(buffer);
 
         // for buffers less than 4k we should use this call
-        // - (void)setVertexBytes:(const void *)bytes length:(NSUInteger)length atIndex:(NSUInteger)index API_AVAILABLE(macos(10.11), ios(8.3));
+        if (ptr->size < 4096)
+        {
+            assert(ptr->data.mtl_data == NULL);
 
-        [_currentRenderEncoder setVertexBuffer:buffer offset:offset atIndex:i ];
+            [_currentRenderEncoder setVertexBytes:(const void *)ptr->data.buffer_data length:ptr->size atIndex:i];
+            
+            // clear buffer data dirty bits
+            ptr->data.dirty_bits &= ~DIRTY_BUFFER_DATA;
+        }
+        else
+        {
+            assert(ptr->data.mtl_data);
+
+            id<MTLBuffer> buffer = (__bridge id<MTLBuffer>)(ptr->data.mtl_data);
+            assert(buffer);
+
+            [_currentRenderEncoder setVertexBuffer:buffer offset:offset atIndex:i ];
+        }
     }
 
     for(int i=0; i<ctx->state.fragment_buffer_map_list.count; i++)
@@ -2949,6 +2974,8 @@ void mtlBindProgram(GLMContext glm_ctx, Program *ptr)
 #pragma mark C interface to mtlDeleteMTLObj
 -(void) mtlDeleteMTLObj:(GLMContext) glm_ctx buffer: (void *)obj
 {
+    assert(obj);
+    
     [self flushCommandBuffer: false];
 
     // this should release it to the GC

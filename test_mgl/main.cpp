@@ -1244,17 +1244,17 @@ int test_uniform_buffer(GLFWwindow* window, int width, int height)
 
     const char* vertex_shader =
     GLSL(450 core,
-         layout(location = 0) in vec3 position;
+         layout(location = 0) in vec3 position; // attribute 0
          layout(location = 0) out vec4 color;
          
-         layout(binding = 0) uniform vertex_data
+         layout(binding = 0) uniform vertex_data // vertex buffer 0
          {
-            float colors[16];
+            vec4 colors[16];
          };
 
          void main() {
             gl_Position = vec4(position, 1.0);
-            color = vec4(colors[0], 0.0, 0.0, 1.0);
+            color = vec4(colors[0].x, colors[0].y, colors[0].z, 1.0);
          }
     );
 
@@ -1281,10 +1281,17 @@ int test_uniform_buffer(GLFWwindow* window, int width, int height)
 
     vbo = bindDataToVBO(GL_ARRAY_BUFFER, sizeof(points), points, GL_STATIC_DRAW);
 
-    float mptr[16];
-    for(int i=0;i<16;i++) mptr[i] = 1.0f;
+    struct {
+        float x,y,z,w;
+    } mptr[16];
+    
+    for(int i=0; i<16; i++)
+    {
+        mptr[i].x = 1.0f;
+        mptr[i].y = mptr[i].z = mptr[i].w = 0.0f;
+    }
 
-    ubo = bindDataToVBO(GL_UNIFORM_BUFFER, sizeof(mat4), mptr, GL_STATIC_DRAW);
+    ubo = bindDataToVBO(GL_UNIFORM_BUFFER, sizeof(mptr), mptr, GL_STATIC_DRAW);
 
     bindAttribute(0, GL_ARRAY_BUFFER, vbo, 3, GL_FLOAT, false, 0, NULL);
 
