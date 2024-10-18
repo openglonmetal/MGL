@@ -379,7 +379,10 @@ void mglDeleteBuffers(GLMContext ctx, GLsizei n, const GLuint *buffers)
                 }
                 else
                 {
-                    ctx->mtl_funcs.mtlDeleteMTLObj(ctx, ptr->data.mtl_data);
+                    if (ptr->data.mtl_data)
+                    {
+                        ctx->mtl_funcs.mtlDeleteMTLObj(ctx, ptr->data.mtl_data);
+                    }
                 }
 
                 ptr->data.buffer_data = 0;
@@ -626,7 +629,10 @@ kern_return_t initBufferData(GLMContext ctx, Buffer *ptr, GLsizeiptr size, const
         }
         else
         {
-            ctx->mtl_funcs.mtlDeleteMTLObj(ctx, ptr->data.mtl_data);
+            if (ptr->data.mtl_data)
+            {
+                ctx->mtl_funcs.mtlDeleteMTLObj(ctx, ptr->data.mtl_data);
+            }
             
             if(isUniformConstant)
             {
