@@ -226,7 +226,6 @@ GLenum  mglCheckFramebufferStatus(GLMContext ctx, GLenum target)
     }
 
     level = fbo->color_attachments[0].level;
-
     width = tex->faces[0].levels[level].width;
     height = tex->faces[0].levels[level].height;
 
@@ -249,7 +248,7 @@ GLenum  mglCheckFramebufferStatus(GLMContext ctx, GLenum target)
         }
     }
 
-    printf("%s need to fix this function\n", __FUNCTION__);
+    printf("%s need to fix this function %d, %d, %d\n", __FUNCTION__, width, height, level);
 
     return GL_FRAMEBUFFER_COMPLETE;
 }
@@ -717,7 +716,7 @@ void getFramebufferAttachmentParameteriv(GLMContext ctx, GLuint framebuffer, GLe
 
     if (fbo)
     {
-        GLuint level;
+        GLuint level __attribute__((unused));
         Texture *tex;
         GLenum target;
 

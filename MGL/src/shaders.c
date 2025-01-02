@@ -104,7 +104,7 @@ Shader *newShader(GLMContext ctx, GLenum type, GLuint shader)
     ptr->type = type;
     ptr->glm_type = glShaderTypeToGLMType(type);
 
-    sprintf(shader_type_name, "%s_%d", getShaderTypeStr(ptr->glm_type), shader);
+    snprintf(shader_type_name, sizeof(shader_type_name), "%s_%d", getShaderTypeStr(ptr->glm_type), shader);
     ptr->mtl_shader_type_name = strdup(shader_type_name);
 
     return ptr;

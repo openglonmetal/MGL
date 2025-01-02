@@ -1671,7 +1671,7 @@ void mglTexStorage2D(GLMContext ctx, GLenum target, GLsizei levels, GLenum inter
 
     tex = getTex(ctx, 0, target);
 
-    texStorage(ctx, tex, 1, levels, is_array, internalformat, width, height, 1, proxy);
+    texStorage(ctx, tex, num_faces, levels, is_array, internalformat, width, height, 1, proxy);
 }
 
 

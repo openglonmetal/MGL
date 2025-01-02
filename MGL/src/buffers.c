@@ -535,15 +535,14 @@ void mglBindBuffersBase(GLMContext ctx, GLenum target, GLuint first, GLsizei cou
 void mglBindBufferRange(GLMContext ctx, GLenum target, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size)
 {
     Buffer  *ptr;
-    GLuint  base;
     GLuint  buffer_index;
 
     switch(target)
     {
-        case GL_UNIFORM_BUFFER: base = _UNIFORM_BASE; break;
-        case GL_TRANSFORM_FEEDBACK_BUFFER: base = _TRANSFORM_FEEDBACK_BASE; break;
-        case GL_SHADER_STORAGE_BUFFER: base = _SHADER_STORAGE_BASE; break;
-        case GL_ATOMIC_COUNTER_BUFFER: base = _ATOMIC_COUNTER_BASE; break;
+        case GL_UNIFORM_BUFFER:
+        case GL_TRANSFORM_FEEDBACK_BUFFER:
+        case GL_SHADER_STORAGE_BUFFER:
+        case GL_ATOMIC_COUNTER_BUFFER:
             break;
 
         default:

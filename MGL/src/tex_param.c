@@ -499,7 +499,7 @@ bool getParam(GLMContext ctx, TextureParameter *tex_params, GLenum pname, GLint 
     return false;
 }
 
-#pragma tex param gl calls
+#pragma mark tex param gl calls
 void mglTexParameterf(GLMContext ctx, GLenum target, GLenum pname, GLfloat param)
 {
     Texture *tex;
@@ -750,7 +750,7 @@ void mglTextureParameterIuiv(GLMContext ctx, GLuint texture, GLenum pname, const
     }
 }
 
-#pragma get tex param gl calls
+#pragma mark get tex param gl calls
 void mglGetTexParameterfv(GLMContext ctx, GLenum target, GLenum pname, GLfloat *params)
 {
     Texture *tex;

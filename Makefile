@@ -1,25 +1,21 @@
 #-include config.mk
 
-# first, with brew already installed (see https://brew.sh), do 'make install-pkgdeps'
-# you can configure below, but it should be ok as is
-# then 'make -j test' or 'make -j dbg' if the test crashes
+SHELL := /bin/bash
 
 # Find SDK path via xcode-select, backwards compatible with Xcode vers < 4.5
 # on M1 monterey, comment out the following line
-#SDK_ROOT = $(shell xcode-select -p)/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk
+SDK_ROOT = $(shell xcrun --sdk macosx --show-sdk-path)
 
-# with installed spirv_headers and spirv_cross
-# spirv_headers_include_path ?= /usr/local/include
-# spirv_cross_include_path ?= /usr/local/include/spirv
-# spirv_cross_1_2_include_path ?= /usr/local/include/spirv/1.2
-# spirv_cross_config_include_path ?= external/SPIRV-Cross
-# spirv_cross_lib_path ?= /usr/local/lib
+# lets only install from external, devs complained about brew and we want the latest build from spirv
+spirv_cross_include_path ?= ./external/SPIRV-Cross
+spirv_cross_config_include_path ?= ./external/SPIRV-Cross
+spirv_cross_lib_path ?= ./external/SPIRV-Cross/build
 
-# with uninstalled spirv_headers and spirv_cross
-# uncomment the following lines 
-spirv_cross_1_2_include_path ?= SPIRV-Headers/include/spirv/1.2
-spirv_cross_config_include_path ?= SPIRV-Cross
-spirv_cross_lib_path ?= SPIRV-Cross/build
+spirv_tools_include_path ?= ./external/SPIRV-Tools/include
+spirv_tools_path ?= ./external/SPIRV-Tools/build
+
+glslang_include_path ?= ./external/glslang/glslang/Include
+
 
 #glslang_path ?= glslang
 #glslang_include_path ?= $(glslang_path)/build/include/glslang $(glslang_path)/glslang/Include
@@ -27,6 +23,42 @@ spirv_cross_lib_path ?= SPIRV-Cross/build
 
 # build dir
 build_dir ?= build
+
+CFLAGS += -Wall #-Wunused-parameter #-Wextra
+CFLAGS += -gfull
+CFLAGS += -O2
+#CFLAGS += -00
+CFLAGS += -fsanitize=address
+LIBS += -fsanitize=address
+CFLAGS += -arch $(shell uname -m)
+LIBS += -arch $(shell uname -m)
+
+LIBS += -F$(SDK_ROOT)/System/Library/Frameworks
+LIBS += -framework Metal -framework OpenGL -framework Foundation
+
+CFLAGS += -I$(spirv_cross_include_path)
+CFLAGS += -I$(spirv_cross_config_include_path)
+CFLAGS += -I$(spirv_tools_include_path)
+CFLAGS += -I$(glslang_include_path)
+
+# lets only install from external, devs complained about brew
+# CFLAGS += $(shell pkg-config --cflags SPIRV-Tools)
+# CFLAGS += $(shell pkg-config --cflags glm)
+
+CFLAGS += -IMGL/include
+CFLAGS += -IMGL/include/GL # "glcorearb.h"
+CFLAGS += -IMGL/SPIRV/SPIRV-Cross
+CFLAGS += -DENABLE_OPT=0 -DSPIRV_CROSS_C_API_MSL=1 -DSPIRV_CROSS_C_API_GLSL=1 -DSPIRV_CROSS_C_API_CPP=1 -DSPIRV_CROSS_C_API_REFLECT=1
+
+ifneq ($(SDK_ROOT),)
+CFLAGS += -isysroot $(SDK_ROOT)
+endif
+
+LIBS += -L$(spirv_cross_lib_path) -lspirv-cross-core -lspirv-cross-c -lspirv-cross-cpp -lspirv-cross-msl -lspirv-cross-glsl -lspirv-cross-hlsl -lspirv-cross-reflect
+LIBS += -L$(brew_prefix)/lib
+LIBS += -lglslang -lMachineIndependent -lGenericCodeGen -lOGLCompiler -lOSDependent -lglslang-default-resource-limits -lSPIRV
+LIBS += -L/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib
+LIBS += -lc++
 
 # --
 # no need to tweak after this line, hopefully
@@ -36,7 +68,6 @@ default: lib
 brew_prefix := $(shell brew --prefix)
 
 # mgl
-
 mgl_srcs_c := $(wildcard MGL/src/*.c)
 mgl_srcs_objc := $(wildcard MGL/src/*.m)
 
@@ -46,61 +77,66 @@ mgl_objs := $(addprefix $(build_dir)/,$(mgl_objs))
 mgl_arc_objs := $(mgl_srcs_objc:.m=.o)
 mgl_arc_objs := $(addprefix $(build_dir)/arc/,$(mgl_arc_objs))
 
+# Define the directories and repositories
+EXT_DIRS = ./external/OpenGL-Registry \
+           ./external/SPIRV-Cross \
+           ./external/SPIRV-Headers \
+           ./external/SPIRV-Tools \
+           ./external/glslang \
+           ./external/ezxml
+
+REPOS = https://github.com/KhronosGroup/OpenGL-Registry.git \
+        https://github.com/KhronosGroup/SPIRV-Cross.git \
+        https://github.com/KhronosGroup/SPIRV-Headers.git \
+        https://github.com/KhronosGroup/SPIRV-Tools.git \
+        https://github.com/KhronosGroup/glslang.git \
+        https://github.com/lxfontes/ezxml.git
+
+define index_of
+$(info DEBUG: Stripped value of $(1) is: $(strip $(1)))  # Print stripped value
+$(foreach dir,$(EXT_DIRS), \
+    $(info DEBUG: Checking if $(strip $(1)) matches $(patsubst ./%,%,$(dir)))  # Debug each directory
+    $(info DEBUG: filter result: $(filter $(strip $(1)),$(patsubst ./%,%,$(dir))))  # Debug filter result
+    $(eval _i:=$(shell echo $$((_i + 1))))  # Increment index
+    $(if $(filter $(strip $(1)),$(patsubst ./%,%,$(dir)) ),$(dir))  # If match, print repository
+))
+endef
+
+# Function to get the corresponding repository URL for a directory
+define get_repo_url
+$(word $(call index_of,$(1)),$(REPOS))
+endef
+
+# Function to check if a directory exists, and if not, clone it
+define check_and_clone
+	@echo "Resolving directory $(1)..."; \
+	INDEX=$(call index_of,$1)); \
+	echo "INDEX calculated: $$INDEX"; \
+	echo "REPO resolved: $$REPO"; \	if [ ! -d $(1) ]; then \
+		echo "Cloning from $$REPO into $(1)..."; \
+		git clone $$REPO $(1) --depth 1; \
+	else \
+		echo "$(1) already exists, skipping."; \
+	fi
+endef
+
+# Use the `check_and_clone` function for each directory
+$(EXT_DIRS):
+	$(call check_and_clone,$@)
+
+
 deps += $(mgl_objs:.o=.d)
 deps += $(mgl_arc_objs:.o=.d)
+
 
 mgl_lib := $(build_dir)/libmgl.dylib
 
 $(mgl_lib): $(mgl_objs) $(mgl_arc_objs)
 	@mkdir -p $(dir $@)
-	$(CXX) -dynamiclib -o $@ $^ $(LIBS)
+	$(CC) -dynamiclib -o $@ $^ $(LIBS)
 	# loading dynamic library requires this
 	ln -fs $(mgl_lib) .
 
-# test
-
-test_srcs_cpp := $(wildcard test_mgl/*.cpp)
-test_objs := $(test_srcs_cpp:.cpp=.o)
-test_deps := $(test_objs:.o=.d)
-test_objs := $(addprefix $(build_dir)/,$(test_objs))
-deps += $(test_objs:.o=.d)
-test_exe := $(build_dir)/test
-$(test_exe): $(mgl_lib)
-$(test_exe): test_libs += $(shell pkg-config --libs glfw3)
-$(test_objs): CFLAGS += -DTEST_MGL_GLFW $(shell pkg-config --cflags glfw3)
-#$(test_exe): test_libs += $(shell pkg-config --libs sdl2)
-#$(test_objs): CFLAGS += -DTEST_MGL_SDL $(shell pkg-config --cflags sdl2)
-
-$(test_exe): $(test_objs)
-	@mkdir -p $(dir $@)
-	$(CXX) -o $@ $^ -L$(build_dir) -lmgl $(test_libs) -fsanitize=address
-
-CFLAGS += -Wall #-Wunused-parameter #-Wextra
-CFLAGS += -gfull
-CFLAGS += -O0
-#CFLAGS += -03
-CFLAGS += -fsanitize=address
-LIBS += -fsanitize=address
-CFLAGS += -arch $(shell uname -m)
-LIBS += -arch $(shell uname -m)
-
-CFLAGS += -I$(spirv_cross_1_2_include_path)
-CFLAGS += -I$(spirv_cross_config_include_path)
-CFLAGS += -I$(brew_prefix)/include/glslang/Include
-CFLAGS += $(shell pkg-config --cflags SPIRV-Tools)
-CFLAGS += $(shell pkg-config --cflags glm)
-
-CFLAGS += -IMGL/include
-CFLAGS += -IMGL/include/GL # "glcorearb.h"
-CFLAGS += -IMGL/SPIRV/SPIRV-Cross
-CFLAGS += -DENABLE_OPT=0 -DSPIRV_CROSS_C_API_MSL=1 -DSPIRV_CROSS_C_API_GLSL=1 -DSPIRV_CROSS_C_API_CPP=1 -DSPIRV_CROSS_C_API_REFLECT=1
-ifneq ($(SDK_ROOT),)
-CFLAGS += -isysroot $(SDK_ROOT)
-endif
-
-LIBS += -L$(spirv_cross_lib_path) -lspirv-cross-core -lspirv-cross-c -lspirv-cross-cpp -lspirv-cross-msl -lspirv-cross-glsl -lspirv-cross-hlsl -lspirv-cross-reflect
-LIBS += -L$(brew_prefix)/lib
-LIBS += -lglslang -lMachineIndependent -lGenericCodeGen -lOGLCompiler -lOSDependent -lglslang-default-resource-limits -lSPIRV
 
 # specific rules
 
@@ -114,34 +150,17 @@ dbg: $(test_exe)
 	lldb -o run $(test_exe)
 
 
-# # glfw
-# # not needed anymore
-# glfw_srcs_c := $(addprefix glfw/src/,cocoa_time.c posix_module.c posix_thread.c)
-# glfw_srcs_c += $(addprefix glfw/src/,context.c init.c input.c monitor.c platform.c vulkan.c window.c egl_context.c osmesa_context.c null_init.c null_monitor.c null_window.c null_joystick.c)
-# glfw_srcs_objc := $(addprefix glfw/src/,cocoa_init.m cocoa_joystick.m cocoa_monitor.m cocoa_window.m mgl_context.m)
-# glfw_objs := $(glfw_srcs_c:.c=.o) $(glfw_srcs_objc:.m=.o)
-# glfw_objs := $(addprefix $(build_dir)/,$(glfw_objs))
-# deps += $(glfw_objs:.o=.d)
-# $(glfw_objs): CFLAGS += -D_GLFW_COCOA
-# #$(build_dir)/libglfw.dylib: LIBS += -L$(build_dir) -lMGL
-# glfw_lib := $(build_dir)/libglfw.dylib
-# $(glfw_lib): $(mgl_lib)
-
-# $(glfw_lib): $(glfw_objs)
-# 	@mkdir -p $(dir $@)
-# 	$(CC) -dynamiclib -o $@ $^ -L$(build_dir) -lmgl
-
-
 # generic rules
-
 $(build_dir)/%.o: %.c
 	@mkdir -p $(dir $@)
 	$(CC) -MMD $(CFLAGS) -c $< -o $@
+
 #-std=gnu17 
 $(build_dir)/%.o: %.cpp
 	@mkdir -p $(dir $@)
 	$(CXX) -MMD $(CFLAGS) -c $< -o $@
-#-std=c++14 
+
+#-std=c++14
 $(build_dir)/arc/%.o: %.m
 	@mkdir -p $(dir $@)
 	clang -fobjc-arc -fmodules -MMD $(CFLAGS) -c $< -o $@

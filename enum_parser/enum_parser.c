@@ -243,7 +243,7 @@ void print_required(ezxml_t registry, FILE *fp_out)
 
     for (int i=0; gl_versions[i].major !=0; i++)
     {
-        sprintf(version_str, "GL_VERSION_%d_%d", gl_versions[i].major, gl_versions[i].minor);
+        snprintf(version_str, sizeof(version_str), "GL_VERSION_%d_%d", gl_versions[i].major, gl_versions[i].minor);
         print_required_features(registry, string(version_str), kEnum, fp_out);
     }
 }

@@ -69,9 +69,6 @@ GLMContext createGLMContext(GLenum format, GLenum type,
         ctx->stencil_format.mtl_pixel_format = mtlPixelFormatForGLFormatType(stencil_format, stencil_type);
     }
 
-    // this can probably go away
-    //ctx->state.var = default_glm_params;
-
     // use a CGL context to read guestimates of gl params for installed GPU
     getMacOSDefaults(ctx);
 

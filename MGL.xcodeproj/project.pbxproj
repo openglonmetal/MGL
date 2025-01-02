@@ -3,39 +3,12 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 50;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXBuildFile section */
 		FF33414C278BDD2000FDBD91 /* Fixed_ResourceLimits.h in Headers */ = {isa = PBXBuildFile; fileRef = FF33414B278BDD2000FDBD91 /* Fixed_ResourceLimits.h */; };
 		FF4810152772B23400BBF7C7 /* libMGL.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = FFA83000276F97DE003F1EA0 /* libMGL.dylib */; };
-		FF48106F2772B48900BBF7C7 /* glfw3.h in Headers */ = {isa = PBXBuildFile; fileRef = FF48102F2772B48900BBF7C7 /* glfw3.h */; };
-		FF4810702772B48900BBF7C7 /* glfw3native.h in Headers */ = {isa = PBXBuildFile; fileRef = FF4810302772B48900BBF7C7 /* glfw3native.h */; };
-		FF4810712772B48900BBF7C7 /* mgl_context.m in Sources */ = {isa = PBXBuildFile; fileRef = FF4810322772B48900BBF7C7 /* mgl_context.m */; };
-		FF4810732772B48900BBF7C7 /* cocoa_joystick.m in Sources */ = {isa = PBXBuildFile; fileRef = FF4810342772B48900BBF7C7 /* cocoa_joystick.m */; };
-		FF4810762772B48900BBF7C7 /* monitor.c in Sources */ = {isa = PBXBuildFile; fileRef = FF4810372772B48900BBF7C7 /* monitor.c */; };
-		FF4810772772B48900BBF7C7 /* cocoa_init.m in Sources */ = {isa = PBXBuildFile; fileRef = FF4810382772B48900BBF7C7 /* cocoa_init.m */; };
-		FF4810782772B48900BBF7C7 /* internal.h in Headers */ = {isa = PBXBuildFile; fileRef = FF4810392772B48900BBF7C7 /* internal.h */; };
-		FF48107A2772B48900BBF7C7 /* null_init.c in Sources */ = {isa = PBXBuildFile; fileRef = FF48103B2772B48900BBF7C7 /* null_init.c */; };
-		FF48107E2772B48900BBF7C7 /* null_joystick.c in Sources */ = {isa = PBXBuildFile; fileRef = FF4810402772B48900BBF7C7 /* null_joystick.c */; };
-		FF4810812772B48900BBF7C7 /* init.c in Sources */ = {isa = PBXBuildFile; fileRef = FF4810432772B48900BBF7C7 /* init.c */; };
-		FF48108C2772B48900BBF7C7 /* platform.c in Sources */ = {isa = PBXBuildFile; fileRef = FF48104F2772B48900BBF7C7 /* platform.c */; };
-		FF48108D2772B48900BBF7C7 /* osmesa_context.c in Sources */ = {isa = PBXBuildFile; fileRef = FF4810502772B48900BBF7C7 /* osmesa_context.c */; };
-		FF48108F2772B48900BBF7C7 /* vulkan.c in Sources */ = {isa = PBXBuildFile; fileRef = FF4810532772B48900BBF7C7 /* vulkan.c */; };
-		FF4810902772B48900BBF7C7 /* null_monitor.c in Sources */ = {isa = PBXBuildFile; fileRef = FF4810542772B48900BBF7C7 /* null_monitor.c */; };
-		FF4810922772B48900BBF7C7 /* input.c in Sources */ = {isa = PBXBuildFile; fileRef = FF4810562772B48900BBF7C7 /* input.c */; };
-		FF4810932772B48900BBF7C7 /* posix_thread.c in Sources */ = {isa = PBXBuildFile; fileRef = FF4810572772B48900BBF7C7 /* posix_thread.c */; };
-		FF4810972772B48900BBF7C7 /* null_window.c in Sources */ = {isa = PBXBuildFile; fileRef = FF48105B2772B48900BBF7C7 /* null_window.c */; };
-		FF4810992772B48900BBF7C7 /* cocoa_window.m in Sources */ = {isa = PBXBuildFile; fileRef = FF48105D2772B48900BBF7C7 /* cocoa_window.m */; };
-		FF48109A2772B48900BBF7C7 /* egl_context.c in Sources */ = {isa = PBXBuildFile; fileRef = FF48105E2772B48900BBF7C7 /* egl_context.c */; };
-		FF48109D2772B48900BBF7C7 /* context.c in Sources */ = {isa = PBXBuildFile; fileRef = FF4810612772B48900BBF7C7 /* context.c */; };
-		FF48109E2772B48900BBF7C7 /* cocoa_time.c in Sources */ = {isa = PBXBuildFile; fileRef = FF4810622772B48900BBF7C7 /* cocoa_time.c */; };
-		FF4810A02772B48900BBF7C7 /* posix_module.c in Sources */ = {isa = PBXBuildFile; fileRef = FF4810642772B48900BBF7C7 /* posix_module.c */; };
-		FF4810A62772B48900BBF7C7 /* platform.h in Headers */ = {isa = PBXBuildFile; fileRef = FF48106A2772B48900BBF7C7 /* platform.h */; };
-		FF4810A92772B48900BBF7C7 /* cocoa_monitor.m in Sources */ = {isa = PBXBuildFile; fileRef = FF48106D2772B48900BBF7C7 /* cocoa_monitor.m */; };
-		FF4810AA2772B48900BBF7C7 /* window.c in Sources */ = {isa = PBXBuildFile; fileRef = FF48106E2772B48900BBF7C7 /* window.c */; };
-		FF4811192772B76600BBF7C7 /* libMGL.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = FFA83000276F97DE003F1EA0 /* libMGL.dylib */; };
-		FF48111F2772B77700BBF7C7 /* libGLFW.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = FF48101E2772B44D00BBF7C7 /* libGLFW.dylib */; };
 		FF4811722776963E00BBF7C7 /* tex_param.c in Sources */ = {isa = PBXBuildFile; fileRef = FF4811712776963E00BBF7C7 /* tex_param.c */; };
 		FF7B77A52771054F00C2028F /* ezxml.c in Sources */ = {isa = PBXBuildFile; fileRef = FF7B77A32771054F00C2028F /* ezxml.c */; };
 		FF7B77AF2771056B00C2028F /* enum_parser.c in Sources */ = {isa = PBXBuildFile; fileRef = FFA83037276F9D10003F1EA0 /* enum_parser.c */; };
@@ -111,26 +84,9 @@
 		FFA1EB712782851500EEE5AD /* compute.c in Sources */ = {isa = PBXBuildFile; fileRef = FFA1EB702782851500EEE5AD /* compute.c */; };
 		FFA83047276F9EBF003F1EA0 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FFA83046276F9EBF003F1EA0 /* main.cpp */; };
 		FFA83092277026C5003F1EA0 /* gl.xml in CopyFiles */ = {isa = PBXBuildFile; fileRef = FFA83091277026B6003F1EA0 /* gl.xml */; };
-		FFFA8F52278D038F002505EF /* cocoa_time.h in Headers */ = {isa = PBXBuildFile; fileRef = FFFA8F4F278D038F002505EF /* cocoa_time.h */; };
-		FFFA8F53278D038F002505EF /* cocoa_platform.h in Headers */ = {isa = PBXBuildFile; fileRef = FFFA8F50278D038F002505EF /* cocoa_platform.h */; };
-		FFFA8F54278D038F002505EF /* cocoa_joystick.h in Headers */ = {isa = PBXBuildFile; fileRef = FFFA8F51278D038F002505EF /* cocoa_joystick.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		FF4811202772B77C00BBF7C7 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = FFA82FF8276F97DE003F1EA0 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = FF48101D2772B44D00BBF7C7;
-			remoteInfo = GLFW;
-		};
-		FF4811222772B78000BBF7C7 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = FFA82FF8276F97DE003F1EA0 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = FFA82FFF276F97DE003F1EA0;
-			remoteInfo = MGL;
-		};
 		FF8F9181277E30F600A1E546 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = FFA82FF8276F97DE003F1EA0 /* Project object */;
@@ -213,33 +169,8 @@
 		DFC728FC289485A000990595 /* libSPIRV-Tools.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libSPIRV-Tools.a"; path = "external/SPIRV-Tools/build/source/libSPIRV-Tools.a"; sourceTree = "<group>"; };
 		DFC729002894933400990595 /* test_mgl_glfw.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = test_mgl_glfw.entitlements; sourceTree = SOURCE_ROOT; };
 		FF33414B278BDD2000FDBD91 /* Fixed_ResourceLimits.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Fixed_ResourceLimits.h; sourceTree = "<group>"; };
-		FF48101E2772B44D00BBF7C7 /* libGLFW.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libGLFW.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
-		FF48102F2772B48900BBF7C7 /* glfw3.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = glfw3.h; sourceTree = "<group>"; };
-		FF4810302772B48900BBF7C7 /* glfw3native.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = glfw3native.h; sourceTree = "<group>"; };
-		FF4810322772B48900BBF7C7 /* mgl_context.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = mgl_context.m; sourceTree = "<group>"; };
-		FF4810342772B48900BBF7C7 /* cocoa_joystick.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = cocoa_joystick.m; sourceTree = "<group>"; };
-		FF4810372772B48900BBF7C7 /* monitor.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = monitor.c; sourceTree = "<group>"; };
-		FF4810382772B48900BBF7C7 /* cocoa_init.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = cocoa_init.m; sourceTree = "<group>"; };
-		FF4810392772B48900BBF7C7 /* internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = internal.h; sourceTree = "<group>"; };
-		FF48103B2772B48900BBF7C7 /* null_init.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = null_init.c; sourceTree = "<group>"; };
-		FF4810402772B48900BBF7C7 /* null_joystick.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = null_joystick.c; sourceTree = "<group>"; };
-		FF4810432772B48900BBF7C7 /* init.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = init.c; sourceTree = "<group>"; };
-		FF48104F2772B48900BBF7C7 /* platform.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = platform.c; sourceTree = "<group>"; };
-		FF4810502772B48900BBF7C7 /* osmesa_context.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = osmesa_context.c; sourceTree = "<group>"; };
-		FF4810532772B48900BBF7C7 /* vulkan.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = vulkan.c; sourceTree = "<group>"; };
-		FF4810542772B48900BBF7C7 /* null_monitor.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = null_monitor.c; sourceTree = "<group>"; };
-		FF4810562772B48900BBF7C7 /* input.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = input.c; sourceTree = "<group>"; };
-		FF4810572772B48900BBF7C7 /* posix_thread.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = posix_thread.c; sourceTree = "<group>"; };
-		FF48105B2772B48900BBF7C7 /* null_window.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = null_window.c; sourceTree = "<group>"; };
-		FF48105D2772B48900BBF7C7 /* cocoa_window.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = cocoa_window.m; sourceTree = "<group>"; };
-		FF48105E2772B48900BBF7C7 /* egl_context.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = egl_context.c; sourceTree = "<group>"; };
-		FF4810612772B48900BBF7C7 /* context.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = context.c; sourceTree = "<group>"; };
-		FF4810622772B48900BBF7C7 /* cocoa_time.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cocoa_time.c; sourceTree = "<group>"; };
-		FF4810642772B48900BBF7C7 /* posix_module.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = posix_module.c; sourceTree = "<group>"; };
-		FF48106A2772B48900BBF7C7 /* platform.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = platform.h; sourceTree = "<group>"; };
-		FF48106D2772B48900BBF7C7 /* cocoa_monitor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = cocoa_monitor.m; sourceTree = "<group>"; };
-		FF48106E2772B48900BBF7C7 /* window.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = window.c; sourceTree = "<group>"; };
 		FF4811712776963E00BBF7C7 /* tex_param.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = tex_param.c; sourceTree = "<group>"; };
+		FF6C4D5F2D2375E600945F18 /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
 		FF7B77A32771054F00C2028F /* ezxml.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ezxml.c; sourceTree = "<group>"; };
 		FF7B77A42771054F00C2028F /* ezxml.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ezxml.h; sourceTree = "<group>"; };
 		FF7B77E827710FE100C2028F /* wgl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = wgl.h; sourceTree = "<group>"; };
@@ -249,9 +180,6 @@
 		FF7B77EC27710FE100C2028F /* glcorearb.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = glcorearb.h; sourceTree = "<group>"; };
 		FF7B784827714BE700C2028F /* spec_parser */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = spec_parser; sourceTree = BUILT_PRODUCTS_DIR; };
 		FF7B784A27714BE700C2028F /* spec_parser.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = spec_parser.c; sourceTree = "<group>"; };
-		FF7B787B27717EDB00C2028F /* libSPIRV-Tools-shared.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libSPIRV-Tools-shared.dylib"; path = "../../../../usr/local/lib/libSPIRV-Tools-shared.dylib"; sourceTree = "<group>"; };
-		FF7B787D27717EF700C2028F /* libspirv-cross-glsl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libspirv-cross-glsl.a"; path = "../../../../usr/local/lib/libspirv-cross-glsl.a"; sourceTree = "<group>"; };
-		FF7B788727717F8200C2028F /* libglslang-default-resource-limits.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libglslang-default-resource-limits.a"; path = "external/glslang/build/StandAlone/libglslang-default-resource-limits.a"; sourceTree = "<group>"; };
 		FF7B788D27717FA400C2028F /* libGenericCodeGen.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libGenericCodeGen.a; path = external/glslang/build/glslang/libGenericCodeGen.a; sourceTree = "<group>"; };
 		FF7B788E27717FA400C2028F /* libMachineIndependent.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libMachineIndependent.a; path = external/glslang/build/glslang/libMachineIndependent.a; sourceTree = "<group>"; };
 		FF7B788F27717FA400C2028F /* libglslang.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libglslang.a; path = external/glslang/build/glslang/libglslang.a; sourceTree = "<group>"; };
@@ -259,17 +187,11 @@
 		FF7B789E2771804500C2028F /* libSPIRV.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libSPIRV.a; path = external/glslang/build/SPIRV/libSPIRV.a; sourceTree = "<group>"; };
 		FF7B78A52771806C00C2028F /* libOSDependent.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libOSDependent.a; path = external/glslang/build/glslang/OSDependent/Unix/libOSDependent.a; sourceTree = "<group>"; };
 		FF7B796C27725E8100C2028F /* libSPIRV-Tools-lint.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libSPIRV-Tools-lint.a"; path = "../../../../usr/local/lib/libSPIRV-Tools-lint.a"; sourceTree = "<group>"; };
-		FF7B796D27725E8100C2028F /* libspirv-cross-core.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libspirv-cross-core.a"; path = "../../../../usr/local/lib/libspirv-cross-core.a"; sourceTree = "<group>"; };
 		FF7B796E27725E8100C2028F /* libSPIRV-Tools-opt.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libSPIRV-Tools-opt.a"; path = "../../../../usr/local/lib/libSPIRV-Tools-opt.a"; sourceTree = "<group>"; };
 		FF7B796F27725E8100C2028F /* libSPIRV-Tools-link.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libSPIRV-Tools-link.a"; path = "../../../../usr/local/lib/libSPIRV-Tools-link.a"; sourceTree = "<group>"; };
 		FF7B797027725E8100C2028F /* libSPIRV-Tools.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libSPIRV-Tools.a"; path = "../../../../usr/local/lib/libSPIRV-Tools.a"; sourceTree = "<group>"; };
-		FF7B797127725E8100C2028F /* libspirv-cross-c.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libspirv-cross-c.a"; path = "../../../../usr/local/lib/libspirv-cross-c.a"; sourceTree = "<group>"; };
-		FF7B797227725E8100C2028F /* libspirv-cross-reflect.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libspirv-cross-reflect.a"; path = "../../../../usr/local/lib/libspirv-cross-reflect.a"; sourceTree = "<group>"; };
 		FF7B797327725E8100C2028F /* libSPIRV.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libSPIRV.a; path = ../../../../usr/local/lib/libSPIRV.a; sourceTree = "<group>"; };
-		FF7B797427725E8100C2028F /* libspirv-cross-msl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libspirv-cross-msl.a"; path = "../../../../usr/local/lib/libspirv-cross-msl.a"; sourceTree = "<group>"; };
-		FF7B797527725E8100C2028F /* libspirv-cross.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libspirv-cross.a"; path = "../../../../usr/local/lib/libspirv-cross.a"; sourceTree = "<group>"; };
 		FF7B797627725E8200C2028F /* libSPIRV-Tools-reduce.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libSPIRV-Tools-reduce.a"; path = "../../../../usr/local/lib/libSPIRV-Tools-reduce.a"; sourceTree = "<group>"; };
-		FF7B797727725E8200C2028F /* libspirv-cross-util.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libspirv-cross-util.a"; path = "../../../../usr/local/lib/libspirv-cross-util.a"; sourceTree = "<group>"; };
 		FF7B7A2B277284C500C2028F /* libglfw3.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libglfw3.a; path = ../../../../usr/local/lib/libglfw3.a; sourceTree = "<group>"; };
 		FF7B7A412772895400C2028F /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		FF7B7A472772896900C2028F /* Quartz.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Quartz.framework; path = System/Library/Frameworks/Quartz.framework; sourceTree = SDKROOT; };
@@ -334,20 +256,9 @@
 		FFA83044276F9EBE003F1EA0 /* test_mgl_glfw */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = test_mgl_glfw; sourceTree = BUILT_PRODUCTS_DIR; };
 		FFA83046276F9EBF003F1EA0 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		FFA83091277026B6003F1EA0 /* gl.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = gl.xml; path = "external/OpenGL-Registry/xml/gl.xml"; sourceTree = SOURCE_ROOT; };
-		FFFA8F4F278D038F002505EF /* cocoa_time.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cocoa_time.h; sourceTree = "<group>"; };
-		FFFA8F50278D038F002505EF /* cocoa_platform.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cocoa_platform.h; sourceTree = "<group>"; };
-		FFFA8F51278D038F002505EF /* cocoa_joystick.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cocoa_joystick.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		FF48101C2772B44D00BBF7C7 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				FF4811192772B76600BBF7C7 /* libMGL.dylib in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		FF7B784527714BE700C2028F /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -395,7 +306,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				FF48111F2772B77700BBF7C7 /* libGLFW.dylib in Frameworks */,
 				FF4810152772B23400BBF7C7 /* libMGL.dylib in Frameworks */,
 				FF7B7A6627728A0B00C2028F /* Cocoa.framework in Frameworks */,
 				FF7B7A542772898700C2028F /* IOKit.framework in Frameworks */,
@@ -407,67 +317,6 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		FF48102C2772B45A00BBF7C7 /* GLFW */ = {
-			isa = PBXGroup;
-			children = (
-				FF48102D2772B48900BBF7C7 /* include */,
-				FF4810312772B48900BBF7C7 /* src */,
-			);
-			path = GLFW;
-			sourceTree = "<group>";
-		};
-		FF48102D2772B48900BBF7C7 /* include */ = {
-			isa = PBXGroup;
-			children = (
-				FF48102E2772B48900BBF7C7 /* GLFW */,
-			);
-			name = include;
-			path = external/glfw/include;
-			sourceTree = SOURCE_ROOT;
-		};
-		FF48102E2772B48900BBF7C7 /* GLFW */ = {
-			isa = PBXGroup;
-			children = (
-				FF48102F2772B48900BBF7C7 /* glfw3.h */,
-				FF4810302772B48900BBF7C7 /* glfw3native.h */,
-			);
-			path = GLFW;
-			sourceTree = "<group>";
-		};
-		FF4810312772B48900BBF7C7 /* src */ = {
-			isa = PBXGroup;
-			children = (
-				FFFA8F51278D038F002505EF /* cocoa_joystick.h */,
-				FFFA8F50278D038F002505EF /* cocoa_platform.h */,
-				FFFA8F4F278D038F002505EF /* cocoa_time.h */,
-				FF4810322772B48900BBF7C7 /* mgl_context.m */,
-				FF4810392772B48900BBF7C7 /* internal.h */,
-				FF4810372772B48900BBF7C7 /* monitor.c */,
-				FF4810432772B48900BBF7C7 /* init.c */,
-				FF4810612772B48900BBF7C7 /* context.c */,
-				FF4810562772B48900BBF7C7 /* input.c */,
-				FF48104F2772B48900BBF7C7 /* platform.c */,
-				FF4810572772B48900BBF7C7 /* posix_thread.c */,
-				FF4810642772B48900BBF7C7 /* posix_module.c */,
-				FF48103B2772B48900BBF7C7 /* null_init.c */,
-				FF4810402772B48900BBF7C7 /* null_joystick.c */,
-				FF4810542772B48900BBF7C7 /* null_monitor.c */,
-				FF48105B2772B48900BBF7C7 /* null_window.c */,
-				FF4810342772B48900BBF7C7 /* cocoa_joystick.m */,
-				FF4810382772B48900BBF7C7 /* cocoa_init.m */,
-				FF48106D2772B48900BBF7C7 /* cocoa_monitor.m */,
-				FF4810622772B48900BBF7C7 /* cocoa_time.c */,
-				FF48105D2772B48900BBF7C7 /* cocoa_window.m */,
-				FF4810502772B48900BBF7C7 /* osmesa_context.c */,
-				FF4810532772B48900BBF7C7 /* vulkan.c */,
-				FF48105E2772B48900BBF7C7 /* egl_context.c */,
-				FF48106A2772B48900BBF7C7 /* platform.h */,
-				FF48106E2772B48900BBF7C7 /* window.c */,
-			);
-			name = src;
-			path = external/glfw/src;
-			sourceTree = SOURCE_ROOT;
-		};
 		FF7B77E727710FE100C2028F /* GL */ = {
 			isa = PBXGroup;
 			children = (
@@ -551,8 +400,8 @@
 		FFA82FF7276F97DE003F1EA0 = {
 			isa = PBXGroup;
 			children = (
+				FF6C4D5F2D2375E600945F18 /* Makefile */,
 				FF86AEA92794DD0A00C51A88 /* README.md */,
-				FF48102C2772B45A00BBF7C7 /* GLFW */,
 				FF7B77E727710FE100C2028F /* GL */,
 				FF7B784927714BE700C2028F /* spec_parser */,
 				FFA8302D276F9CE4003F1EA0 /* enum_parser */,
@@ -570,7 +419,6 @@
 				FFA8302C276F9CE4003F1EA0 /* enum_parser */,
 				FFA83044276F9EBE003F1EA0 /* test_mgl_glfw */,
 				FF7B784827714BE700C2028F /* spec_parser */,
-				FF48101E2772B44D00BBF7C7 /* libGLFW.dylib */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -608,6 +456,13 @@
 		FFA83096277026E1003F1EA0 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				FF7B7A6527728A0B00C2028F /* Cocoa.framework */,
+				FF7B7A5F277289C500C2028F /* ApplicationServices.framework */,
+				FF7B7A592772899300C2028F /* CoreGraphics.framework */,
+				FF7B7A532772898700C2028F /* IOKit.framework */,
+				FF7B7A4D2772897500C2028F /* QuartzCore.framework */,
+				FF7B7A472772896900C2028F /* Quartz.framework */,
+				FF7B7A412772895400C2028F /* Foundation.framework */,
 				FF99BF852ADF3145008AE33A /* libglfw3.a */,
 				FF99BF742ADF30E0008AE33A /* libSPIRV-Tools-diff.a */,
 				FF99BF772ADF30E0008AE33A /* libSPIRV-Tools-link.a */,
@@ -625,21 +480,7 @@
 				DFB50A8A28ADD0020084D12B /* libspirv-cross-util.a */,
 				DFC728FC289485A000990595 /* libSPIRV-Tools.a */,
 				DFC728FA2894855E00990595 /* libSPIRV-Tools-shared.dylib */,
-				FF7B7A6527728A0B00C2028F /* Cocoa.framework */,
-				FF7B7A5F277289C500C2028F /* ApplicationServices.framework */,
-				FF7B7A592772899300C2028F /* CoreGraphics.framework */,
-				FF7B7A532772898700C2028F /* IOKit.framework */,
-				FF7B7A4D2772897500C2028F /* QuartzCore.framework */,
-				FF7B7A472772896900C2028F /* Quartz.framework */,
-				FF7B7A412772895400C2028F /* Foundation.framework */,
-				FF7B787B27717EDB00C2028F /* libSPIRV-Tools-shared.dylib */,
 				FF7B7A2B277284C500C2028F /* libglfw3.a */,
-				FF7B797127725E8100C2028F /* libspirv-cross-c.a */,
-				FF7B796D27725E8100C2028F /* libspirv-cross-core.a */,
-				FF7B797427725E8100C2028F /* libspirv-cross-msl.a */,
-				FF7B797227725E8100C2028F /* libspirv-cross-reflect.a */,
-				FF7B797727725E8200C2028F /* libspirv-cross-util.a */,
-				FF7B797527725E8100C2028F /* libspirv-cross.a */,
 				FF7B796F27725E8100C2028F /* libSPIRV-Tools-link.a */,
 				FF7B796C27725E8100C2028F /* libSPIRV-Tools-lint.a */,
 				FF7B796E27725E8100C2028F /* libSPIRV-Tools-opt.a */,
@@ -652,8 +493,6 @@
 				FF7B788D27717FA400C2028F /* libGenericCodeGen.a */,
 				FF7B788F27717FA400C2028F /* libglslang.a */,
 				FF7B788E27717FA400C2028F /* libMachineIndependent.a */,
-				FF7B788727717F8200C2028F /* libglslang-default-resource-limits.a */,
-				FF7B787D27717EF700C2028F /* libspirv-cross-glsl.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -661,20 +500,6 @@
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
-		FF48101A2772B44D00BBF7C7 /* Headers */ = {
-			isa = PBXHeadersBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				FF4810A62772B48900BBF7C7 /* platform.h in Headers */,
-				FF48106F2772B48900BBF7C7 /* glfw3.h in Headers */,
-				FFFA8F52278D038F002505EF /* cocoa_time.h in Headers */,
-				FFFA8F54278D038F002505EF /* cocoa_joystick.h in Headers */,
-				FF4810702772B48900BBF7C7 /* glfw3native.h in Headers */,
-				FF4810782772B48900BBF7C7 /* internal.h in Headers */,
-				FFFA8F53278D038F002505EF /* cocoa_platform.h in Headers */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		FFA82FFC276F97DE003F1EA0 /* Headers */ = {
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
@@ -749,24 +574,6 @@
 /* End PBXLegacyTarget section */
 
 /* Begin PBXNativeTarget section */
-		FF48101D2772B44D00BBF7C7 /* GLFW */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = FF48101F2772B44D00BBF7C7 /* Build configuration list for PBXNativeTarget "GLFW" */;
-			buildPhases = (
-				FF48101A2772B44D00BBF7C7 /* Headers */,
-				FF48101B2772B44D00BBF7C7 /* Sources */,
-				FF48101C2772B44D00BBF7C7 /* Frameworks */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				FF4811232772B78000BBF7C7 /* PBXTargetDependency */,
-			);
-			name = GLFW;
-			productName = GLFW;
-			productReference = FF48101E2772B44D00BBF7C7 /* libGLFW.dylib */;
-			productType = "com.apple.product-type.library.dynamic";
-		};
 		FF7B784727714BE700C2028F /* spec_parser */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = FF7B784C27714BE700C2028F /* Build configuration list for PBXNativeTarget "spec_parser" */;
@@ -832,7 +639,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				FF4811212772B77C00BBF7C7 /* PBXTargetDependency */,
 			);
 			name = test_mgl_glfw;
 			productName = test_mgl_glfw;
@@ -845,11 +651,9 @@
 		FFA82FF8276F97DE003F1EA0 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 1420;
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1620;
 				TargetAttributes = {
-					FF48101D2772B44D00BBF7C7 = {
-						CreatedOnToolsVersion = 12.4;
-					};
 					FF7B784727714BE700C2028F = {
 						CreatedOnToolsVersion = 12.4;
 					};
@@ -890,7 +694,6 @@
 				FF8F9165277E309800A1E546 /* SPIRV-Tools */,
 				FF8F9173277E30D500A1E546 /* SPIRV-Cross */,
 				FFA82FFF276F97DE003F1EA0 /* MGL */,
-				FF48101D2772B44D00BBF7C7 /* GLFW */,
 				FFA83043276F9EBE003F1EA0 /* test_mgl_glfw */,
 				FFA8302B276F9CE4003F1EA0 /* enum_parser */,
 				FF7B784727714BE700C2028F /* spec_parser */,
@@ -899,34 +702,6 @@
 /* End PBXProject section */
 
 /* Begin PBXSourcesBuildPhase section */
-		FF48101B2772B44D00BBF7C7 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				FF48108D2772B48900BBF7C7 /* osmesa_context.c in Sources */,
-				FF4810902772B48900BBF7C7 /* null_monitor.c in Sources */,
-				FF4810712772B48900BBF7C7 /* mgl_context.m in Sources */,
-				FF48108C2772B48900BBF7C7 /* platform.c in Sources */,
-				FF48109A2772B48900BBF7C7 /* egl_context.c in Sources */,
-				FF4810762772B48900BBF7C7 /* monitor.c in Sources */,
-				FF48108F2772B48900BBF7C7 /* vulkan.c in Sources */,
-				FF4810A02772B48900BBF7C7 /* posix_module.c in Sources */,
-				FF4810A92772B48900BBF7C7 /* cocoa_monitor.m in Sources */,
-				FF4810972772B48900BBF7C7 /* null_window.c in Sources */,
-				FF4810922772B48900BBF7C7 /* input.c in Sources */,
-				FF48107E2772B48900BBF7C7 /* null_joystick.c in Sources */,
-				FF4810992772B48900BBF7C7 /* cocoa_window.m in Sources */,
-				FF48109E2772B48900BBF7C7 /* cocoa_time.c in Sources */,
-				FF48109D2772B48900BBF7C7 /* context.c in Sources */,
-				FF4810932772B48900BBF7C7 /* posix_thread.c in Sources */,
-				FF4810AA2772B48900BBF7C7 /* window.c in Sources */,
-				FF4810772772B48900BBF7C7 /* cocoa_init.m in Sources */,
-				FF48107A2772B48900BBF7C7 /* null_init.c in Sources */,
-				FF4810812772B48900BBF7C7 /* init.c in Sources */,
-				FF4810732772B48900BBF7C7 /* cocoa_joystick.m in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		FF7B784427714BE700C2028F /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -990,16 +765,6 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		FF4811212772B77C00BBF7C7 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = FF48101D2772B44D00BBF7C7 /* GLFW */;
-			targetProxy = FF4811202772B77C00BBF7C7 /* PBXContainerItemProxy */;
-		};
-		FF4811232772B78000BBF7C7 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = FFA82FFF276F97DE003F1EA0 /* MGL */;
-			targetProxy = FF4811222772B78000BBF7C7 /* PBXContainerItemProxy */;
-		};
 		FF8F9182277E30F600A1E546 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = FF8F9165277E309800A1E546 /* SPIRV-Tools */;
@@ -1028,42 +793,6 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
-		FF4810202772B44D00BBF7C7 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CLANG_ENABLE_OBJC_ARC = NO;
-				CLANG_WARN_DOCUMENTATION_COMMENTS = NO;
-				CODE_SIGN_STYLE = Automatic;
-				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = A54HA75PNX;
-				DYLIB_COMPATIBILITY_VERSION = 1;
-				DYLIB_CURRENT_VERSION = 1;
-				EXECUTABLE_PREFIX = lib;
-				OTHER_CFLAGS = "-D_GLFW_COCOA=1";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SKIP_INSTALL = YES;
-				SYSTEM_HEADER_SEARCH_PATHS = /usr/local/include/GL;
-			};
-			name = Debug;
-		};
-		FF4810212772B44D00BBF7C7 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CLANG_ENABLE_OBJC_ARC = NO;
-				CLANG_WARN_DOCUMENTATION_COMMENTS = NO;
-				CODE_SIGN_STYLE = Automatic;
-				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = A54HA75PNX;
-				DYLIB_COMPATIBILITY_VERSION = 1;
-				DYLIB_CURRENT_VERSION = 1;
-				EXECUTABLE_PREFIX = lib;
-				OTHER_CFLAGS = "-D_GLFW_COCOA=1";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SKIP_INSTALL = YES;
-				SYSTEM_HEADER_SEARCH_PATHS = /usr/local/include/GL;
-			};
-			name = Release;
-		};
 		FF7B784D27714BE700C2028F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1072,6 +801,7 @@
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = A54HA75PNX;
 				ENABLE_HARDENED_RUNTIME = YES;
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -1084,6 +814,7 @@
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = A54HA75PNX;
 				ENABLE_HARDENED_RUNTIME = YES;
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -1098,6 +829,7 @@
 				DEVELOPMENT_TEAM = A54HA75PNX;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1111,6 +843,7 @@
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = A54HA75PNX;
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1127,6 +860,7 @@
 				DEVELOPMENT_TEAM = A54HA75PNX;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1140,6 +874,7 @@
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = A54HA75PNX;
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1156,6 +891,7 @@
 				DEVELOPMENT_TEAM = A54HA75PNX;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1169,6 +905,7 @@
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = A54HA75PNX;
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1213,6 +950,7 @@
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -1273,6 +1011,7 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -1323,9 +1062,10 @@
 					"$(PROJECT_DIR)/external/SPIRV-Tools/build/source/opt",
 					"$(PROJECT_DIR)/external/SPIRV-Tools/build/source/link",
 					"$(PROJECT_DIR)/external/SPIRV-Tools/build/source/reduce",
-					"$(PROJECT_DIR)/external/glfw/build/src",
+					"$(PROJECT_DIR)/external/glfw/include/GLFW",
 				);
 				MACH_O_TYPE = mh_dylib;
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				OTHER_CFLAGS = (
 					"-DENABLE_OPT=0",
 					"-DSPIRV_CROSS_C_API_MSL=1",
@@ -1382,9 +1122,10 @@
 					"$(PROJECT_DIR)/external/SPIRV-Tools/build/source/opt",
 					"$(PROJECT_DIR)/external/SPIRV-Tools/build/source/link",
 					"$(PROJECT_DIR)/external/SPIRV-Tools/build/source/reduce",
-					"$(PROJECT_DIR)/external/glfw/build/src",
+					"$(PROJECT_DIR)/external/glfw/include/GLFW",
 				);
 				MACH_O_TYPE = mh_dylib;
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				OTHER_CFLAGS = (
 					"-DENABLE_OPT=0",
 					"-DSPIRV_CROSS_C_API_MSL=1",
@@ -1419,6 +1160,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/external/ezxml",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -1436,6 +1178,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/external/ezxml",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -1451,11 +1194,14 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				HEADER_SEARCH_PATHS = (
 					"$(SRCROOT)/MGL/include",
-					"$(SRCROOT)/glfw/include",
+					"$(SRCROOT)/external/glfw/include",
 				);
-				LIBRARY_SEARCH_PATHS = /usr/local/lib;
+				LIBRARY_SEARCH_PATHS = "$(SRCROOT)/external/glfw/build/src";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				OTHER_LDFLAGS = "-lglfw3";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SYSTEM_HEADER_SEARCH_PATHS = /usr/local/include;
+				SYSTEM_HEADER_SEARCH_PATHS = "";
+				USER_HEADER_SEARCH_PATHS = "";
 			};
 			name = Debug;
 		};
@@ -1470,26 +1216,20 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				HEADER_SEARCH_PATHS = (
 					"$(SRCROOT)/MGL/include",
-					"$(SRCROOT)/glfw/include",
+					"$(SRCROOT)/external/glfw/include",
 				);
-				LIBRARY_SEARCH_PATHS = /usr/local/lib;
+				LIBRARY_SEARCH_PATHS = "$(SRCROOT)/external/glfw/build/src";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				OTHER_LDFLAGS = "-lglfw3";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SYSTEM_HEADER_SEARCH_PATHS = /usr/local/include;
+				SYSTEM_HEADER_SEARCH_PATHS = "";
+				USER_HEADER_SEARCH_PATHS = "";
 			};
 			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		FF48101F2772B44D00BBF7C7 /* Build configuration list for PBXNativeTarget "GLFW" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				FF4810202772B44D00BBF7C7 /* Debug */,
-				FF4810212772B44D00BBF7C7 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 		FF7B784C27714BE700C2028F /* Build configuration list for PBXNativeTarget "spec_parser" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

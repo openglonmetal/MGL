@@ -195,9 +195,6 @@ void mglDetachShader(GLMContext ctx, GLuint program, GLuint shader)
 
 void error_callback(void *userdata, const char *error)
 {
-    GLMContext err_ctx;
-
-    err_ctx = (GLMContext)userdata;
     assert(error);
     printf("parseSPIRVShader error:%s\n", error);
 }
@@ -294,12 +291,12 @@ char *parseSPIRVShaderToMetal(GLMContext ctx, Program *ptr, int stage)
 
     switch(stage)
     {
-        case _VERTEX_SHADER: sprintf(entry_point, "vertex_%d_main",name); break;
-        case _TESS_CONTROL_SHADER: sprintf(entry_point, "tess_control_%d_main",name); break;
-        case _TESS_EVALUATION_SHADER: sprintf(entry_point, "tess_evaluation_%d_main",name); break;
-        case _GEOMETRY_SHADER: sprintf(entry_point, "geometry_%d",name); break;
-        case _FRAGMENT_SHADER: sprintf(entry_point, "fragment_%d",name); break;
-        case _COMPUTE_SHADER: sprintf(entry_point, "compute_%d",name); break;
+        case _VERTEX_SHADER: snprintf(entry_point, sizeof(entry_point), "vertex_%d_main",name); break;
+        case _TESS_CONTROL_SHADER: snprintf(entry_point, sizeof(entry_point), "tess_control_%d_main",name); break;
+        case _TESS_EVALUATION_SHADER: snprintf(entry_point, sizeof(entry_point), "tess_evaluation_%d_main",name); break;
+        case _GEOMETRY_SHADER: snprintf(entry_point, sizeof(entry_point), "geometry_%d",name); break;
+        case _FRAGMENT_SHADER: snprintf(entry_point, sizeof(entry_point), "fragment_%d",name); break;
+        case _COMPUTE_SHADER: snprintf(entry_point, sizeof(entry_point), "compute_%d",name); break;
         default: assert(0);
     }
 
@@ -321,7 +318,8 @@ char *parseSPIRVShaderToMetal(GLMContext ctx, Program *ptr, int stage)
         size_t num_entry_points;
 
         res = spvc_compiler_get_entry_points(compiler_msl, &entry_points, &num_entry_points);
-
+        assert(res);
+        
         for(int i=0; i<num_entry_points; i++)
         {
             printf("Entry point: %s Execution Model: %d\n", entry_points[i].name, entry_points[i].execution_model);
