@@ -742,6 +742,19 @@ void mglUniformBlockBinding(GLMContext ctx, GLuint program, GLuint uniformBlockI
     assert(0);
 }
 
+bool checkUniformParams(GLMContext ctx, GLint location)
+{
+    Program* ptr = ctx->state.program;
+    
+    ERROR_CHECK_RETURN_VALUE(ptr, GL_INVALID_OPERATION, false)
+
+    ERROR_CHECK_RETURN_VALUE(location >= 0, GL_INVALID_OPERATION, false)
+        
+    ERROR_CHECK_RETURN_VALUE(location < MAX_BINDABLE_BUFFERS, GL_INVALID_OPERATION, false)
+
+    return true;
+}
+
 void mglUniform1d(GLMContext ctx, GLint location, GLdouble x)
 {
         assert(0);
@@ -779,21 +792,16 @@ void mglUniform1fv(GLMContext ctx, GLint location, GLsizei count, const GLfloat 
 
 void mglUniform1i(GLMContext ctx, GLint location, GLint v0)
 {
-    // TODO: actual error checking (am too lazy)
-    Program* ptr = ctx->state.program;
+    assert(checkUniformParams(ctx, location));
     
-    ERROR_CHECK_RETURN(ptr, GL_INVALID_OPERATION)
-
     Buffer *buf = ctx->state.buffer_base[_UNIFORM_CONSTANT].buffers[location].buf;
-    
-    ERROR_CHECK_RETURN(location != -1, GL_INVALID_OPERATION)
     
     if(buf == NULL)
     {
         ctx->state.buffer_base[_UNIFORM_CONSTANT].buffers[location].buf = newBuffer(ctx, GL_UNIFORM_BUFFER, location);
         buf = ctx->state.buffer_base[_UNIFORM_CONSTANT].buffers[location].buf;
     }
-    initBufferData(ctx, buf, sizeof v0, &v0, true);
+    initBufferData(ctx, buf, sizeof(v0), &v0, true);
 }
 
 void mglUniform1iv(GLMContext ctx, GLint location, GLsizei count, const GLint *value)

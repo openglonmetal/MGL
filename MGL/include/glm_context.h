@@ -18,8 +18,11 @@
  *
  */
 
-#include <assert.h>
+#ifndef glm_context_h
+#define glm_context_h
+
 #include <stdio.h>
+#include <assert.h>
 
 #include <mach/vm_types.h>
 #include <glslang_c_interface.h>
@@ -28,9 +31,6 @@
 #include "glm_dispatch.h"
 
 #include "hash_table.h"
-
-#ifndef glm_context_h
-#define glm_context_h
 
 // defines above set sizes in glm_params
 #include "glm_params.h"

@@ -18,8 +18,10 @@
  *
  */
 
+
 #include <stdlib.h>
 #include <strings.h>
+
 #include <assert.h>
 
 #include "glm_context.h"
@@ -244,6 +246,12 @@ GLMContext MGLgetCurrentContext(void)
 
 void MGLget(GLMContext ctx, GLenum param, GLuint *data)
 {
+    if (ctx == NULL)
+        ctx = _ctx;
+    
+    if (ctx == NULL)
+        return;
+    
     switch(param)
     {
         case MGL_PIXEL_FORMAT: *data = ctx->pixel_format.format; break;
@@ -260,6 +268,9 @@ void MGLget(GLMContext ctx, GLenum param, GLuint *data)
 
 void MGLswapBuffers(GLMContext ctx)
 {
+    if (ctx == NULL)
+        ctx = _ctx;
+
     if (ctx == NULL)
         return;
 

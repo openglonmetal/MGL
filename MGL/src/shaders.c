@@ -23,8 +23,6 @@
 #include <glslang_c_interface.h>
 #include <glslang_c_shader_types.h>
 
-#include "Fixed_ResourceLimits.h"
-
 #include "shaders.h"
 #include "glm_context.h"
 

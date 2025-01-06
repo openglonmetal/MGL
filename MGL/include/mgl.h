@@ -8,8 +8,6 @@
 // October 2021
 //
 
-#pragma once
-
 #ifndef mgl_h
 #define mgl_h
 

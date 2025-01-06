@@ -8,10 +8,10 @@
 // October 2021
 //
 
-#pragma once
+#ifndef glm_dispatch_h
+#define glm_dispatch_h
 
 #include "glcorearb.h"
-
 #include "gltypes.h"
 
 typedef struct GLMContextRec_t *GLMContext;
@@ -1069,3 +1069,5 @@ struct GLMDispatchTable {
         void  (*polygon_offset_clamp)(GLMContext ctx, GLfloat factor, GLfloat units, GLfloat clamp);
 };
 
+
+#endif // #ifndef glm_dispatch_h

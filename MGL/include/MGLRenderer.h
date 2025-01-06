@@ -23,16 +23,23 @@
 
 #ifdef __OBJC__
 
+#import <Appkit/Appkit.h>
+
 #ifndef __GLM_CONTEXT_
 #define __GLM_CONTEXT_
 typedef struct GLMContextRec_t *GLMContext;
 #endif
 
 @interface MGLRenderer : NSObject
+{
 
-- (void) createMGLRendererAndBindToContext: (GLMContext) glm_ctx view: (NSView *) view;
+}
+
+- (id) initMGLRendererFromContext: (void *)glm_ctx andBindToWindow: (NSWindow *)window;
+- (id) createMGLRendererFromContext: (void *)glm_ctx andBindToWindow: (NSWindow *)window;
 
 @end
+
 MTLPixelFormat mtlPixelFormatForGLFormatType(GLenum gl_format, GLenum gl_type);
 #else
 
@@ -51,7 +58,7 @@ GLenum mtlPixelFormatForGLFormatType(GLenum gl_format, GLenum gl_type);
 #ifdef __cplusplus
 extern "C" {
 #endif
-void* CppCreateMGLRendererAndBindToContext (void *window, void *glm_ctx);
+void* CppCreateMGLRendererFromContextAndBindToWindow (void *glm_ctx, void *window);
 #ifdef __cplusplus
 }
 #endif

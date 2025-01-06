@@ -611,7 +611,7 @@ int test_draw_arrays_uniform1i(GLFWwindow* window, int width, int height)
     const char* fragment_shader =
     GLSL(460,
          layout(location = 0) out vec4 frag_colour;
-         layout(location = 1) uniform int mp;
+         layout(location = 0) uniform int mp;
          void main() {
             frag_colour = vec4(0, 0, float(mp)/100.0, 1.0);
         }
@@ -636,12 +636,11 @@ int test_draw_arrays_uniform1i(GLFWwindow* window, int width, int height)
     GLint mp_loc = glGetUniformLocation(shader_program, "mp");
     std::cout << mp_loc << std::endl;
     
-    int a = 0;
+    int a = 50;
     int e = 1;
     
     glUseProgram(shader_program);
     glClearColor(0.2, 0.2, 0.2, 0.0);
-    //glUniform1i(mp_loc, a);
     
     while (!glfwWindowShouldClose(window))
     {
@@ -658,7 +657,7 @@ int test_draw_arrays_uniform1i(GLFWwindow* window, int width, int height)
 
         glfwPollEvents();
         a += e;
-        if(a>100){e=-1;}
+        if(a>=100){e=-1;}
         if(a==0){e=1;}
     }
 
@@ -3229,8 +3228,8 @@ GLFWwindow *newTestWindow(int width, int height, const char *name)
     glfwWindowHint(GLFW_FLOATING, GLFW_TRUE);
 
     // force MGL
-    //glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_NATIVE_CONTEXT_API);
-    //glfwWindowHint(GLFW_DEPTH_BITS, 32);
+    glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_NATIVE_CONTEXT_API);
+    glfwWindowHint(GLFW_DEPTH_BITS, 32);
 
     fprintf(stderr, "creating window...\n");
 
@@ -3242,7 +3241,7 @@ GLFWwindow *newTestWindow(int width, int height, const char *name)
     }
 
     GLMContext glm_ctx = createGLMContext(GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, GL_DEPTH_COMPONENT, GL_FLOAT, 0, 0);
-    void *renderer = CppCreateMGLRendererAndBindToContext (glfwGetCocoaWindow (window), glm_ctx); // FIXME should do something later with the renderer
+    void *renderer = CppCreateMGLRendererFromContextAndBindToWindow (glm_ctx, glfwGetCocoaWindow (window)); // FIXME should do something later with the renderer
     if (!renderer)
     {
         glfwTerminate();
@@ -3377,6 +3376,10 @@ int run_test_case(int test_num, int width, int height)
             test_2D_array_textures_perf_mon(window, width, height);
             break;
         
+        case 21:
+            window = newTestWindow(width, height, "test_draw_arrays_uniform1i");
+            test_draw_arrays_uniform1i(window, width, height);
+
         default:
             return 0;
             break;
@@ -3395,7 +3398,7 @@ int main_glfw(int argc, const char * argv[])
     height = 512;
     
 #if 1
-    run_test_case(8, width, height);
+    run_test_case(21, width, height);
 #else
     int test_num;
     test_num = 0;
@@ -3445,7 +3448,8 @@ int main_sdl(int argc, const char * argv[])
         exit(EXIT_FAILURE);
       }
     assert (info.subsystem==SDL_SYSWM_COCOA);
-    void * renderer = CppCreateMGLRendererAndBindToContext (info.info.cocoa.window, glm_ctx);
+    
+    void *renderer = CppCreateMGLRendererFromContextAndBindToWindow (glm_ctx, info.info.cocoa.window); // FIXME should do something later with the renderer
     if (!renderer)
     {
         fprintf(stderr, "Couldn't create MGL renderer\n");   

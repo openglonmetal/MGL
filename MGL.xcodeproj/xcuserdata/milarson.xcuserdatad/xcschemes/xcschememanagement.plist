@@ -14,20 +14,30 @@
 			<key>orderHint</key>
 			<integer>3</integer>
 		</dict>
+		<key>MGL Tests.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>7</integer>
+		</dict>
 		<key>MGL.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
 			<integer>0</integer>
 		</dict>
+		<key>MetalGL.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>8</integer>
+		</dict>
 		<key>SPIRV-Cross.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>6</integer>
+			<integer>2</integer>
 		</dict>
 		<key>SPIRV-Headers.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>4</integer>
+			<integer>1</integer>
 		</dict>
 		<key>SPIRV-Tools.xcscheme_^#shared#^_</key>
 		<dict>
@@ -37,17 +47,17 @@
 		<key>enum_parser.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>5</integer>
+			<integer>4</integer>
 		</dict>
 		<key>spec_parser.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>1</integer>
+			<integer>5</integer>
 		</dict>
 		<key>test_mgl_glfw.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>2</integer>
+			<integer>6</integer>
 		</dict>
 	</dict>
 	<key>SuppressBuildableAutocreation</key>
@@ -62,7 +72,32 @@
 			<key>primary</key>
 			<true/>
 		</dict>
+		<key>FF85F20F2D28658200A5BDCD</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>FF8F9165277E309800A1E546</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>FF8F9173277E30D500A1E546</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>FF8F918A277E312E00A1E546</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
 		<key>FFA82FFF276F97DE003F1EA0</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>FFA8302B276F9CE4003F1EA0</key>
 		<dict>
 			<key>primary</key>
 			<true/>

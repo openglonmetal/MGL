@@ -15,6 +15,6 @@
 #endif
 
 kern_return_t initBufferData(GLMContext ctx, Buffer *ptr, GLsizeiptr size, const void *data, bool isUniformConstant);
-Buffer *newBuffer(GLMContext ctx, GLenum target, GLuint buffer);
+Buffer *newBuffer(GLMContext ctx, GLenum target, GLuint name);
 
 #endif /* buffers_h */

@@ -57,7 +57,7 @@ GLuint bufferIndexFromTarget(GLMContext ctx, GLenum target)
     return 0xFFFFFFFF;
 }
 
-Buffer *newBuffer(GLMContext ctx, GLenum target, GLuint buffer)
+Buffer *newBuffer(GLMContext ctx, GLenum target, GLuint name)
 {
     Buffer *ptr;
 
@@ -66,7 +66,7 @@ Buffer *newBuffer(GLMContext ctx, GLenum target, GLuint buffer)
 
     bzero(ptr, sizeof(Buffer));
 
-    ptr->name = buffer;
+    ptr->name = name;
     ptr->target = target;
 
     // create buffers doesn't provide a target

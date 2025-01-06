@@ -386,6 +386,8 @@ void logDirtyBits(GLMContext ctx)
         {SPVC_RESOURCE_TYPE_STORAGE_BUFFER, _SHADER_STORAGE_BUFFER, "Shader Storage Buffer"},
         {SPVC_RESOURCE_TYPE_ATOMIC_COUNTER, _ATOMIC_COUNTER_BUFFER, "Atomic Counter Buffer"}
     };
+    const char *stages[] = {"VERTEX_SHADER", "TESS_CONTROL_SHADER", "TESS_EVALUATION_SHADER",
+        "GEOMETRY_SHADER", "FRAGMENT_SHADER", "COMPUTE_SHADER"};
     
     // init mapped buffer count
     buffer_map->count = 0;
@@ -398,8 +400,11 @@ void logDirtyBits(GLMContext ctx)
 
         spvc_type = mapped_types[type].spvc_type;
         gl_buffer_type = mapped_types[type].gl_buffer_type;
-
+        
         count = [self getProgramBindingCount: stage type: spvc_type];
+
+        printf("Checking mapped_types: %s count:%d for stage: %s\n", mapped_types[type].name, count, stages[stage]);
+        
         if (count)
         {
             BufferBaseTarget *buffers;
@@ -606,6 +611,27 @@ void logDirtyBits(GLMContext ctx)
     return true;
 }
 
+- (bool) checkForDirtyBufferData:  (BufferMapList *)buffer_map_list
+{
+    // update vbos, some vbos may not have metal buffers yet
+    for(int i=0;i<buffer_map_list->count; i++)
+    {
+        Buffer *gl_buffer;
+
+        gl_buffer = buffer_map_list->buffers[i].buf;
+
+        if (gl_buffer)
+        {
+            if (gl_buffer->data.dirty_bits)
+            {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
 - (bool) updateDirtyBaseBufferList: (BufferMapList *)buffer_map_list
 {
     // update vbos, some vbos may not have metal buffers yet
@@ -627,7 +653,7 @@ void logDirtyBits(GLMContext ctx)
     return true;
 }
 
-- (bool) bindBuffersToCurrentRenderEncoder
+- (bool) bindVertexBuffersToCurrentRenderEncoder
 {
     BufferMap *map;
     Buffer *ptr;
@@ -665,6 +691,17 @@ void logDirtyBits(GLMContext ctx)
         }
     }
 
+    return true;
+}
+
+- (bool) bindFragmentBuffersToCurrentRenderEncoder
+{
+    BufferMap *map;
+    Buffer *ptr;
+    GLintptr offset;
+    
+    assert(_currentRenderEncoder);
+
     for(int i=0; i<ctx->state.fragment_buffer_map_list.count; i++)
     {
         map = &ctx->state.fragment_buffer_map_list.buffers[i];
@@ -673,12 +710,25 @@ void logDirtyBits(GLMContext ctx)
         offset = map->offset;
 
         assert(ptr);
-        assert(ptr->data.mtl_data);
+        
+        if (ptr->size < 4096)
+        {
+            assert(ptr->data.mtl_data == NULL);
 
-        id<MTLBuffer> buffer = (__bridge id<MTLBuffer>)(ptr->data.mtl_data);
-        assert(buffer);
-
-        [_currentRenderEncoder setFragmentBuffer:buffer offset:offset atIndex:i ];
+            [_currentRenderEncoder setFragmentBytes:(const void *)ptr->data.buffer_data length:ptr->size atIndex:i];
+            
+            // clear buffer data dirty bits
+            ptr->data.dirty_bits &= ~DIRTY_BUFFER_DATA;
+        }
+        else
+        {
+            assert(ptr->data.mtl_data);
+            
+            id<MTLBuffer> buffer = (__bridge id<MTLBuffer>)(ptr->data.mtl_data);
+            assert(buffer);
+            
+            [_currentRenderEncoder setFragmentBuffer:buffer offset:offset atIndex:i ];
+        }
     }
 
     return true;
@@ -2014,9 +2064,16 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
     // apply all state that isn't included in a renderPassDescriptor into the render encoder
     [self updateCurrentRenderEncoder];
 
-    if ([self bindBuffersToCurrentRenderEncoder] == false)
+    if ([self bindVertexBuffersToCurrentRenderEncoder] == false)
     {
-        printf("buffer binding failed\n");
+        printf("vertex buffer binding failed\n");
+
+        return false;
+    }
+
+    if ([self bindFragmentBuffersToCurrentRenderEncoder] == false)
+    {
+        printf("fragment buffer binding failed\n");
 
         return false;
     }
@@ -2610,7 +2667,26 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
         // we missed something
         //assert(ctx->state.dirty_bits == 0);
     }
+    else // if (ctx->state.dirty_bits)
+    {
+        // buffer data can be changed but the bindings remain in place.. so we need to update the data if this is the case
+        // like a uniform or buffer sub data call
+        
+        if( [self checkForDirtyBufferData: &ctx->state.vertex_buffer_map_list])
+        {
+            RETURN_FALSE_ON_FAILURE([self updateDirtyBaseBufferList: &ctx->state.vertex_buffer_map_list]);
 
+            RETURN_FALSE_ON_FAILURE([self bindVertexBuffersToCurrentRenderEncoder]);
+        }
+        
+        if( [self checkForDirtyBufferData: &ctx->state.fragment_buffer_map_list])
+        {
+            RETURN_FALSE_ON_FAILURE([self updateDirtyBaseBufferList: &ctx->state.fragment_buffer_map_list]);
+
+            RETURN_FALSE_ON_FAILURE([self bindFragmentBuffersToCurrentRenderEncoder]);
+        }
+    }
+    
     // Create a render command encoder.
     [_currentRenderEncoder setRenderPipelineState: _pipelineState];
 
@@ -3074,15 +3150,17 @@ void mtlFlush (GLMContext glm_ctx, bool finish)
 
         [self endRenderEncoding];
 
-        if (_drawable)
+        if (_drawable == NULL)
         {
-            assert(_currentCommandBuffer);
-            [_currentCommandBuffer presentDrawable: _drawable];
+            _drawable = [_layer nextDrawable];
         }
 
-        _drawable = [_layer nextDrawable];
+        assert(_currentCommandBuffer);
+        [_currentCommandBuffer presentDrawable: _drawable];
 
         [_currentCommandBuffer commit];
+
+        _drawable = [_layer nextDrawable];
 
         [self newCommandBufferAndRenderEncoder];
     }
@@ -4097,9 +4175,46 @@ void mtlMultiDrawElementsIndirect(GLMContext glm_ctx, GLenum mode, GLenum type, 
     glm_ctx->mtl_funcs.mtlDispatchComputeIndirect = mtlDispatchComputeIndirect;
 }
 
-//MGLRenderer *renderer
-void*
-CppCreateMGLRendererAndBindToContext (void *window, void *glm_ctx)
+- (id) initMGLRendererFromContext: (void *)glm_ctx andBindToWindow: (NSWindow *)window;
+{
+    assert (window);
+    assert (glm_ctx);
+    
+    MGLRenderer *renderer = [[MGLRenderer alloc] init];
+    assert (renderer);
+
+    NSView *view = [[NSView alloc] initWithFrame:NSMakeRect(100, 100, 100, 100)];
+    assert (view);
+
+    [view setWantsLayer:YES];
+    [window setContentView:view];
+    
+    [renderer createMGLRendererAndBindToContext: glm_ctx view: view];
+    
+    return self;
+}
+
+- (id) createMGLRendererFromContext: (void *)glm_ctx andBindToWindow: (NSWindow *)window;
+{
+    assert (window);
+    assert (glm_ctx);
+    
+    MGLRenderer *renderer = [[MGLRenderer alloc] init];
+    assert (renderer);
+
+    NSView *view = [[NSView alloc] initWithFrame:NSMakeRect(100, 100, 100, 100)];
+    assert (view);
+
+    [view setWantsLayer:YES];
+    [window setContentView:view];
+    
+    [renderer createMGLRendererAndBindToContext: glm_ctx view: view];
+    
+    return renderer;
+}
+
+
+void* CppCreateMGLRendererFromContextAndBindToWindow (void *glm_ctx, void *window)
 {
     assert (window);
     assert (glm_ctx);
@@ -4140,7 +4255,8 @@ CppCreateMGLRendererAndBindToContext (void *window, void *glm_ctx)
     _layer.framebufferOnly = NO; // enable blitting to main color buffer
     _layer.frame = view.layer.frame;
     _layer.magnificationFilter = kCAFilterNearest;
-
+    _layer.presentsWithTransaction = NO;
+    
     // from https://github.com/bkaradzic/bgfx/issues/2009#issuecomment-581390564
     int scaleFactor = [[NSScreen mainScreen] backingScaleFactor];
     [_layer setContentsScale: scaleFactor];
