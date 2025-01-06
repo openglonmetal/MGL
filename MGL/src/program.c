@@ -755,42 +755,7 @@ bool checkUniformParams(GLMContext ctx, GLint location)
     return true;
 }
 
-void mglUniform1d(GLMContext ctx, GLint location, GLdouble x)
-{
-        assert(0);
-}
-
-void mglUniform1dv(GLMContext ctx, GLint location, GLsizei count, const GLdouble *value)
-{
-        assert(0);
-}
-
-void mglUniform1f(GLMContext ctx, GLint location, GLfloat v0)
-{
-        assert(0);
-}
-
-void mglUniform1fv(GLMContext ctx, GLint location, GLsizei count, const GLfloat *value)
-{
-    // TODO: actual error checking (am too lazy)
-    Program* ptr = ctx->state.program;
-    
-    ERROR_CHECK_RETURN(ptr, GL_INVALID_OPERATION)
-
-    Buffer *buf = ctx->state.buffer_base[_UNIFORM_CONSTANT].buffers[location].buf;
-    
-    ERROR_CHECK_RETURN(location != -1, GL_INVALID_OPERATION)
-    
-    if(buf == NULL)
-    {
-        ctx->state.buffer_base[_UNIFORM_CONSTANT].buffers[location].buf = newBuffer(ctx, GL_UNIFORM_BUFFER, location);
-        buf = ctx->state.buffer_base[_UNIFORM_CONSTANT].buffers[location].buf;
-    }
-    size_t float_size = sizeof(GLfloat);
-    initBufferData(ctx, buf, count*float_size, value, true);
-}
-
-void mglUniform1i(GLMContext ctx, GLint location, GLint v0)
+void mglUniform(GLMContext ctx, GLint location, void *ptr, GLsizei size)
 {
     assert(checkUniformParams(ctx, location));
     
@@ -801,37 +766,67 @@ void mglUniform1i(GLMContext ctx, GLint location, GLint v0)
         ctx->state.buffer_base[_UNIFORM_CONSTANT].buffers[location].buf = newBuffer(ctx, GL_UNIFORM_BUFFER, location);
         buf = ctx->state.buffer_base[_UNIFORM_CONSTANT].buffers[location].buf;
     }
-    initBufferData(ctx, buf, sizeof(v0), &v0, true);
+    
+    initBufferData(ctx, buf, size, ptr, true);
+}
+
+void mglUniform1d(GLMContext ctx, GLint location, GLdouble x)
+{
+    mglUniform(ctx, location, &x, sizeof(GLdouble));
+}
+
+void mglUniform1dv(GLMContext ctx, GLint location, GLsizei count, const GLdouble *value)
+{
+    mglUniform(ctx, location, (void *)value, count * sizeof(GLdouble));
+}
+
+void mglUniform1f(GLMContext ctx, GLint location, GLfloat v0)
+{
+    mglUniform(ctx, location, &v0, sizeof(GLfloat));
+}
+
+void mglUniform1fv(GLMContext ctx, GLint location, GLsizei count, const GLfloat *value)
+{
+    mglUniform(ctx, location, (void *)value, count * sizeof(GLfloat));
+}
+
+void mglUniform1i(GLMContext ctx, GLint location, GLint v0)
+{
+    mglUniform(ctx, location, &v0, sizeof(GLint));
 }
 
 void mglUniform1iv(GLMContext ctx, GLint location, GLsizei count, const GLint *value)
 {
-        assert(0);
+    mglUniform(ctx, location, (void *)value, count * sizeof(GLint));
 }
 
 void mglUniform1ui(GLMContext ctx, GLint location, GLuint v0)
 {
-        assert(0);
+    mglUniform(ctx, location, &v0, sizeof(GLuint));
 }
 
 void mglUniform1uiv(GLMContext ctx, GLint location, GLsizei count, const GLuint *value)
 {
-        assert(0);
+    mglUniform(ctx, location, (void *)value, count * sizeof(GLuint));
 }
 
-void mglUniform2d(GLMContext ctx, GLint location, GLdouble x, GLdouble y)
+void mglUniform2d(GLMContext ctx, GLint location, volatile GLdouble x, volatile GLdouble y)
 {
-        assert(0);
+    GLdouble data[] = {x, y};
+    
+    mglUniform(ctx, location, data, 2 * sizeof(GLdouble));
 }
 
 void mglUniform2dv(GLMContext ctx, GLint location, GLsizei count, const GLdouble *value)
 {
-        assert(0);
+    mglUniform(ctx, location, (void *)value, 2 * count * sizeof(GLuint));
 }
 
 void mglUniform2f(GLMContext ctx, GLint location, GLfloat v0, GLfloat v1)
 {
-        assert(0);
+    GLfloat data[] = {v0, v1};
+    
+    mglUniform(ctx, location, data, 2 * sizeof(GLfloat));
 }
 
 void mglUniform2fv(GLMContext ctx, GLint location, GLsizei count, const GLfloat *value)
