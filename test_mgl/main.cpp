@@ -532,16 +532,28 @@ void bufferSubData(GLenum target, GLuint buffer, GLsizei size, const void *ptr)
 
 int test_clear(GLFWwindow* window, int width, int height)
 {
+    int a = 0;
+    int e = 1;
+
     while (!glfwWindowShouldClose(window))
     {
-        glClearColor(0.5, 0.2, 0.2, 0.0);
+        float f;
+        
+        f = (float)a/100.0;
+        
+        glClearColor(1.0 - f, 0.2, f, 1.0);
         glClear(GL_COLOR_BUFFER_BIT);
         
+        a += e;
+        if(a>=100){e=-1;}
+        if(a==0){e=1;}
+
         SWAP_BUFFERS;
         
         glfwPollEvents();
     }
     
+
     return 0;
 }
 
@@ -3398,7 +3410,7 @@ int main_glfw(int argc, const char * argv[])
     height = 512;
     
 #if 1
-    run_test_case(21, width, height);
+    run_test_case(0, width, height);
 #else
     int test_num;
     test_num = 0;

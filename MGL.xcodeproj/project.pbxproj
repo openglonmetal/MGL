@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		FF2DC2602D2C9A830040B838 /* uniforms.c in Sources */ = {isa = PBXBuildFile; fileRef = FF2DC25F2D2C9A830040B838 /* uniforms.c */; };
+		FF2DC2612D2C9A830040B838 /* uniforms.c in Sources */ = {isa = PBXBuildFile; fileRef = FF2DC25F2D2C9A830040B838 /* uniforms.c */; };
+		FF2DC2632D2C9B040040B838 /* programs.h in Headers */ = {isa = PBXBuildFile; fileRef = FF2DC2622D2C9B040040B838 /* programs.h */; };
+		FF2DC2642D2C9B040040B838 /* programs.h in Headers */ = {isa = PBXBuildFile; fileRef = FF2DC2622D2C9B040040B838 /* programs.h */; };
 		FF4810152772B23400BBF7C7 /* libMGL.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = FFA83000276F97DE003F1EA0 /* libMGL.dylib */; };
 		FF4811722776963E00BBF7C7 /* tex_param.c in Sources */ = {isa = PBXBuildFile; fileRef = FF4811712776963E00BBF7C7 /* tex_param.c */; };
 		FF7B77A52771054F00C2028F /* ezxml.c in Sources */ = {isa = PBXBuildFile; fileRef = FF7B77A32771054F00C2028F /* ezxml.c */; };
@@ -204,6 +208,9 @@
 		DFC728FA2894855E00990595 /* libSPIRV-Tools-shared.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libSPIRV-Tools-shared.dylib"; path = "external/SPIRV-Tools/build/source/libSPIRV-Tools-shared.dylib"; sourceTree = "<group>"; };
 		DFC728FC289485A000990595 /* libSPIRV-Tools.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libSPIRV-Tools.a"; path = "external/SPIRV-Tools/build/source/libSPIRV-Tools.a"; sourceTree = "<group>"; };
 		DFC729002894933400990595 /* test_mgl_glfw.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = test_mgl_glfw.entitlements; sourceTree = SOURCE_ROOT; };
+		FF2DC2592D2C64B20040B838 /* MetalGL.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = MetalGL.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		FF2DC25F2D2C9A830040B838 /* uniforms.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = uniforms.c; sourceTree = "<group>"; };
+		FF2DC2622D2C9B040040B838 /* programs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = programs.h; sourceTree = "<group>"; };
 		FF4811712776963E00BBF7C7 /* tex_param.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = tex_param.c; sourceTree = "<group>"; };
 		FF6C4D5F2D2375E600945F18 /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
 		FF7B77A32771054F00C2028F /* ezxml.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ezxml.c; sourceTree = "<group>"; };
@@ -292,7 +299,6 @@
 		FFA83046276F9EBF003F1EA0 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		FFA83091277026B6003F1EA0 /* gl.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = gl.xml; path = "external/OpenGL-Registry/xml/gl.xml"; sourceTree = SOURCE_ROOT; };
 		FFE8B2C82D29B4CA006B1015 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
-		FFE8B2CF2D29B60E006B1015 /* MetalGL.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; name = MetalGL.framework; path = /Users/milarson/Projects/MGL/build/Debug/MetalGL.framework; sourceTree = "<absolute>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -410,13 +416,16 @@
 				FFA1EB702782851500EEE5AD /* compute.c */,
 				FF7B7A8427728C1D00C2028F /* state.c */,
 				FF7B7A9127728C1D00C2028F /* fence.c */,
-				FF7B7A8C27728C1D00C2028F /* buffers.c */,
 				DFB50A9E28B09F1E0084D12B /* buffers.h */,
+				FF7B7A8C27728C1D00C2028F /* buffers.c */,
 				FF4811712776963E00BBF7C7 /* tex_param.c */,
 				FF7B7A8D27728C1D00C2028F /* textures.c */,
 				FF8F91A72780FBBD00A1E546 /* samplers.c */,
+				FF7B7ABD27728C3100C2028F /* shaders.h */,
 				FF7B7A9827728C1D00C2028F /* shaders.c */,
+				FF2DC2622D2C9B040040B838 /* programs.h */,
 				FF7B7A8627728C1D00C2028F /* program.c */,
+				FF2DC25F2D2C9A830040B838 /* uniforms.c */,
 				FF99BF6C2ADF27ED008AE33A /* vertex_arrays.h */,
 				FF7B7A9227728C1D00C2028F /* vertex_arrays.c */,
 				FF7B7A9927728C1D00C2028F /* vertex_buffers.c */,
@@ -436,7 +445,6 @@
 				FF7B7AB927728C3100C2028F /* error.h */,
 				FF7B7ABA27728C3100C2028F /* utils.h */,
 				FF7B7ABB27728C3100C2028F /* gltypes.h */,
-				FF7B7ABD27728C3100C2028F /* shaders.h */,
 				FF7B7ABE27728C3100C2028F /* glm_context.h */,
 				FF7B7ABF27728C3100C2028F /* glm_dispatch.h */,
 				FF7B7AC027728C3100C2028F /* hash_table.h */,
@@ -475,6 +483,7 @@
 				FFA83044276F9EBE003F1EA0 /* test_mgl_glfw */,
 				FF7B784827714BE700C2028F /* spec_parser */,
 				FF85F2102D28658200A5BDCD /* MGL Tests.xctest */,
+				FF2DC2592D2C64B20040B838 /* MetalGL.framework */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -572,6 +581,7 @@
 				FF7B7AD327728C3200C2028F /* MGLContext.h in Headers */,
 				FF7B7ACA27728C3100C2028F /* utils.h in Headers */,
 				FF7B7ACC27728C3100C2028F /* MGLRenderer.h in Headers */,
+				FF2DC2632D2C9B040040B838 /* programs.h in Headers */,
 				FF7B7AC927728C3100C2028F /* error.h in Headers */,
 				FF7B7AD027728C3100C2028F /* hash_table.h in Headers */,
 				FF7B7ACD27728C3100C2028F /* shaders.h in Headers */,
@@ -583,6 +593,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FF2DC2642D2C9B040040B838 /* programs.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -749,7 +760,7 @@
 			packageProductDependencies = (
 			);
 			productName = MetalGL;
-			productReference = FFE8B2CF2D29B60E006B1015 /* MetalGL.framework */;
+			productReference = FF2DC2592D2C64B20040B838 /* MetalGL.framework */;
 			productType = "com.apple.product-type.framework";
 		};
 /* End PBXNativeTarget section */
@@ -880,6 +891,7 @@
 				FF7B7AA327728C1D00C2028F /* glm_params.c in Sources */,
 				FF4811722776963E00BBF7C7 /* tex_param.c in Sources */,
 				FFA1EB712782851500EEE5AD /* compute.c in Sources */,
+				FF2DC2602D2C9A830040B838 /* uniforms.c in Sources */,
 				FF7B7AA227728C1D00C2028F /* framebuffers.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -905,6 +917,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FF2DC2612D2C9A830040B838 /* uniforms.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1262,7 +1275,10 @@
 					"-DSPIRV_CROSS_C_API_CPP=1",
 					"-DSPIRV_CROSS_C_API_REFLECT=1",
 				);
-				OTHER_LDFLAGS = "-lstdc++";
+				OTHER_LDFLAGS = (
+					"-lstdc++",
+					"-v",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				SKIP_INSTALL = NO;
@@ -1314,7 +1330,10 @@
 					"-DSPIRV_CROSS_C_API_CPP=1",
 					"-DSPIRV_CROSS_C_API_REFLECT=1",
 				);
-				OTHER_LDFLAGS = "-lstdc++";
+				OTHER_LDFLAGS = (
+					"-lstdc++",
+					"-v",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				SKIP_INSTALL = NO;

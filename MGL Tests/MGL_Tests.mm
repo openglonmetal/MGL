@@ -114,17 +114,29 @@ extern "C" {
     [super tearDown];
 }
 
-#if 0
 - (void)testGLClear
 {
     XCTestExpectation *expectation = [self expectationWithDescription:@"Task on main thread completed"];
     
     // Ensure everything runs on the main thread
     dispatch_async(dispatch_get_main_queue(), ^{
-        glClearColor(0.5, 0.2, 0.2, 0.0);
-        glClear(GL_COLOR_BUFFER_BIT);
-        MGLswapBuffers(NULL);
+        int a = 0;
+        int e = 1;
         
+        int count;
+        count = 200;
+        while(count--)
+        {
+            glClearColor(0.2, 0.2, (float)a/100.0, 0.0);
+            glClear(GL_COLOR_BUFFER_BIT);
+            
+            a += e;
+            if(a>=100){e=-1;}
+            if(a==0){e=1;}
+
+            MGLswapBuffers(NULL);
+        }
+
         [expectation fulfill];
     });
     
@@ -134,6 +146,7 @@ extern "C" {
     }];
 }
 
+#if 0
 - (void)testGLDrawArrays
 {
     XCTestExpectation *expectation = [self expectationWithDescription:@"Task on main thread completed"];

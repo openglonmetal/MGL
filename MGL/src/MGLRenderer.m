@@ -1823,11 +1823,9 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
 
 - (bool) newRenderEncoder
 {
+    // I can't remember why this is here...
     @autoreleasepool {
     
-    if (VAO() == NULL)
-        return true;    // not really a failure we just can't setup a new desc
-
     // end encoding on current render encoder
     [self endRenderEncoding];
 
@@ -1987,7 +1985,7 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
     }
 
     // in case one of the framebuffers should be cleared
-    if (true) // ctx->state.clear_bitmask)
+    if (ctx->state.clear_bitmask)
     {
         if (ctx->state.clear_bitmask & GL_COLOR_BUFFER_BIT)
         {
@@ -2064,27 +2062,31 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
     // apply all state that isn't included in a renderPassDescriptor into the render encoder
     [self updateCurrentRenderEncoder];
 
-    if ([self bindVertexBuffersToCurrentRenderEncoder] == false)
+    // only bind all this if there is a VAO
+    if (VAO())
     {
-        printf("vertex buffer binding failed\n");
-
-        return false;
+        if ([self bindVertexBuffersToCurrentRenderEncoder] == false)
+        {
+            printf("vertex buffer binding failed\n");
+            
+            return false;
+        }
+        
+        if ([self bindFragmentBuffersToCurrentRenderEncoder] == false)
+        {
+            printf("fragment buffer binding failed\n");
+            
+            return false;
+        }
+        
+        if ([self bindTexturesToCurrentRenderEncoder] == false)
+        {
+            printf("texture binding failed\n");
+            
+            return false;
+        }
     }
-
-    if ([self bindFragmentBuffersToCurrentRenderEncoder] == false)
-    {
-        printf("fragment buffer binding failed\n");
-
-        return false;
-    }
-
-    if ([self bindTexturesToCurrentRenderEncoder] == false)
-    {
-        printf("texture binding failed\n");
-
-        return false;
-    }
-
+        
     return true;
         
     } //     @autoreleasepool
@@ -3161,7 +3163,8 @@ void mtlFlush (GLMContext glm_ctx, bool finish)
         [_currentCommandBuffer commit];
 
         _drawable = [_layer nextDrawable];
-
+        assert(_drawable);
+        
         [self newCommandBufferAndRenderEncoder];
     }
 }
