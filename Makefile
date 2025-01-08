@@ -60,6 +60,22 @@ LIBS += -lglslang -lMachineIndependent -lGenericCodeGen -lOGLCompiler -lOSDepend
 LIBS += -L/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib
 LIBS += -lc++
 
+# add all the SPIRV libs
+SPIRV_LIBS := $(wildcard external/SPIRV-Cross/build/libspirv*.a)
+$(SPIRV_LIBS):                                                                                                                                                                                               	LIBS += $@
+
+GLSL_LIBS := $(wildcard external/glslang/build/glslang/lib*.a)
+$(GLSL_LIBS):                                                                                                                                                                                                   LIBS += $@
+
+# SPIRV-Tools
+LIBS += external/SPIRV-Tools/build/source/lint/libSPIRV-Tools-lint.a
+LIBS += external/SPIRV-Tools/build/source/reduce/libSPIRV-Tools-reduce.a
+LIBS += external/SPIRV-Tools/build/source/diff/libSPIRV-Tools-diff.a
+LIBS += external/SPIRV-Tools/build/source/libSPIRV-Tools.a
+LIBS += external/SPIRV-Tools/build/source/link/libSPIRV-Tools-link.a
+LIBS += external/SPIRV-Tools/build/source/opt/libSPIRV-Tools-opt.a
+
+
 # --
 # no need to tweak after this line, hopefully
 
