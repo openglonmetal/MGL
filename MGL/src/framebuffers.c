@@ -248,7 +248,7 @@ GLenum  mglCheckFramebufferStatus(GLMContext ctx, GLenum target)
         }
     }
 
-    printf("%s need to fix this function %d, %d, %d\n", __FUNCTION__, width, height, level);
+    DEBUG_PRINT("%s need to fix this function %d, %d, %d\n", __FUNCTION__, width, height, level);
 
     return GL_FRAMEBUFFER_COMPLETE;
 }

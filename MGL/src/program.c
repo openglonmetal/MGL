@@ -196,7 +196,7 @@ void mglDetachShader(GLMContext ctx, GLuint program, GLuint shader)
 void error_callback(void *userdata, const char *error)
 {
     assert(error);
-    printf("parseSPIRVShader error:%s\n", error);
+    DEBUG_PRINT("parseSPIRVShader error:%s\n", error);
 }
 
 
@@ -322,7 +322,7 @@ char *parseSPIRVShaderToMetal(GLMContext ctx, Program *ptr, int stage)
         
         for(int i=0; i<num_entry_points; i++)
         {
-            printf("Entry point: %s Execution Model: %d\n", entry_points[i].name, entry_points[i].execution_model);
+            DEBUG_PRINT("Entry point: %s Execution Model: %d\n", entry_points[i].name, entry_points[i].execution_model);
         }
 
         ptr->local_workgroup_size.x = spvc_compiler_get_execution_mode_argument_by_index(compiler_msl, SpvExecutionModeLocalSize, 0);
@@ -345,8 +345,10 @@ char *parseSPIRVShaderToMetal(GLMContext ctx, Program *ptr, int stage)
 
         for (i = 0; i < count; i++)
         {
-            printf("res_type: %s ID: %u, BaseTypeID: %u, TypeID: %u, Name: %s ", res_name[res_type], list[i].id, list[i].base_type_id, list[i].type_id,
+#if __DEBUG__
+            DEBUG_PRINT("res_type: %s ID: %u, BaseTypeID: %u, TypeID: %u, Name: %s ", res_name[res_type], list[i].id, list[i].base_type_id, list[i].type_id,
                    list[i].name);
+#endif
             
             switch(res_type)
             {
@@ -354,7 +356,7 @@ char *parseSPIRVShaderToMetal(GLMContext ctx, Program *ptr, int stage)
                 case SPVC_RESOURCE_TYPE_UNIFORM_CONSTANT:
                 case SPVC_RESOURCE_TYPE_STORAGE_BUFFER:
                 case SPVC_RESOURCE_TYPE_ATOMIC_COUNTER:
-                    printf("Set: %u, Binding: %u Uniform: %d offset: %d\n",
+                    DEBUG_PRINT("Set: %u, Binding: %u Uniform: %d offset: %d\n",
                            spvc_compiler_get_decoration(compiler_msl, list[i].id, SpvDecorationDescriptorSet),
                            spvc_compiler_get_decoration(compiler_msl, list[i].id, SpvDecorationBinding),
                            spvc_compiler_get_decoration(compiler_msl, list[i].id, SpvDecorationUniform),
@@ -364,7 +366,7 @@ char *parseSPIRVShaderToMetal(GLMContext ctx, Program *ptr, int stage)
                 case SPVC_RESOURCE_TYPE_STAGE_INPUT:
                 case SPVC_RESOURCE_TYPE_STAGE_OUTPUT:
                 case SPVC_RESOURCE_TYPE_SUBPASS_INPUT:
-                    printf("Set: %u, Location: %d Index: %d, offset: %d\n",
+                    DEBUG_PRINT("Set: %u, Location: %d Index: %d, offset: %d\n",
                            spvc_compiler_get_decoration(compiler_msl, list[i].id, SpvDecorationDescriptorSet),
                            spvc_compiler_get_decoration(compiler_msl, list[i].id, SpvDecorationLocation),
                            spvc_compiler_get_decoration(compiler_msl, list[i].id, SpvDecorationIndex),
@@ -373,13 +375,13 @@ char *parseSPIRVShaderToMetal(GLMContext ctx, Program *ptr, int stage)
                     
                 case SPVC_RESOURCE_TYPE_SAMPLED_IMAGE:
                 case SPVC_RESOURCE_TYPE_SEPARATE_IMAGE:
-                    printf("Set: %u, Location: %d\n",
+                    DEBUG_PRINT("Set: %u, Location: %d\n",
                            spvc_compiler_get_decoration(compiler_msl, list[i].id, SpvDecorationDescriptorSet),
                            spvc_compiler_get_decoration(compiler_msl, list[i].id, SpvDecorationLocation));
                     break;
 
                 default:
-                    printf("Set: %u, Binding: %u Location: %d Index: %d, Uniform: %d offset: %d\n",
+                    DEBUG_PRINT("Set: %u, Binding: %u Location: %d Index: %d, Uniform: %d offset: %d\n",
                            spvc_compiler_get_decoration(compiler_msl, list[i].id, SpvDecorationDescriptorSet),
                            spvc_compiler_get_decoration(compiler_msl, list[i].id, SpvDecorationBinding),
                            spvc_compiler_get_decoration(compiler_msl, list[i].id, SpvDecorationLocation),
@@ -400,7 +402,7 @@ char *parseSPIRVShaderToMetal(GLMContext ctx, Program *ptr, int stage)
     }
 
     spvc_compiler_compile(compiler_msl, &result);
-    printf("\n%s\n", result);
+    DEBUG_PRINT("\n%s\n", result);
 
     str_ret = strdup(result);
 
@@ -426,10 +428,10 @@ bool linkAndCompileProgramToMetal(GLMContext ctx, Program *pptr, int stage)
     if (!err)
     {
         // this is useful.. but information after this failure isn't that interesting
-        printf("glslang_program_link failed err: %d\n", err);
-        printf("glslang_program_SPIRV_get_messages:\n%s\n", glslang_program_SPIRV_get_messages(glsl_program));
-        printf("glslang_program_get_info_log:\n%s\n", glslang_program_get_info_log(glsl_program));
-        printf("glslang_program_get_info_debug_log:\n%s\n", glslang_program_get_info_debug_log(glsl_program));
+        DEBUG_PRINT("glslang_program_link failed err: %d\n", err);
+        DEBUG_PRINT("glslang_program_SPIRV_get_messages:\n%s\n", glslang_program_SPIRV_get_messages(glsl_program));
+        DEBUG_PRINT("glslang_program_get_info_log:\n%s\n", glslang_program_get_info_log(glsl_program));
+        DEBUG_PRINT("glslang_program_get_info_debug_log:\n%s\n", glslang_program_get_info_debug_log(glsl_program));
 
         ERROR_RETURN(GL_INVALID_OPERATION);
     }
@@ -439,7 +441,7 @@ bool linkAndCompileProgramToMetal(GLMContext ctx, Program *pptr, int stage)
 
     if (glslang_program_SPIRV_get_messages(glsl_program))
     {
-        printf("%s\n", glslang_program_SPIRV_get_messages(glsl_program));
+        DEBUG_PRINT("%s\n", glslang_program_SPIRV_get_messages(glsl_program));
 
         ERROR_RETURN(GL_INVALID_OPERATION);
     }

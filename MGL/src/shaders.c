@@ -303,10 +303,10 @@ void mglCompileShader(GLMContext ctx, GLuint shader)
     err = glslang_shader_preprocess(glsl_shader, &glsl_input);
     if (!err)
     {
-        printf("glslang_shader_preprocess failed err: %d\n", err);
-        printf("glslang_shader_get_preprocessed_code:\n%s\n", glslang_shader_get_preprocessed_code(glsl_shader));
-        printf("glslang_shader_get_info_log:\n%s\n", glslang_shader_get_info_log(glsl_shader));
-        printf("glslang_shader_get_info_debug_log:\n%s\n", glslang_shader_get_info_debug_log(glsl_shader));
+        DEBUG_PRINT("glslang_shader_preprocess failed err: %d\n", err);
+        DEBUG_PRINT("glslang_shader_get_preprocessed_code:\n%s\n", glslang_shader_get_preprocessed_code(glsl_shader));
+        DEBUG_PRINT("glslang_shader_get_info_log:\n%s\n", glslang_shader_get_info_log(glsl_shader));
+        DEBUG_PRINT("glslang_shader_get_info_debug_log:\n%s\n", glslang_shader_get_info_debug_log(glsl_shader));
 
         size_t len;
 
@@ -335,10 +335,10 @@ void mglCompileShader(GLMContext ctx, GLuint shader)
     err = glslang_shader_parse(glsl_shader, &glsl_input);
     if (!err)
     {
-        printf("glslang_shader_parse failed err: %d\n", err);
-        printf("glslang_shader_get_preprocessed_code:\n%s\n", glslang_shader_get_preprocessed_code(glsl_shader));
-        printf("glslang_shader_get_info_log:\n%s\n", glslang_shader_get_info_log(glsl_shader));
-        printf("glslang_shader_get_info_debug_log:\n%s\n", glslang_shader_get_info_debug_log(glsl_shader));
+        DEBUG_PRINT("glslang_shader_parse failed err: %d\n", err);
+        DEBUG_PRINT("glslang_shader_get_preprocessed_code:\n%s\n", glslang_shader_get_preprocessed_code(glsl_shader));
+        DEBUG_PRINT("glslang_shader_get_info_log:\n%s\n", glslang_shader_get_info_log(glsl_shader));
+        DEBUG_PRINT("glslang_shader_get_info_debug_log:\n%s\n", glslang_shader_get_info_debug_log(glsl_shader));
 
         size_t len;
 

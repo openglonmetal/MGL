@@ -35,6 +35,18 @@
 // defines above set sizes in glm_params
 #include "glm_params.h"
 
+#ifdef __DEBUG__
+#define DEBUG_LEVEL 3
+#endif
+
+#if defined(DEBUG_LEVEL) && DEBUG_LEVEL > 0
+ #define DEBUG_PRINT(fmt, args...) fprintf(stderr, "DEBUG: %s:%d:%s(): " fmt, \
+    __FILE__, __LINE__, __func__, ##args)
+#else
+ #define DEBUG_PRINT(fmt, args...) /* Don't do anything in release builds */
+#endif
+
+
 // macros because I get tired of write if this and that then return
 #define RETURN_ON_FAILURE(_expr_) if (_expr_ == false) { printf("failure %s:%d\n",__FUNCTION__,__LINE__); return; }
 #define RETURN_FALSE_ON_FAILURE(_expr_) if (_expr_ == false) { printf("failure %s:%d\n",__FUNCTION__,__LINE__); return false; }

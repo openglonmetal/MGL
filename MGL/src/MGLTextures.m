@@ -526,12 +526,12 @@ MTLPixelFormat mtlPixelFormatForGLTex(Texture * tex)
     {
         GLuint format, type;
 
-        printf("Internal format 0x%x failed\n", internal_format);
+        DEBUG_PRINT("Internal format 0x%x failed\n", internal_format);
 
         format = tex->format;
         type = tex->type;
 
-        printf("format 0x%x type 0x%x\n", format, type);
+        DEBUG_PRINT("format 0x%x type 0x%x\n", format, type);
 
         return mtlPixelFormatForGLFormatType(format, type);
     }

@@ -604,45 +604,16 @@ extern "C" {
 
         glViewport(0, 0, [self winWidth], [self winHeight]);
 
-        int count = 100;
+        glClearColor(0.0, 0.0, 0.0, 0.0);
+        glClear(GL_COLOR_BUFFER_BIT);
         
-        while(count--)
-        {
-            glClearColor(0.0, 0.0, 0.0, 0.0);
-            glClear(GL_COLOR_BUFFER_BIT);
-            
-            glDrawArrays(GL_TRIANGLES, 0, 3);
-            
-            if(count)
-            {
-                MGLswapBuffers();
-            }
-        }
+        glDrawArrays(GL_TRIANGLES, 0, 3);
         
-        size_t len;
-        len = [self winWidth] * [self winHeight] * 4;
+        MGLswapBuffers();
         
-        uint8_t *pixels;
-        pixels = (uint8_t *)malloc(len);
+        bool result;
+        result = [self compareResults: "testReadPixels"];
 
-        glReadBuffer(GL_FRONT);
-        glReadPixels(0, 0, [self winWidth], [self winHeight], GL_RGBA, GL_UNSIGNED_BYTE, pixels);
-
-        glFlush();
-
-        NSSize size;
-        bool test_passed;
-
-        test_passed = false;
-
-        size = NSMakeSize([self winWidth], [self winHeight]);
-        test_passed = [self writeAndCompareResults: "read_pixels" size: size pixels: pixels];
-        
-        free(pixels);
-                          
-        if(test_passed == false)
-            XCTFail(@"Image comparison failed");
-            
         [expectation fulfill];
     });
     

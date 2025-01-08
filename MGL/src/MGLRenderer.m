@@ -35,7 +35,7 @@
 #import "MGLRenderer.h"
 #import "glm_context.h"
 
-#define TRACE_FUNCTION()    printf("%s\n", __FUNCTION__);
+#define TRACE_FUNCTION()    DEBUG_PRINT("%s\n", __FUNCTION__);
 
 extern void mglDrawBuffer(GLMContext ctx, GLenum buf);
 
@@ -265,7 +265,7 @@ MTLVertexFormat glTypeSizeToMtlType(GLuint type, GLuint size, bool normalized)
 void printDirtyBit(unsigned dirty_bits, unsigned dirty_flag, const char *name)
 {
     if (dirty_bits & dirty_flag)
-        printf("%s", name);
+        DEBUG_PRINT("%s", name);
 }
 
 void logDirtyBits(GLMContext ctx)
@@ -294,7 +294,7 @@ void logDirtyBits(GLMContext ctx)
             printDirtyBit(ctx->state.dirty_bits, DIRTY_IMAGE_UNIT_STATE, "DIRTY_IMAGE_UNIT_STATE ");
             printDirtyBit(ctx->state.dirty_bits, DIRTY_BUFFER_BASE_STATE, "DIRTY_BUFFER_BASE_STATE ");
         }
-        printf("\n");
+        DEBUG_PRINT("\n");
     }
 }
 
@@ -386,8 +386,10 @@ void logDirtyBits(GLMContext ctx)
         {SPVC_RESOURCE_TYPE_STORAGE_BUFFER, _SHADER_STORAGE_BUFFER, "Shader Storage Buffer"},
         {SPVC_RESOURCE_TYPE_ATOMIC_COUNTER, _ATOMIC_COUNTER_BUFFER, "Atomic Counter Buffer"}
     };
+#if DEBUG_MAPPED_TYPES
     const char *stages[] = {"VERTEX_SHADER", "TESS_CONTROL_SHADER", "TESS_EVALUATION_SHADER",
         "GEOMETRY_SHADER", "FRAGMENT_SHADER", "COMPUTE_SHADER"};
+#endif
     
     // init mapped buffer count
     buffer_map->count = 0;
@@ -403,7 +405,9 @@ void logDirtyBits(GLMContext ctx)
         
         count = [self getProgramBindingCount: stage type: spvc_type];
 
-        //printf("Checking mapped_types: %s count:%d for stage: %s\n", mapped_types[type].name, count, stages[stage]);
+#if DEBUG_MAPPED_TYPES
+        DEBUG_PRINT("Checking mapped_types: %s count:%d for stage: %s\n", mapped_types[type].name, count, stages[stage]);
+#endif
         
         if (count)
         {
@@ -431,7 +435,7 @@ void logDirtyBits(GLMContext ctx)
                     buffer_map->count++;
                     buffers_to_be_mapped--;
                     
-                    //printf("Found buffer type: %s buffer_base_index: %d\n", mapped_types[type].name, spirv_binding);
+                    //DEBUG_PRINT("Found buffer type: %s buffer_base_index: %d\n", mapped_types[type].name, spirv_binding);
                 }
                 else
                 {
@@ -1008,7 +1012,7 @@ void logDirtyBits(GLMContext ctx)
                     }
                     else
                     {
-                        printf("tex id data update %d\n", tex->name);
+                        DEBUG_PRINT("tex id data update %d\n", tex->name);
 
                         [texture replaceRegion:region mipmapLevel:level slice:face withBytes:(void *)tex->faces[face].levels[level].data bytesPerRow:bytesPerRow bytesPerImage:(NSUInteger)bytesPerImage];
                     }
@@ -1174,7 +1178,7 @@ void logDirtyBits(GLMContext ctx)
         }
         else
         {
-            printf("Non-normalized coordinates should only be used with 1D and 2D textures with the ClampToEdge wrap mode, otherwise the results of sampling are undefined.");
+            DEBUG_PRINT("Non-normalized coordinates should only be used with 1D and 2D textures with the ClampToEdge wrap mode, otherwise the results of sampling are undefined.");
         }
     }
 
@@ -2067,21 +2071,21 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
     {
         if ([self bindVertexBuffersToCurrentRenderEncoder] == false)
         {
-            printf("vertex buffer binding failed\n");
+            DEBUG_PRINT("vertex buffer binding failed\n");
             
             return false;
         }
         
         if ([self bindFragmentBuffersToCurrentRenderEncoder] == false)
         {
-            printf("fragment buffer binding failed\n");
+            DEBUG_PRINT("fragment buffer binding failed\n");
             
             return false;
         }
         
         if ([self bindTexturesToCurrentRenderEncoder] == false)
         {
-            printf("texture binding failed\n");
+            DEBUG_PRINT("texture binding failed\n");
             
             return false;
         }
@@ -2435,7 +2439,7 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
         {
             if ([self bindFramebufferTexture: &fbo->color_attachments[i] isDrawBuffer: (fbo->color_attachments[i].buf.rbo->is_draw_buffer)] == false)
             {
-                printf("Failed Framebuffer Attachment\n");
+                DEBUG_PRINT("Failed Framebuffer Attachment\n");
                 return false;
             }
         }
@@ -2450,7 +2454,7 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
     {
         if ([self bindFramebufferTexture: &fbo->depth isDrawBuffer: true] == false)
         {
-            printf("Failed Framebuffer Attachment\n");
+            DEBUG_PRINT("Failed Framebuffer Attachment\n");
             return false;
         }
     }
@@ -2460,7 +2464,7 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
     {
         if ([self bindFramebufferTexture: &fbo->stencil isDrawBuffer: true] == false)
         {
-            printf("Failed Framebuffer Attachment\n");
+            DEBUG_PRINT("Failed Framebuffer Attachment\n");
             return false;
         }
     }
@@ -2837,7 +2841,7 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
             // texture not found
             if (textures_to_be_mapped)
             {
-                printf("No texture bound for fragment shader location\n");
+                DEBUG_PRINT("No texture bound for fragment shader location\n");
 
                 return false;
             }
