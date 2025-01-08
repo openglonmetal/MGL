@@ -216,17 +216,69 @@ extern "C" {
     return result;
 }
 
-- (bool) writeAndCompareResults: (const char *)testname size:(NSSize)size pixels:(void *)pixels
+- (void) createResultDirectoryIfNeeded
 {
     bool result;
-    char *path, *golden_path;
-
+    
     // create test directory if it doesn't exist
     result = [self doesTestDirectoryExist];
     if (result == false)
     {
         mkdir([self getTestDirectory], 0700);
     }
+}
+
+- (bool) writeResult: (const char *)testname size:(NSSize)size pixels:(void *)pixels
+{
+    bool result;
+    char *path;
+
+    [self createResultDirectoryIfNeeded];
+
+    do {
+        path = [self getTestResultPath: testname];
+        
+        result = tga_write(path, size.width, size.height, (uint8_t *)pixels, 4, 4);
+        if (result == false)
+            continue;
+
+        result = true;
+    } while(0);
+        
+    free(path);
+
+    return result;
+}
+
+- (bool) writeGoldenResult: (const char *)testname size:(NSSize)size pixels:(void *)pixels
+{
+    bool result;
+    char *golden_path;
+
+    [self createResultDirectoryIfNeeded];
+
+    do {
+        golden_path = [self getGoldenImagePath: testname];
+        
+        result = tga_write(golden_path, size.width, size.height, (uint8_t *)pixels, 4, 4);
+        if (result == false)
+            continue;
+
+        result = true;
+    } while(0);
+        
+    free(golden_path);
+
+    return result;
+}
+
+- (bool) writeAndCompareResults: (const char *)testname size:(NSSize)size pixels:(void *)pixels
+{
+    bool result;
+    char *path, *golden_path;
+
+    // create test directory if it doesn't exist
+    [self createResultDirectoryIfNeeded];
 
     path = NULL; // get rid of warning
     do {

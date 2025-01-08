@@ -187,6 +187,7 @@ $(build_dir)/%.o: %.m
 
 clean:
 	rm -rf $(build_dir)
+	rm libmgl.dylib
 
 install-pkgdeps: download-pkgdeps compile-pkgdeps
 

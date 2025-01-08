@@ -334,10 +334,12 @@ char *parseSPIRVShaderToMetal(GLMContext ctx, Program *ptr, int stage)
     spvc_compiler_create_shader_resources(compiler_msl, &resources);
     for (int res_type=SPVC_RESOURCE_TYPE_UNIFORM_BUFFER; res_type < SPVC_RESOURCE_TYPE_ACCELERATION_STRUCTURE; res_type++)
     {
+#if DEBUG
         const char *res_name[] = {"NONE", "UNIFORM_BUFFER", "UNIFORM_CONSTANT", "STORAGE_BUFFER", "STAGE_INPUT", "STAGE_OUTPUT",
             "SUBPASS_INPUT", "STORAGE_INPUT", "SAMPLED_IMAGE", "ATOMIC_COUNTER", "PUSH_CONSTANT", "SEPARATE_IMAGE",
             "SEPARATE_SAMPLERS", "ACCELERATION_STRUCTURE", "RAY_QUERY"};
-
+#endif
+        
         spvc_resources_get_resource_list_for_type(resources, res_type, &list, &count);
 
         ptr->spirv_resources_list[stage][res_type].count = (GLuint)count;
@@ -345,10 +347,8 @@ char *parseSPIRVShaderToMetal(GLMContext ctx, Program *ptr, int stage)
 
         for (i = 0; i < count; i++)
         {
-#if __DEBUG__
             DEBUG_PRINT("res_type: %s ID: %u, BaseTypeID: %u, TypeID: %u, Name: %s ", res_name[res_type], list[i].id, list[i].base_type_id, list[i].type_id,
                    list[i].name);
-#endif
             
             switch(res_type)
             {
