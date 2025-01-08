@@ -302,6 +302,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		FF2DC2652D2DCA490040B838 /* TestImages */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = TestImages; sourceTree = "<group>"; };
 		FF85F2112D28658200A5BDCD /* MGL Tests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = "MGL Tests"; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
@@ -462,6 +463,7 @@
 		FFA82FF7276F97DE003F1EA0 = {
 			isa = PBXGroup;
 			children = (
+				FF2DC2652D2DCA490040B838 /* TestImages */,
 				FF86AEA92794DD0A00C51A88 /* README.md */,
 				FF6C4D5F2D2375E600945F18 /* Makefile */,
 				FF7B77E727710FE100C2028F /* GL */,

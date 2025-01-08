@@ -291,8 +291,6 @@ void mglPixelStoref(GLMContext ctx, GLenum pname, GLfloat param)
     mglPixelStorei(ctx, pname, (GLint)param);
 }
 
-//     void (*mtlGetTexImage)(GLMContext glm_ctx, Texture *tex, void *pixelBytes, GLuint bytesPerRow, GLuint bytesPerImage, GLint x, GLint y, GLsizei width, GLsizei height, GLuint level, GLuint slice);
-
 void mglReadPixels(GLMContext ctx, GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, void *pixels)
 {
     GLuint pixel_size;
@@ -411,8 +409,10 @@ void mglReadPixels(GLMContext ctx, GLint x, GLint y, GLsizei width, GLsizei heig
         ERROR_RETURN(GL_OUT_OF_MEMORY);
     }
 
-    ctx->mtl_funcs.mtlGetTexImage(ctx, NULL, (void *)buffer_data, pitch, (GLuint)buffer_size, x, y, width, height, 0, 0);
+    ctx->mtl_funcs.mtlReadDrawable(ctx, (void *)buffer_data, pitch, (GLuint)buffer_size, x, y, width, height);
 
+    memcpy(pixels, (void *)buffer_data, buffer_size);
+    
     vm_deallocate(mach_host_self(), buffer_data, buffer_size);
 }
 

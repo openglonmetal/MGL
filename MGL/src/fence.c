@@ -202,8 +202,6 @@ void mglMemoryBarrier(GLMContext ctx, GLbitfield barriers)
         // extra bits...
         ERROR_RETURN(GL_INVALID_VALUE);
     }
-
-
 }
 
 void mglMemoryBarrierByRegion(GLMContext ctx, GLbitfield barriers)

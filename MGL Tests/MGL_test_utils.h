@@ -35,4 +35,6 @@ GLuint createTexture(GLenum target, GLsizei width, GLsizei height=1, GLsizei dep
 
 void bufferSubData(GLenum target, GLuint buffer, GLsizei size, const void *ptr);
 
+bool tga_write(const char *filename, uint32_t width, uint32_t height, uint8_t *dataBGRA, uint8_t dataChannels=4, uint8_t fileChannels=3);
+
 #endif /* Header_h */
