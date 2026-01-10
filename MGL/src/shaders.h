@@ -25,5 +25,6 @@
 #include "glm_context.h"
 
 Shader *findShader(GLMContext ctx, GLuint shader);
+void mglFreeShader(GLMContext ctx, Shader *ptr);
 
 #endif /* shaders_h */

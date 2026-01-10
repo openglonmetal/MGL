@@ -177,10 +177,12 @@ void mglBindFramebuffer(GLMContext ctx, GLenum target, GLuint framebuffer)
     if(framebuffer)
     {
         ptr = getFramebuffer(ctx, framebuffer);
+        fprintf(stderr, "MGL: glBindFramebuffer target=%x fbo=%u ptr=%p\n", target, framebuffer, ptr);
     }
     else
     {
         ptr = NULL;
+        fprintf(stderr, "MGL: glBindFramebuffer target=%x fbo=0 (default framebuffer)\n", target);
     }
 
     switch(target) {
@@ -203,8 +205,29 @@ void mglBindFramebuffer(GLMContext ctx, GLenum target, GLuint framebuffer)
 
 void mglDeleteFramebuffers(GLMContext ctx, GLsizei n, const GLuint *framebuffers)
 {
-    // Unimplemented function
-    assert(0);
+    for (GLsizei i = 0; i < n; i++)
+    {
+        if (framebuffers[i] == 0)
+            continue;
+            
+        Framebuffer *fbo = findFrameBuffer(ctx, framebuffers[i]);
+        if (!fbo)
+            continue;
+            
+        // Unbind if currently bound
+        if (ctx->state.framebuffer == fbo)
+            ctx->state.framebuffer = NULL;
+        if (ctx->state.readbuffer == fbo)
+            ctx->state.readbuffer = NULL;
+            
+        // Remove from hash table
+        deleteHashElement(&STATE(framebuffer_table), framebuffers[i]);
+        
+        // Free the framebuffer
+        free(fbo);
+    }
+    
+    STATE(dirty_bits) |= DIRTY_FBO;
 }
 
 GLenum  mglCheckFramebufferStatus(GLMContext ctx, GLenum target)
@@ -419,6 +442,15 @@ void framebufferTexture(GLMContext ctx, GLenum target, GLenum attachment_type, G
     FBOAttachment *fbo_attachment_ptr;
 
     fbo = currentFBOForType(ctx, target);
+    
+    // Log FBO texture attachments for large textures (framebuffer size)
+    if (texture != 0) {
+        Texture *t = findTexture(ctx, texture);
+        if (t && t->width >= 640 && t->height >= 400) {
+            fprintf(stderr, "MGL DEBUG: FBO attach tex %u (%dx%d) to FBO %u attachment 0x%x\n",
+                    texture, t->width, t->height, fbo ? fbo->name : 0, attachment);
+        }
+    }
 
     switch(attachment)
     {
@@ -474,14 +506,24 @@ void framebufferTexture(GLMContext ctx, GLenum target, GLenum attachment_type, G
                     }
                 }
 
-                assert(0);
+                STATE(error) = GL_INVALID_OPERATION;
+                return;
 
                 break;
         }
 
-        if (level >= tex->mipmap_levels)
+        if (level < 0)
         {
-            assert(0);
+            STATE(error) = GL_INVALID_VALUE;
+            return;
+        }
+
+        // A texture may legally be attached before it has storage allocated; that should
+        // make the FBO incomplete, not raise GL_INVALID_VALUE.
+        if (tex->mipmap_levels != 0 && level >= (GLint)tex->mipmap_levels)
+        {
+            STATE(error) = GL_INVALID_VALUE;
+            return;
         }
 
         if (level > 0)
@@ -492,7 +534,7 @@ void framebufferTexture(GLMContext ctx, GLenum target, GLenum attachment_type, G
                 case GL_TEXTURE_RECTANGLE:
                 case GL_TEXTURE_2D_MULTISAMPLE:
                 case GL_TEXTURE_2D_MULTISAMPLE_ARRAY:
-                    assert(0);
+                    STATE(error) = GL_INVALID_VALUE;
                     return;
 
                 // if textarget is GL_TEXTURE_3D, then level must be greater than or equal to zero and less than or equal to $log_2$ of the value of GL_MAX_3D_TEXTURE_SIZE.
@@ -826,6 +868,8 @@ void mglGetNamedFramebufferAttachmentParameteriv(GLMContext ctx, GLuint framebuf
 
 void mglBlitFramebuffer(GLMContext ctx, GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter)
 {
+    fprintf(stderr, "MGL: glBlitFramebuffer src(%d,%d)-(%d,%d) dst(%d,%d)-(%d,%d) mask=0x%x\n",
+            srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask);
     ctx->mtl_funcs.mtlBlitFramebuffer(ctx, srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter);
 }
 
@@ -837,8 +881,57 @@ void mglRenderbufferStorageMultisample(GLMContext ctx, GLenum target, GLsizei sa
 
 void mglFramebufferParameteri(GLMContext ctx, GLenum target, GLenum pname, GLint param)
 {
-    // Unimplemented function
-    assert(0);
+    Framebuffer *fbo;
+    
+    // Get the appropriate framebuffer based on target
+    switch(target) {
+        case GL_FRAMEBUFFER:
+        case GL_DRAW_FRAMEBUFFER:
+            fbo = STATE(framebuffer);
+            break;
+        case GL_READ_FRAMEBUFFER:
+            fbo = STATE(readbuffer);
+            break;
+        default:
+            ERROR_RETURN(GL_INVALID_ENUM);
+    }
+    
+    if (!fbo) {
+        // Default framebuffer - these parameters don't apply
+        ERROR_RETURN(GL_INVALID_OPERATION);
+    }
+    
+    switch(pname) {
+        case GL_FRAMEBUFFER_DEFAULT_WIDTH:
+            if (param < 0) {
+                ERROR_RETURN(GL_INVALID_VALUE);
+            }
+            fbo->default_width = param;
+            break;
+        case GL_FRAMEBUFFER_DEFAULT_HEIGHT:
+            if (param < 0) {
+                ERROR_RETURN(GL_INVALID_VALUE);
+            }
+            fbo->default_height = param;
+            break;
+        case GL_FRAMEBUFFER_DEFAULT_LAYERS:
+            if (param < 0) {
+                ERROR_RETURN(GL_INVALID_VALUE);
+            }
+            fbo->default_layers = param;
+            break;
+        case GL_FRAMEBUFFER_DEFAULT_SAMPLES:
+            if (param < 0) {
+                ERROR_RETURN(GL_INVALID_VALUE);
+            }
+            fbo->default_samples = param;
+            break;
+        case GL_FRAMEBUFFER_DEFAULT_FIXED_SAMPLE_LOCATIONS:
+            fbo->default_fixed_sample_locations = param ? GL_TRUE : GL_FALSE;
+            break;
+        default:
+            ERROR_RETURN(GL_INVALID_ENUM);
+    }
 }
 
 void mglGetFramebufferParameteriv(GLMContext ctx, GLenum target, GLenum pname, GLint *params)
