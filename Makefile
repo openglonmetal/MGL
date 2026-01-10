@@ -28,8 +28,9 @@ CFLAGS += -Wall #-Wunused-parameter #-Wextra
 CFLAGS += -gfull
 CFLAGS += -O2
 #CFLAGS += -00
-CFLAGS += -fsanitize=address
-LIBS += -fsanitize=address
+# Disable AddressSanitizer for production - causes crashes when loaded via dlopen()
+#CFLAGS += -fsanitize=address
+#LIBS += -fsanitize=address
 CFLAGS += -arch $(shell uname -m)
 LIBS += -arch $(shell uname -m)
 
@@ -50,22 +51,62 @@ CFLAGS += -IMGL/include/GL # "glcorearb.h"
 CFLAGS += -IMGL/SPIRV/SPIRV-Cross
 CFLAGS += -DENABLE_OPT=0 -DSPIRV_CROSS_C_API_MSL=1 -DSPIRV_CROSS_C_API_GLSL=1 -DSPIRV_CROSS_C_API_CPP=1 -DSPIRV_CROSS_C_API_REFLECT=1
 
+# GLFW configuration for shared library build
+CFLAGS += -I./external/glfw/include -I./external/glfw/src
+CXXFLAGS += -I./external/glfw/include -I./external/glfw/src
+
+# macOS specific compile definitions for GLFW
+CFLAGS += -D_COCOA -D_GLFW_COCOA
+CXXFLAGS += -D_COCOA -D_GLFW_COCOA
+
+# Add CoreFoundation framework headers for GLFW Objective-C compilation
+GLFW_FRAMEWORKS = -framework Cocoa -framework CoreFoundation -framework CoreGraphics \
+                  -framework IOKit -framework Foundation -framework QuartzCore \
+                  -framework Metal -framework OpenGL
+
+# GLFW sources for shared library build - macOS specific configuration
+GLFW_SRC_DIR = external/glfw/src
+GLFW_C_SOURCES = $(GLFW_SRC_DIR)/context.c \
+                $(GLFW_SRC_DIR)/init.c \
+                $(GLFW_SRC_DIR)/input.c \
+                $(GLFW_SRC_DIR)/monitor.c \
+                $(GLFW_SRC_DIR)/vulkan.c \
+                $(GLFW_SRC_DIR)/window.c \
+                $(GLFW_SRC_DIR)/osmesa_context.c \
+                $(GLFW_SRC_DIR)/egl_context.c \
+                $(GLFW_SRC_DIR)/posix_thread.c \
+                $(GLFW_SRC_DIR)/posix_module.c \
+                $(GLFW_SRC_DIR)/cocoa_time.c \
+                $(GLFW_SRC_DIR)/platform.c
+
+GLFW_M_SOURCES = $(GLFW_SRC_DIR)/cocoa_init.m \
+                $(GLFW_SRC_DIR)/cocoa_joystick.m \
+                $(GLFW_SRC_DIR)/cocoa_monitor.m \
+                $(GLFW_SRC_DIR)/cocoa_window.m \
+                $(GLFW_SRC_DIR)/mgl_context.m
+
+# Simplified GLFW object paths - use a flat structure for easier building
+GLFW_BUILD_DIR = $(build_dir)/glfw
+GLFW_C_OBJS = $(GLFW_C_SOURCES:$(GLFW_SRC_DIR)/%.c=$(GLFW_BUILD_DIR)/%.o)
+GLFW_M_OBJS = $(GLFW_M_SOURCES:$(GLFW_SRC_DIR)/%.m=$(GLFW_BUILD_DIR)/%.o)
+glfw_objs = $(GLFW_C_OBJS) $(GLFW_M_OBJS)
+
 ifneq ($(SDK_ROOT),)
 CFLAGS += -isysroot $(SDK_ROOT)
 endif
 
 LIBS += -L$(spirv_cross_lib_path) -lspirv-cross-core -lspirv-cross-c -lspirv-cross-cpp -lspirv-cross-msl -lspirv-cross-glsl -lspirv-cross-hlsl -lspirv-cross-reflect
-LIBS += -L$(brew_prefix)/lib
-LIBS += -lglslang -lMachineIndependent -lGenericCodeGen -lOGLCompiler -lOSDependent -lglslang-default-resource-limits -lSPIRV
+# Use static libraries from external/glslang instead of homebrew
+LIBS += external/glslang/build/glslang/libglslang.a external/glslang/build/glslang/libMachineIndependent.a external/glslang/build/glslang/libGenericCodeGen.a external/glslang/build/glslang/OSDependent/Unix/libOSDependent.a external/glslang/build/glslang/libglslang-default-resource-limits.a external/glslang/build/SPIRV/libSPIRV.a
 LIBS += -L/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib
 LIBS += -lc++
 
 # add all the SPIRV libs
 SPIRV_LIBS := $(wildcard external/SPIRV-Cross/build/libspirv*.a)
-$(SPIRV_LIBS):                                                                                                                                                                                               	LIBS += $@
+LIBS += $(SPIRV_LIBS)
 
 GLSL_LIBS := $(wildcard external/glslang/build/glslang/lib*.a)
-$(GLSL_LIBS):                                                                                                                                                                                                   LIBS += $@
+LIBS += $(GLSL_LIBS)
 
 # SPIRV-Tools
 LIBS += external/SPIRV-Tools/build/source/lint/libSPIRV-Tools-lint.a
@@ -108,27 +149,30 @@ REPOS = https://github.com/KhronosGroup/OpenGL-Registry.git \
         https://github.com/KhronosGroup/glslang.git \
         https://github.com/lxfontes/ezxml.git
 
+# Simplified index_of function - find position of directory in EXT_DIRS
 define index_of
-$(info DEBUG: Stripped value of $(1) is: $(strip $(1)))  # Print stripped value
-$(foreach dir,$(EXT_DIRS), \
-    $(info DEBUG: Checking if $(strip $(1)) matches $(patsubst ./%,%,$(dir)))  # Debug each directory
-    $(info DEBUG: filter result: $(filter $(strip $(1)),$(patsubst ./%,%,$(dir))))  # Debug filter result
-    $(eval _i:=$(shell echo $$((_i + 1))))  # Increment index
-    $(if $(filter $(strip $(1)),$(patsubst ./%,%,$(dir)) ),$(dir))  # If match, print repository
-))
+$(strip $(1))
 endef
 
 # Function to get the corresponding repository URL for a directory
+# Simplified mapping for common directories
 define get_repo_url
-$(word $(call index_of,$(1)),$(REPOS))
+$(if $(filter $(1),./external/OpenGL-Registry),https://github.com/KhronosGroup/OpenGL-Registry.git, \
+$(if $(filter $(1),./external/SPIRV-Cross),https://github.com/KhronosGroup/SPIRV-Cross.git, \
+$(if $(filter $(1),./external/SPIRV-Headers),https://github.com/KhronosGroup/SPIRV-Headers.git, \
+$(if $(filter $(1),./external/SPIRV-Tools),https://github.com/KhronosGroup/SPIRV-Tools.git, \
+$(if $(filter $(1),./external/glslang),https://github.com/KhronosGroup/glslang.git, \
+https://github.com/lxfontes/ezxml.git)))))
 endef
 
 # Function to check if a directory exists, and if not, clone it
 define check_and_clone
 	@echo "Resolving directory $(1)..."; \
-	INDEX=$(call index_of,$1)); \
+	INDEX=$(call index_of,$(1)); \
+	REPO=$(call get_repo_url,$(1)); \
 	echo "INDEX calculated: $$INDEX"; \
-	echo "REPO resolved: $$REPO"; \	if [ ! -d $(1) ]; then \
+	echo "REPO resolved: $$REPO"; \
+	if [ ! -d $(1) ]; then \
 		echo "Cloning from $$REPO into $(1)..."; \
 		git clone $$REPO $(1) --depth 1; \
 	else \
@@ -147,17 +191,38 @@ deps += $(mgl_arc_objs:.o=.d)
 
 mgl_lib := $(build_dir)/libmgl.dylib
 
+mgl_toolchain_obj := $(build_dir)/MGL/src/mgl_toolchain.o
+mgl_toolchain_lib := $(build_dir)/libmgl_toolchain.a
+
 $(mgl_lib): $(mgl_objs) $(mgl_arc_objs)
 	@mkdir -p $(dir $@)
 	$(CC) -dynamiclib -o $@ $^ $(LIBS)
 	# loading dynamic library requires this
 	ln -fs $(mgl_lib) .
 
+$(mgl_toolchain_lib): $(mgl_toolchain_obj)
+	@mkdir -p $(dir $@)
+	ar rcs $@ $^
+
+# Build GLFW shared library from pre-built static library
+$(build_dir)/libglfw.dylib: external/glfw/build/src/libglfw3.a $(mgl_lib)
+	@echo "Creating GLFW shared library from static library..."
+	@mkdir -p $(dir $@)
+	$(CC) -shared -fPIC -dynamiclib \
+		-Wl,-force_load,$(word 1,$^) \
+		-L$(build_dir) -lmgl \
+		-o $@ \
+		$(GLFW_FRAMEWORKS) \
+		-install_name @rpath/libglfw.dylib
+	@echo "✅ GLFW shared library built: $@"
+	@echo "This enables compatibility with Minecraft mods and Prism Launcher"
+
 
 # specific rules
 
-#lib: $(build_dir)/libglfw.dylib
-lib: $(mgl_lib)
+lib: $(mgl_lib) $(build_dir)/libglfw.dylib
+
+toolchain: $(mgl_toolchain_lib)
 
 test: $(test_exe)
 	$(test_exe)
@@ -179,15 +244,29 @@ $(build_dir)/%.o: %.cpp
 #-std=c++14
 $(build_dir)/arc/%.o: %.m
 	@mkdir -p $(dir $@)
-	clang -fobjc-arc -fmodules -MMD $(CFLAGS) -c $< -o $@
+	clang -fobjc-arc -fmodules -MMD $(CFLAGS) \
+		-framework Cocoa -framework CoreFoundation -framework CoreGraphics \
+		-framework IOKit -framework Foundation -framework QuartzCore \
+		-framework Metal -framework OpenGL \
+		-c $< -o $@
 
 $(build_dir)/%.o: %.m
 	@mkdir -p $(dir $@)
 	clang -fmodules -MMD $(CFLAGS) -c $< -o $@
 
+# GLFW-specific build rules with simplified flat directory structure
+$(GLFW_BUILD_DIR)/%.o: $(GLFW_SRC_DIR)/%.c
+	@mkdir -p $(dir $@)
+	$(CC) -MMD $(CFLAGS) -c $< -o $@
+
+$(GLFW_BUILD_DIR)/%.o: $(GLFW_SRC_DIR)/%.m
+	@mkdir -p $(dir $@)
+	clang -fno-objc-arc -fmodules -MMD $(CFLAGS) $(GLFW_FRAMEWORKS) -c $< -o $@
+
 clean:
 	rm -rf $(build_dir)
 	rm libmgl.dylib
+	rm -f libglfw.dylib
 
 install-pkgdeps: download-pkgdeps compile-pkgdeps
 

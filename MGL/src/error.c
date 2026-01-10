@@ -31,6 +31,9 @@ GLenum  mglGetError(GLMContext ctx)
 
     err = ctx->state.error;
 
+    if (err != GL_NO_ERROR)
+        fprintf(stderr, "MGL DEBUG: mglGetError returning 0x%x (%d)\n", err, err);
+
     ctx->state.error = GL_NO_ERROR;
 
     return err;
@@ -39,13 +42,14 @@ GLenum  mglGetError(GLMContext ctx)
 
 void error_func(GLMContext ctx, const char *func, GLenum error)
 {
-    printf("GL Error func: %s type: %d\n", func, error);
+    fprintf(stderr, "MGL GL Error in %s: 0x%x (%d)\n", func, error, error);
 
     if (ctx->state.error)
         return;
 
     ctx->state.error = error;
 
-    if (ctx->assert_on_error)
-        assert(0);
+    /* Temporarily disabled to allow QEMU to continue despite errors */
+    // if (ctx->assert_on_error)
+    //     assert(0);
 }

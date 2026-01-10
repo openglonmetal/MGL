@@ -362,6 +362,8 @@ typedef struct Shader_t {
     glslang_shader_t *compiled_glsl_shader;
     const char *entry_point;
     char *log;
+    int refcount;
+    GLboolean delete_status;
     struct {
         void *function;
         void *library;
@@ -373,6 +375,9 @@ typedef struct Spirv_t {
     size_t size;
     unsigned int *ir;
     char *msl_str;
+    char *entry_point;
+    void *mtl_function;
+    void *mtl_library;
 } Spirv;
 
 typedef struct SpirvResource_t {
@@ -399,12 +404,14 @@ typedef struct BufferMap_t {
 
 typedef struct BufferMapList_t {
     GLuint      count;
-    BufferMap   buffers[MAX_ATTRIBS];
+    BufferMap   buffers[MAX_MAPPED_BUFFERS];
 } BufferMapList;
 
 typedef struct Program_t {
     GLuint dirty_bits;
     GLuint name;
+    int refcount;
+    GLboolean delete_status;
     Shader *shader_slots[_MAX_SHADER_TYPES];
     glslang_program_t *linked_glsl_program;
     Spirv spirv[_MAX_SHADER_TYPES];
@@ -414,6 +421,20 @@ typedef struct Program_t {
     } local_workgroup_size;
     void *mtl_data;
 } Program;
+
+typedef struct ProgramPipeline_t {
+    GLuint name;
+    GLboolean validated;
+    Program *stage_programs[_MAX_SHADER_TYPES];  // Programs attached to each stage
+} ProgramPipeline;
+
+typedef struct TransformFeedback_t {
+    GLuint name;
+    GLenum target;
+    GLboolean active;
+    GLboolean paused;
+    GLenum primitive_mode;
+} TransformFeedback;
 
 typedef struct Renderbuffer_t {
     GLuint dirty_bits;
@@ -443,6 +464,12 @@ typedef struct Framebuffer_t {
     FBOAttachment color_attachments[MAX_COLOR_ATTACHMENTS];
     FBOAttachment depth;
     FBOAttachment stencil;
+    // Default framebuffer parameters (for FBOs with no attachments)
+    GLint default_width;
+    GLint default_height;
+    GLint default_layers;
+    GLint default_samples;
+    GLboolean default_fixed_sample_locations;
 } Framebuffer;
 
 typedef struct __GLsync {
@@ -556,12 +583,16 @@ typedef struct {
     HashTable texture_table;
     HashTable shader_table;
     HashTable program_table;
+    HashTable program_pipeline_table;
+    HashTable transform_feedback_table;
     HashTable renderbuffer_table;
     HashTable framebuffer_table;
     HashTable sampler_table;
 
     Shader      *shaders[_MAX_SHADER_TYPES];
     Program     *program;
+    ProgramPipeline *program_pipeline;
+    TransformFeedback *transform_feedback;
 
     BufferBase  buffer_base[_MAX_BUFFER_TYPES];
 
@@ -620,6 +651,8 @@ struct GLMMetalFuncs {
 
     void (*mtlGenerateMipmaps)(GLMContext glm_ctx, Texture *tex);
     void (*mtlTexSubImage)(GLMContext glm_ctx, Texture *tex, Buffer *buf, size_t src_offset, size_t src_pitch, size_t src_image_size, size_t src_size, GLuint slice, GLuint level, size_t width, size_t height, size_t depth, size_t xoffset, size_t yoffset, size_t zoffset);
+    void (*mtlCopyTexSubImage)(GLMContext glm_ctx, Texture *tex, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height);
+    void (*mtlCopyImageSubData)(GLMContext glm_ctx, Texture *srcTex, GLint srcLevel, GLint srcX, GLint srcY, GLint srcZ, Texture *dstTex, GLint dstLevel, GLint dstX, GLint dstY, GLint dstZ, GLsizei width, GLsizei height, GLsizei depth);
 
     // draw arrays / elements
     void (*mtlDrawArrays)(GLMContext ctx, GLenum mode, GLint first, GLsizei count);
@@ -679,6 +712,8 @@ typedef struct GLMContextRec_t {
 GLMContext createGLMContext(GLenum format, GLenum type,
                             GLenum depth_format, GLenum depth_type,
                             GLenum stencil_format, GLenum stencil_type);
+
+void mgl_lazy_init(void);
 
 void MGLsetCurrentContext(GLMContext ctx);
 

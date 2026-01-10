@@ -23,6 +23,7 @@
 
 
 #define MAX_ATTRIBS 16
+#define MAX_MAPPED_BUFFERS 32
 #define MAX_COLOR_ATTACHMENTS 8
 #define TEXTURE_UNITS 128
 #define TEX_OBJ_RES_NAME    0xcafebeef  // for tex objects.. renderbuffers

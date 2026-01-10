@@ -13,8 +13,9 @@
 #include "glm_context.h"
 
 extern GLMContext _ctx;
+extern void mgl_lazy_init(void);
 
-#define GET_CONTEXT()   _ctx
+#define GET_CONTEXT()   (mgl_lazy_init(), _ctx)
 
 void glCullFace(GLenum mode)
 {
@@ -2224,7 +2225,6 @@ void glTexSubImage1D(GLenum target, GLint level, GLint xoffset, GLsizei width, G
 void glTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *pixels)
 {
     GLMContext ctx = GET_CONTEXT();
-
     ctx->dispatch.tex_sub_image2D(ctx, target, level, xoffset, yoffset, width, height, format, type, pixels);
 }
 

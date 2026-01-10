@@ -49,6 +49,17 @@ bool bindVertexBuffer(GLMContext ctx, GLuint vaobj, GLuint bindingindex, GLuint 
     buf = findBuffer(ctx, buffer);
     ERROR_CHECK_RETURN_VALUE(buf, GL_INVALID_VALUE, false);
 
+    // AGX Driver Compatibility: Store buffer binding information
+    // Find all attributes that use this binding index and update their buffer pointer and stride
+    for (int i = 0; i < ctx->state.max_vertex_attribs; i++)
+    {
+        if (vao->attrib[i].buffer_bindingindex == bindingindex)
+        {
+            vao->attrib[i].buffer = buf;
+            vao->attrib[i].stride = stride;
+        }
+    }
+
     vao->dirty_bits |= DIRTY_VAO_BUFFER_BASE;
 
     return true;

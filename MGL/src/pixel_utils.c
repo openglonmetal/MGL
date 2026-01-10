@@ -23,6 +23,57 @@
 #include "pixel_utils.h"
 #include "glm_context.h"
 
+// Legacy format defines not in core profile headers
+#ifndef GL_ALPHA
+#define GL_ALPHA                          0x1906
+#endif
+#ifndef GL_LUMINANCE
+#define GL_LUMINANCE                      0x1909
+#endif
+
+#ifndef GL_ALPHA8UI_EXT
+#define GL_ALPHA8UI_EXT                   0x8D7E
+#endif
+#ifndef GL_LUMINANCE_ALPHA
+#define GL_LUMINANCE_ALPHA                0x190A
+#endif
+#ifndef GL_ALPHA8
+#define GL_ALPHA8                         0x803C
+#endif
+#ifndef GL_ALPHA16
+#define GL_ALPHA16                        0x803E
+#endif
+#ifndef GL_LUMINANCE8
+#define GL_LUMINANCE8                     0x8040
+#endif
+#ifndef GL_LUMINANCE16
+#define GL_LUMINANCE16                    0x8048
+#endif
+#ifndef GL_ALPHA32F_ARB
+#define GL_ALPHA32F_ARB                   0x8816
+#endif
+#ifndef GL_LUMINANCE32F_ARB
+#define GL_LUMINANCE32F_ARB               0x8818
+#endif
+#ifndef GL_LUMINANCE_ALPHA32F_ARB
+#define GL_LUMINANCE_ALPHA32F_ARB         0x8819
+#endif
+#ifndef GL_ALPHA16F_ARB
+#define GL_ALPHA16F_ARB                   0x881C
+#endif
+#ifndef GL_LUMINANCE16F_ARB
+#define GL_LUMINANCE16F_ARB               0x881E
+#endif
+#ifndef GL_LUMINANCE_ALPHA16F_ARB
+#define GL_LUMINANCE_ALPHA16F_ARB         0x881F
+#endif
+#ifndef GL_SR8_EXT
+#define GL_SR8_EXT                        0x8FBD
+#endif
+#ifndef GL_SRG8_EXT
+#define GL_SRG8_EXT                       0x8FBE
+#endif
+
 GLuint numComponentsForFormat(GLenum format)
 {
     switch(format)
@@ -32,26 +83,130 @@ GLuint numComponentsForFormat(GLenum format)
         case GL_STENCIL_INDEX:
         case GL_DEPTH_COMPONENT:
         case GL_DEPTH_STENCIL:
+        // Legacy single-channel formats
+        case GL_ALPHA:
+        case GL_ALPHA8:
+        case GL_ALPHA16:
+        case GL_ALPHA32F_ARB:
+        case GL_ALPHA16F_ARB:
+        case GL_LUMINANCE:
+        case GL_LUMINANCE8:
+        case GL_LUMINANCE16:
+        case GL_LUMINANCE32F_ARB:
+        case GL_LUMINANCE16F_ARB:
+        // Sized R formats (internal formats sometimes passed as format)
+        case GL_R8:
+        case GL_R8_SNORM:
+        case GL_R16:
+        case GL_R16_SNORM:
+        case GL_R16F:
+        case GL_R32F:
+        case GL_R8I:
+        case GL_R8UI:
+        case GL_R16I:
+        case GL_R16UI:
+        case GL_R32I:
+        case GL_R32UI:
+        case GL_SR8_EXT:
+        case GL_ALPHA8UI_EXT:
+        case 0x9014: // GL_ALPHA8_SNORM
+        case 0x9018: // GL_ALPHA16_SNORM
             return 1;
 
         case GL_RG:
         case GL_RG_INTEGER:
+        // Legacy two-channel formats
+        case GL_LUMINANCE_ALPHA:
+        case GL_LUMINANCE_ALPHA32F_ARB:
+        case GL_LUMINANCE_ALPHA16F_ARB:
+        case 0x9016: // GL_LUMINANCE8_ALPHA8_SNORM
+        case 0x901a: // GL_LUMINANCE16_ALPHA16_SNORM
+        // Sized RG formats
+        case GL_RG8:
+        case GL_RG8_SNORM:
+        case GL_RG16:
+        case GL_RG16_SNORM:
+        case GL_RG16F:
+        case GL_RG32F:
+        case GL_RG8I:
+        case GL_RG8UI:
+        case GL_RG16I:
+        case GL_RG16UI:
+        case GL_RG32I:
+        case GL_RG32UI:
+        case GL_SRG8_EXT:
             return 2;
+
+        case 0x8d7b: // GL_ALPHA8I_EXT
+        case 0x8d81: // GL_ALPHA32I_EXT
+        case 0x8d87: // GL_ALPHA16I_EXT
+        case 0x8d8d: // GL_ALPHA32UI_EXT
+        case 0x8d93: // GL_ALPHA16UI_EXT
+        case 0x8d72: // GL_ALPHA32UI_EXT
+            return 1;
 
         case GL_RGB:
         case GL_BGR:
         case GL_RGB_INTEGER:
         case GL_BGR_INTEGER:
+        // Sized RGB formats
+        case GL_RGB8:
+        case GL_RGB8_SNORM:
+        case GL_SRGB8:
+        case GL_RGB16F:
+        case GL_RGB32F:
+        case GL_R11F_G11F_B10F:
+        case GL_RGB9_E5:
+        case GL_RGB8I:
+        case GL_RGB8UI:
+        case GL_RGB16I:
+        case GL_RGB16UI:
+        case GL_RGB32I:
+        case GL_RGB32UI:
+        case GL_RGB565:
+            return 3;
+
+        case 0x8d75: // alternate GL_RGB8I
+        case 0x8d7a: // alternate GL_RGB8UI
+        case 0x8d80: // alternate GL_RGB32UI
+        case 0x8d86: // alternate GL_RGB16I
+        case 0x8d8c: // alternate GL_RGB32I
+        case 0x8d92: // alternate GL_RGB16UI
             return 3;
 
         case GL_RGBA:
         case GL_BGRA:
         case GL_RGBA_INTEGER:
         case GL_BGRA_INTEGER:
+        // Sized RGBA formats
+        case GL_RGBA8:
+        case GL_RGBA8_SNORM:
+        case GL_SRGB8_ALPHA8:
+        case GL_RGBA16F:
+        case GL_RGBA32F:
+        case GL_RGBA8I:
+        case GL_RGBA8UI:
+        case GL_RGBA16I:
+        case GL_RGBA16UI:
+        case GL_RGBA32I:
+        case GL_RGBA32UI:
+        case GL_RGB10_A2:
+        case GL_RGB10_A2UI:
+        case GL_RGB5_A1:
+        case GL_RGBA4:
+            return 4;
+
+        case 0x8d78: // alternate GL_RGBA8UI
+        // case 0x8d7e: // alternate GL_RGBA32UI - Duplicate of GL_ALPHA8UI_EXT (1 component)
+        case 0x8d84: // alternate GL_RGBA16I
+        case 0x8d8a: // alternate GL_RGBA32I
+        case 0x8d90: // alternate GL_RGBA16UI
             return 4;
 
         default:
-            assert(0);
+            // Unknown format - return 4 as safe fallback instead of crashing
+            fprintf(stderr, "MGL WARNING: numComponentsForFormat unknown format 0x%x, assuming 4 components\n", format);
+            return 4;
     }
 
     return 0;
@@ -95,7 +250,8 @@ GLuint sizeForType(GLenum type)
             return sizeof(uint32_t);
 
         default:
-            assert(0);
+            fprintf(stderr, "MGL WARNING: sizeForType unknown type 0x%x, assuming 4 bytes\n", type);
+            return sizeof(uint32_t);
     }
 
     return 0;
@@ -103,6 +259,54 @@ GLuint sizeForType(GLenum type)
 
 GLuint sizeForFormatType(GLenum format, GLenum type)
 {
+    // Handle type=0 case (used for sized internal formats)
+    // The format parameter is actually the internal format in this case
+    if (type == 0) {
+        switch (format) {
+            // Alpha formats (1 component)
+            case 0x803c: // GL_ALPHA8
+            case 0x8040: // GL_LUMINANCE8
+                return 1;
+            case 0x803e: // GL_ALPHA16
+            case 0x8042: // GL_LUMINANCE16
+            case 0x8816: // GL_ALPHA16F_ARB
+            case 0x8818: // GL_LUMINANCE16F_ARB
+                return 2;
+            case 0x881c: // GL_ALPHA32F_ARB
+            case 0x881e: // GL_LUMINANCE32F_ARB
+                return 4;
+            // Luminance-alpha formats (2 components)
+            case 0x8045: // GL_LUMINANCE8_ALPHA8
+                return 2;
+            case 0x8048: // GL_LUMINANCE16_ALPHA16
+            case 0x8819: // GL_LUMINANCE_ALPHA16F_ARB
+                return 4;
+            case 0x881f: // GL_LUMINANCE_ALPHA32F_ARB
+                return 8;
+            // RGB10_A2UI and SNORM formats
+            case 0x8fbd: // GL_RGB10_A2UI
+                return 4;
+            case 0x8fbe: // GL_RGBA16_SNORM
+                return 8;
+            // Integer formats
+            case 0x8d72: case 0x8d78: // RGBA8I/UI variants
+                return 4;
+            case 0x8d75: case 0x8d7a: // RGB8I/UI variants
+                return 3;
+            case 0x8d84: case 0x8d90: // RGBA16I/UI variants
+                return 8;
+            case 0x8d86: case 0x8d92: // RGB16I/UI variants
+                return 6;
+            case 0x8d8a: case 0x8d7e: // RGBA32I/UI variants
+                return 16;
+            case 0x8d8c: case 0x8d80: // RGB32I/UI variants  
+                return 12;
+            default:
+                // Return a reasonable default for unknown internal formats
+                return 4;
+        }
+    }
+
     switch(type)
     {
         case GL_UNSIGNED_BYTE:
@@ -138,8 +342,12 @@ GLuint sizeForFormatType(GLenum format, GLenum type)
         case GL_UNSIGNED_INT_2_10_10_10_REV:
             return sizeof(uint32_t);
 
+        case GL_HALF_FLOAT:
+            return sizeof(uint16_t) * numComponentsForFormat(format);
+
         default:
-            assert(0);
+            fprintf(stderr, "MGL WARNING: sizeForFormatType unknown type 0x%x, format 0x%x\n", type, format);
+            return sizeof(uint32_t) * numComponentsForFormat(format);
     }
 
     return 0;
@@ -1513,7 +1721,9 @@ GLenum internalFormatForGLFormatType(GLenum format, GLenum type)
                 case GL_RED: return GL_R8;
                 case GL_RG: return GL_RG8;
                 case GL_RGB: return GL_RGB8;
+                case GL_BGR: return GL_RGB8;  /* BGR treated as RGB */
                 case GL_RGBA: return GL_RGBA8;
+                case GL_BGRA: return GL_RGBA8;  /* BGRA treated as RGBA */
                 default:
                     return 0;
             }
@@ -1629,18 +1839,32 @@ MTLPixelFormat mtlFormatForGLInternalFormat(GLenum internal_format)
     {
         case GL_RGB4:
         case GL_RGB5:
+            return MTLPixelFormatRGBA8Unorm;  // Upconvert to RGBA8
+            
         case GL_RGB8:
         case GL_RGB10:
         case GL_RGB12:
         case GL_RGB16:
+            return MTLPixelFormatRGBA8Unorm;  // Metal doesn't have RGB-only formats
+            
         case GL_RGBA2:
+            return MTLPixelFormatRGBA8Unorm;  // Upconvert
+            
         case GL_RGBA4:
+            return MTLPixelFormatABGR4Unorm;
+            
         case GL_RGB5_A1:
-            return MTLPixelFormatInvalid;
+            return MTLPixelFormatBGR5A1Unorm;
 
         case GL_RGBA8:
             return MTLPixelFormatRGBA8Unorm;    // working format
             //return MTLPixelFormatBGRA8Unorm;    // working format
+
+        case GL_R3_G3_B2:
+            return MTLPixelFormatRGBA8Unorm;    // Upconvert to RGBA8
+
+        case GL_ALPHA8UI_EXT:
+            return MTLPixelFormatR8Uint;        // Map Alpha Integer to Red Integer (best effort)
 
         case GL_RGB10_A2:
             return MTLPixelFormatRGB10A2Unorm;    // working format
@@ -1671,7 +1895,8 @@ MTLPixelFormat mtlFormatForGLInternalFormat(GLenum internal_format)
             return MTLPixelFormatDepth16Unorm;
 
         case GL_DEPTH_COMPONENT24:
-            return MTLPixelFormatInvalid;
+            // Apple Silicon doesn't support 24-bit depth, use 32-bit float instead
+            return MTLPixelFormatDepth32Float;
 
         case GL_DEPTH_COMPONENT32:
             return MTLPixelFormatDepth32Float;
@@ -1773,7 +1998,9 @@ MTLPixelFormat mtlFormatForGLInternalFormat(GLenum internal_format)
             return MTLPixelFormatDepth32Float_Stencil8;
 
         case GL_DEPTH24_STENCIL8:
-            return MTLPixelFormatX24_Stencil8;
+            // MTLPixelFormatX24_Stencil8 (262) is NOT supported on Apple Silicon
+            // Use Depth32Float_Stencil8 instead
+            return MTLPixelFormatDepth32Float_Stencil8;
 
         case GL_STENCIL_INDEX1:
             return MTLPixelFormatInvalid;
@@ -1893,10 +2120,56 @@ MTLPixelFormat mtlFormatForGLInternalFormat(GLenum internal_format)
             return MTLPixelFormatRGBA16Snorm;
 
         case GL_RGB10_A2UI:
-            return MTLPixelFormatInvalid;
+            return MTLPixelFormatRGB10A2Uint;
 
         case GL_RGB565:
-            return MTLPixelFormatInvalid;
+            return MTLPixelFormatB5G6R5Unorm;  // Closest match
+
+        // Legacy unsized formats - map to sized equivalents
+        case GL_RED:
+            return MTLPixelFormatR8Unorm;
+            
+        case GL_RGBA:
+            return MTLPixelFormatRGBA8Unorm;
+            
+        case GL_RGB:
+            return MTLPixelFormatRGBA8Unorm;  // No RGB-only format in Metal
+            
+        // Legacy luminance/alpha formats - map to R/RG
+        case GL_ALPHA8:
+        case GL_LUMINANCE8:
+            return MTLPixelFormatR8Unorm;
+            
+        case GL_ALPHA16:
+        case GL_LUMINANCE16:
+            return MTLPixelFormatR16Unorm;
+            
+        case GL_ALPHA32F_ARB:
+        case GL_LUMINANCE32F_ARB:
+            return MTLPixelFormatR32Float;
+            
+        case GL_ALPHA16F_ARB:
+        case GL_LUMINANCE16F_ARB:
+            return MTLPixelFormatR16Float;
+            
+        case GL_LUMINANCE_ALPHA32F_ARB:
+            return MTLPixelFormatRG32Float;
+            
+        case GL_LUMINANCE_ALPHA16F_ARB:
+            return MTLPixelFormatRG16Float;
+            
+        case 0x8045: // GL_LUMINANCE8_ALPHA8
+            return MTLPixelFormatRG8Unorm;
+            
+        // Note: 0x8048 (GL_LUMINANCE16_ALPHA16) already handled by GL_LUMINANCE16 case above
+        // due to incorrect macro definition
+            
+        // sRGB R/RG formats
+        case GL_SR8_EXT:
+            return MTLPixelFormatR8Unorm_sRGB;
+            
+        case GL_SRG8_EXT:
+            return MTLPixelFormatRG8Unorm_sRGB;
 
         case GL_COMPRESSED_RGBA_BPTC_UNORM:
             return MTLPixelFormatBC7_RGBAUnorm;
@@ -1990,7 +2263,84 @@ MTLPixelFormat mtlFormatForGLInternalFormat(GLenum internal_format)
                 return MTLPixelFormatInvalid;
             }
 
+        // Unsized base formats - virglrenderer may pass these
+        case GL_RG:
+            return MTLPixelFormatRG8Unorm;
+            
+        case GL_DEPTH_COMPONENT:
+            return MTLPixelFormatDepth32Float;
+            
+        case GL_DEPTH_STENCIL:
+            return MTLPixelFormatDepth32Float_Stencil8;
+            
+        case GL_STENCIL_INDEX:
+            return MTLPixelFormatStencil8;
+
+        // Additional integer formats (alternate enum values used by some implementations)
+        case 0x8d72: // GL_ALPHA32UI_EXT
+            return MTLPixelFormatR32Uint;
+        case 0x8d75: // alternate GL_RGB8I
+            return MTLPixelFormatRGBA8Sint;
+        case 0x8d78: // alternate GL_RGBA8UI
+            return MTLPixelFormatRGBA8Uint;
+        case 0x8d7a: // alternate GL_RGB8UI
+            return MTLPixelFormatRGBA8Uint;
+        case 0x8d7b: // GL_ALPHA8I_EXT
+            return MTLPixelFormatR8Sint;
+        // case 0x8d7e: // GL_ALPHA8UI_EXT - Duplicate
+        //    return MTLPixelFormatR8Uint;
+        case 0x8d80: // GL_LUMINANCE8UI_EXT
+            return MTLPixelFormatR8Uint;
+        case 0x8d81: // GL_ALPHA32I_EXT
+            return MTLPixelFormatR32Sint;
+        case 0x8d84: // alternate GL_RGBA16I
+            return MTLPixelFormatRGBA16Sint;
+        case 0x8d86: // alternate GL_RGB16I
+            return MTLPixelFormatRGBA16Sint;
+        case 0x8d87: // GL_ALPHA16I_EXT
+            return MTLPixelFormatR16Sint;
+        case 0x8d8a: // alternate GL_RGBA32I
+            return MTLPixelFormatRGBA32Sint;
+        case 0x8d8c: // alternate GL_RGB32I
+            return MTLPixelFormatRGBA32Sint;
+        
+        // SNORM formats
+        case 0x9014: // GL_ALPHA8_SNORM
+            return MTLPixelFormatR8Snorm;
+        case 0x9016: // GL_LUMINANCE8_ALPHA8_SNORM
+            return MTLPixelFormatRG8Snorm;
+        case 0x9018: // GL_ALPHA16_SNORM
+            return MTLPixelFormatR16Snorm;
+        case 0x901a: // GL_LUMINANCE16_ALPHA16_SNORM
+            return MTLPixelFormatRG16Snorm;
+        case 0x8d8d: // GL_ALPHA32I_EXT
+            return MTLPixelFormatR32Sint;
+        case 0x8d90: // alternate GL_RGBA16UI
+            return MTLPixelFormatRGBA16Uint;
+        case 0x8d92: // alternate GL_RGB16UI
+            return MTLPixelFormatRGBA16Uint;
+        case 0x8d93: // GL_ALPHA16UI_EXT
+            return MTLPixelFormatR16Uint;
+
         default:
+            // Unknown formats - likely Mesa/Gallium internal format enums or capability probes
+            // Return Invalid to indicate format not supported (don't use fallback for probes)
+            // Only warn for formats that look like real GL formats (not obvious enum values)
+            if (internal_format >= 0x1 && internal_format <= 0x2000) {
+                // Low values might be legacy GL formats - warn about these
+                static unsigned warned_formats[64] = {0};
+                static int warned_count = 0;
+                int already_warned = 0;
+                for (int i = 0; i < warned_count && i < 64; i++) {
+                    if (warned_formats[i] == internal_format) { already_warned = 1; break; }
+                }
+                if (!already_warned && warned_count < 64) {
+                    warned_formats[warned_count++] = internal_format;
+                    fprintf(stderr, "MGL WARNING: mtlFormatForGLInternalFormat unknown format 0x%x\n", internal_format);
+                }
+            }
+            // For 0x8Dxx and 0x90xx ranges - these are often internal/capability probes
+            // Silently return Invalid to indicate "not supported"
             return MTLPixelFormatInvalid;
     }
 

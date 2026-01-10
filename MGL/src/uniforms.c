@@ -404,7 +404,19 @@ void _name_##Transpose (const _name_ *matrix, _transposed_name_ *result) { \
 #define HANDLE_MATRIX_TRANSPOSE(_type_, _src_type_, _dst_type_, _transpose_func_) \
     if (transpose) { \
         const _src_type_ *src = (const _src_type_ *)value; \
-        _dst_type_ *dst = (_dst_type_ *)malloc(count * sizeof(_dst_type_)); \
+        /* CRITICAL SECURITY FIX: Prevent integer overflow in uniform matrix allocation */ \
+        if (count > SIZE_MAX / sizeof(_dst_type_)) { \
+            fprintf(stderr, "MGL SECURITY ERROR: Uniform matrix count %d would cause allocation overflow\n", count); \
+            STATE(error) = GL_OUT_OF_MEMORY; \
+            return; \
+        } \
+        size_t alloc_size = count * sizeof(_dst_type_); \
+        _dst_type_ *dst = (_dst_type_ *)malloc(alloc_size); \
+        if (!dst) { \
+            fprintf(stderr, "MGL SECURITY ERROR: Failed to allocate %zu bytes for uniform matrix\n", alloc_size); \
+            STATE(error) = GL_OUT_OF_MEMORY; \
+            return; \
+        } \
         for (int i = 0; i < count; i++) { \
             _transpose_func_(&src[i], &dst[i]); \
         } \

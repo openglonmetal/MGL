@@ -46,16 +46,23 @@ void mglDisable(GLMContext ctx, GLenum cap)
         case GL_SAMPLE_COVERAGE: DISABLE_CAP(sample_coverage);
         case GL_RASTERIZER_DISCARD: DISABLE_CAP(rasterizer_discard);
         case GL_FRAMEBUFFER_SRGB: DISABLE_CAP(framebuffer_srgb);
-        //case GL_PRIMITIVE_RESTART: DISABLE_CAP(primitive_restart);
+        case GL_PRIMITIVE_RESTART: DISABLE_CAP(primitive_restart);
         case GL_DEPTH_CLAMP: DISABLE_CAP(depth_clamp);
         case GL_TEXTURE_CUBE_MAP_SEAMLESS: DISABLE_CAP(texture_cube_map_seamless);
         case GL_SAMPLE_MASK: DISABLE_CAP(sample_mask);
         case GL_SAMPLE_SHADING: DISABLE_CAP(sample_shading);
-        //case GL_PRIMITIVE_RESTART_FIXED_INDEX: DISABLE_CAP(primitive_restart_fixed_index);
+        case GL_PRIMITIVE_RESTART_FIXED_INDEX: DISABLE_CAP(primitive_restart_fixed_index);
         case GL_DEBUG_OUTPUT_SYNCHRONOUS: DISABLE_CAP(debug_output_synchronous);
         case GL_DEBUG_OUTPUT: DISABLE_CAP(debug_output);
+        case GL_PROGRAM_POINT_SIZE: DISABLE_CAP(program_point_size);
+        case GL_TEXTURE_2D:
+        case GL_TEXTURE_3D:
+        case GL_TEXTURE_CUBE_MAP:
+            // Legacy texture enable/disable - no-op in core profile
+            break;
         default:
-            ERROR_RETURN(GL_INVALID_ENUM);
+            fprintf(stderr, "MGL WARNING: mglDisable unsupported cap 0x%x\n", cap);
+            // Don't error - just ignore unsupported caps
             break;
     }
 
@@ -85,16 +92,23 @@ void mglEnable(GLMContext ctx, GLenum cap)
         case GL_SAMPLE_COVERAGE: ENABLE_CAP(sample_coverage);
         case GL_RASTERIZER_DISCARD: ENABLE_CAP(rasterizer_discard);
         case GL_FRAMEBUFFER_SRGB: ENABLE_CAP(framebuffer_srgb);
-         //case GL_PRIMITIVE_RESTART: ENABLE_CAP(primitive_restart);
+        case GL_PRIMITIVE_RESTART: ENABLE_CAP(primitive_restart);
         case GL_DEPTH_CLAMP: ENABLE_CAP(depth_clamp);
         case GL_TEXTURE_CUBE_MAP_SEAMLESS: ENABLE_CAP(texture_cube_map_seamless);
         case GL_SAMPLE_MASK: ENABLE_CAP(sample_mask);
         case GL_SAMPLE_SHADING: ENABLE_CAP(sample_shading);
-        //case GL_PRIMITIVE_RESTART_FIXED_INDEX: ENABLE_CAP(primitive_restart_fixed_index);
+        case GL_PRIMITIVE_RESTART_FIXED_INDEX: ENABLE_CAP(primitive_restart_fixed_index);
         case GL_DEBUG_OUTPUT_SYNCHRONOUS: ENABLE_CAP(debug_output_synchronous);
         case GL_DEBUG_OUTPUT: ENABLE_CAP(debug_output);
+        case GL_TEXTURE_2D:
+        case GL_TEXTURE_3D:
+        case GL_TEXTURE_CUBE_MAP:
+            // Legacy texture enable/disable - no-op in core profile
+            // virglrenderer may call these for compatibility
+            break;
         default:
-            ERROR_RETURN(GL_INVALID_ENUM);
+            fprintf(stderr, "MGL WARNING: mglEnable unsupported cap 0x%x\n", cap);
+            // Don't error - just ignore unsupported caps
             break;
     }
 

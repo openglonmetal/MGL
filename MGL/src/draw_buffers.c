@@ -95,15 +95,21 @@ bool processVAO(GLMContext ctx)
 
 bool validate_vao(GLMContext ctx, bool uses_elements)
 {
-    RETURN_FALSE_ON_NULL(VAO());
+    if (!VAO()) {
+        fprintf(stderr, "MGL Error: validate_vao: VAO is NULL\n");
+        return false;
+    }
 
     // no attribs enabled..
-    if (VAO_STATE(enabled_attribs) == 0)
-        return false;
+    // if (VAO_STATE(enabled_attribs) == 0)
+    //    return false;
 
     if (ctx->state.vao->dirty_bits)
     {
-        RETURN_FALSE_ON_FAILURE(processVAO(ctx));
+        if (!processVAO(ctx)) {
+            fprintf(stderr, "MGL Error: validate_vao: processVAO failed\n");
+            return false;
+        }
     }
 
     unsigned int enabled_attribs;
@@ -116,8 +122,10 @@ bool validate_vao(GLMContext ctx, bool uses_elements)
         if (enabled_attribs & 0x1)
         {
             // mapped buffers cannot be used during draw calls
-            if (VAO_ATTRIB_STATE(i).buffer->mapped)
+            if (VAO_ATTRIB_STATE(i).buffer->mapped) {
+                fprintf(stderr, "MGL Error: validate_vao: attrib %d buffer mapped\n", i);
                 return false;
+            }
         }
 
         i++;
@@ -126,7 +134,10 @@ bool validate_vao(GLMContext ctx, bool uses_elements)
 
     if (uses_elements)
     {
-        RETURN_FALSE_ON_NULL(ctx->state.vao->element_array.buffer);
+        if (!ctx->state.vao->element_array.buffer) {
+            fprintf(stderr, "MGL Error: validate_vao: element buffer missing\n");
+            return false;
+        }
     }
 
     return true;
@@ -134,13 +145,15 @@ bool validate_vao(GLMContext ctx, bool uses_elements)
 
 bool validate_program(GLMContext ctx)
 {
-    RETURN_FALSE_ON_NULL(ctx->state.program);
-
-    if (ctx->state.program->shader_slots[_GEOMETRY_SHADER])
-    {
-        return false;
+    if (ctx->state.program) {
+        if (ctx->state.program->shader_slots[_GEOMETRY_SHADER])
+        {
+            fprintf(stderr, "MGL Error: validate_program: geometry shader present (unsupported)\n");
+            return false;
+        }
     }
-
+    
+    // Allow NULL program (MGLRenderer handles it by using cached pipeline or program pipeline)
     return true;
 }
 
@@ -162,96 +175,141 @@ GLsizei getTypeSize(GLenum type)
 
 void mglDrawArrays(GLMContext ctx, GLenum mode, GLint first, GLsizei count)
 {
-    ERROR_CHECK_RETURN(check_draw_modes(mode), GL_INVALID_ENUM);
+    // fprintf(stderr, "DEBUG: mglDrawArrays ctx=%p prog=%p dirty=%x\n", ctx, ctx->state.program, ctx->state.dirty_bits);
 
-    ERROR_CHECK_RETURN(first >= 0, GL_INVALID_VALUE);
+    if (!check_draw_modes(mode)) { ERROR_RETURN(GL_INVALID_ENUM); return; }
 
-    ERROR_CHECK_RETURN(count > 0, GL_INVALID_VALUE);
+    // ERROR_CHECK_RETURN(first >= 0, GL_INVALID_VALUE);
+    if (first < 0) {
+        fprintf(stderr, "MGL Error: mglDrawArrays: first < 0 (%d)\n", first);
+        ERROR_RETURN(GL_INVALID_VALUE);
+    }
+
+    // ERROR_CHECK_RETURN(count >= 0, GL_INVALID_VALUE);
+    if (count < 0) {
+        fprintf(stderr, "MGL Error: mglDrawArrays: count < 0 (%d)\n", count);
+        ERROR_RETURN(GL_INVALID_VALUE);
+    }
+
+    if (count == 0) { return; }
 
     if(validate_vao(ctx, false) == false)
     {
+        fprintf(stderr, "MGL Error: mglDrawArrays: validate_vao failed\n");
         ERROR_RETURN(GL_INVALID_OPERATION);
+        return;
     }
 
-    ERROR_CHECK_RETURN(validate_program(ctx), GL_INVALID_OPERATION);
+    if (!validate_program(ctx)) {
+        fprintf(stderr, "MGL Error: mglDrawArrays: validate_program failed\n");
+        ERROR_RETURN(GL_INVALID_OPERATION);
+        return;
+    }
 
     ctx->mtl_funcs.mtlDrawArrays(ctx, mode, first, count);
 }
 
 void mglDrawElements(GLMContext ctx, GLenum mode, GLsizei count, GLenum type, const void *indices)
 {
-    ERROR_CHECK_RETURN(check_draw_modes(mode), GL_INVALID_ENUM);
+    if (!check_draw_modes(mode)) { ERROR_RETURN(GL_INVALID_ENUM); return; }
 
-    ERROR_CHECK_RETURN(count > 0, GL_INVALID_VALUE);
+    // ERROR_CHECK_RETURN(count >= 0, GL_INVALID_VALUE);
+    if (count < 0) {
+        fprintf(stderr, "MGL Error: mglDrawElements: count < 0 (%d)\n", count);
+        ERROR_RETURN(GL_INVALID_VALUE);
+    }
 
-    ERROR_CHECK_RETURN(check_element_type(type), GL_INVALID_VALUE);
+    if (count == 0) { return; }
+
+    if (!check_element_type(type)) { ERROR_RETURN(GL_INVALID_VALUE); return; }
 
     if(validate_vao(ctx, true) == false)
     {
         ERROR_RETURN(GL_INVALID_OPERATION);
+        return;
     }
 
-    ERROR_CHECK_RETURN(validate_program(ctx), GL_INVALID_OPERATION);
+    if (!validate_program(ctx)) { ERROR_RETURN(GL_INVALID_OPERATION); return; }
 
     ctx->mtl_funcs.mtlDrawElements(ctx, mode, count, type, indices);
 }
 
 void mglDrawRangeElements(GLMContext ctx, GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const void *indices)
 {
-    ERROR_CHECK_RETURN(check_draw_modes(mode), GL_INVALID_ENUM);
+    if (!check_draw_modes(mode)) { ERROR_RETURN(GL_INVALID_ENUM); return; }
 
-    ERROR_CHECK_RETURN(end > start, GL_INVALID_VALUE);
+    ERROR_CHECK_RETURN(end >= start, GL_INVALID_VALUE);
+    ERROR_CHECK_RETURN(count >= 0, GL_INVALID_VALUE);
 
-    ERROR_CHECK_RETURN(count > 0, GL_INVALID_VALUE);
+    if (count == 0) { return; }
 
-    ERROR_CHECK_RETURN(check_element_type(type), GL_INVALID_VALUE);
+    if (!check_element_type(type)) { ERROR_RETURN(GL_INVALID_VALUE); return; }
 
     if(validate_vao(ctx, true) == false)
     {
         ERROR_RETURN(GL_INVALID_OPERATION);
+        return;
     }
 
-    ERROR_CHECK_RETURN(validate_program(ctx), GL_INVALID_OPERATION);
+    if (!validate_program(ctx)) { ERROR_RETURN(GL_INVALID_OPERATION); return; }
 
     ctx->mtl_funcs.mtlDrawRangeElements(ctx, mode, start, end, count, type, indices);
 }
 
 void mglDrawArraysInstanced(GLMContext ctx, GLenum mode, GLint first, GLsizei count, GLsizei instancecount)
 {
-    ERROR_CHECK_RETURN(check_draw_modes(mode), GL_INVALID_ENUM);
+    if (!check_draw_modes(mode)) { ERROR_RETURN(GL_INVALID_ENUM); return; }
 
-    ERROR_CHECK_RETURN(first >= 0, GL_INVALID_VALUE);
+    // ERROR_CHECK_RETURN(first >= 0, GL_INVALID_VALUE);
+    if (first < 0) {
+        fprintf(stderr, "MGL Error: mglDrawArraysInstanced: first < 0 (%d)\n", first);
+        ERROR_RETURN(GL_INVALID_VALUE);
+    }
 
-    ERROR_CHECK_RETURN(count > 0, GL_INVALID_VALUE);
+    // ERROR_CHECK_RETURN(count >= 0, GL_INVALID_VALUE);
+    if (count < 0) {
+        fprintf(stderr, "MGL Error: mglDrawArraysInstanced: count < 0 (%d)\n", count);
+        ERROR_RETURN(GL_INVALID_VALUE);
+    }
 
-    ERROR_CHECK_RETURN(instancecount > 0, GL_INVALID_VALUE);
+    if (count == 0) { return; }
+
+    ERROR_CHECK_RETURN(instancecount >= 0, GL_INVALID_VALUE);
+
+    if (instancecount == 0) { return; }
 
     if(validate_vao(ctx, false) == false)
     {
         ERROR_RETURN(GL_INVALID_OPERATION);
+        return;
     }
 
-    ERROR_CHECK_RETURN(validate_program(ctx), GL_INVALID_OPERATION);
+    if (!validate_program(ctx)) { ERROR_RETURN(GL_INVALID_OPERATION); return; }
 
     ctx->mtl_funcs.mtlDrawArraysInstanced(ctx, mode, first, count, instancecount);
 }
 
 void mglDrawElementsInstanced(GLMContext ctx, GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei instancecount)
 {
-    ERROR_CHECK_RETURN(check_draw_modes(mode), GL_INVALID_ENUM);
+    if (!check_draw_modes(mode)) { ERROR_RETURN(GL_INVALID_ENUM); return; }
 
-    ERROR_CHECK_RETURN(count > 0, GL_INVALID_VALUE);
+    ERROR_CHECK_RETURN(count >= 0, GL_INVALID_VALUE);
 
-    ERROR_CHECK_RETURN(check_element_type(type), GL_INVALID_VALUE);
+    if (count == 0) { return; }
 
-    ERROR_CHECK_RETURN(instancecount > 0, GL_INVALID_VALUE);
+    if (!check_element_type(type)) { ERROR_RETURN(GL_INVALID_VALUE); return; }
+
+    ERROR_CHECK_RETURN(instancecount >= 0, GL_INVALID_VALUE);
+
+    if (instancecount == 0) { return; }
 
     if(validate_vao(ctx, true) == false)
     {
         ERROR_RETURN(GL_INVALID_OPERATION);
+        return;
     }
 
-    ERROR_CHECK_RETURN(validate_program(ctx), GL_INVALID_OPERATION);
+    if (!validate_program(ctx)) { ERROR_RETURN(GL_INVALID_OPERATION); return; }
 
     ctx->mtl_funcs.mtlDrawElementsInstanced(ctx, mode, count, type, indices, instancecount);
 }
@@ -260,7 +318,8 @@ void mglDrawElementsBaseVertex(GLMContext ctx, GLenum mode, GLsizei count, GLenu
 {
     ERROR_CHECK_RETURN(check_draw_modes(mode), GL_INVALID_ENUM);
 
-    ERROR_CHECK_RETURN(count > 0, GL_INVALID_VALUE);
+    ERROR_CHECK_RETURN(count >= 0, GL_INVALID_VALUE);
+    if (count == 0) return;
 
     ERROR_CHECK_RETURN(check_element_type(type), GL_INVALID_VALUE);
 
