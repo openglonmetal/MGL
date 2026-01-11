@@ -1,0 +1,21 @@
+cd SPIRV-Tools
+cd build
+make clean
+cd ../..
+cd SPIRV-Cross
+cd build
+make clean
+cd ../..
+cd SPIRV-Headers
+cd build
+make clean
+cd ../..
+cd glslang
+./update_glslang_sources.py
+cd build
+make clean
+cd ../..
+cd glfw
+cd build
+make clean
+cd ../..
