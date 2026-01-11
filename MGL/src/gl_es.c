@@ -203,7 +203,7 @@ void *glMapBufferRange(GLenum target, GLintptr offset, GLsizeiptr length, GLbitf
 {
 	GLMContext ctx = GET_CONTEXT();
 
-	ctx->dispatch.map_buffer_range(ctx, target, offset, length, access);
+	return ctx->dispatch.map_buffer_range(ctx, target, offset, length, access);
 }
 
 void glFlushMappedBufferRange(GLenum target, GLintptr offset, GLsizeiptr length)
@@ -259,7 +259,7 @@ void glEndTransformFeedback()
 {
 	GLMContext ctx = GET_CONTEXT();
 
-	ctx->dispatch.end_transform_feedback(ctx, );
+	ctx->dispatch.end_transform_feedback(ctx);
 }
 
 void glBindBufferRange(GLenum target, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size)
@@ -504,7 +504,7 @@ void glDrawElementsInstanced(GLenum mode, GLsizei count, GLenum type, const void
 {
 	GLMContext ctx = GET_CONTEXT();
 
-	ctx->dispatch.draw_elements_instanced(ctx, mode, count, type, indicesinstancecount);
+	ctx->dispatch.draw_elements_instanced(ctx, mode, count, type, indices, instancecount);
 }
 
 GLsync  glFenceSync(GLenum condition, GLbitfield flags)
@@ -679,14 +679,14 @@ void glPauseTransformFeedback()
 {
 	GLMContext ctx = GET_CONTEXT();
 
-	ctx->dispatch.pause_transform_feedback(ctx, );
+	ctx->dispatch.pause_transform_feedback(ctx);
 }
 
 void glResumeTransformFeedback()
 {
 	GLMContext ctx = GET_CONTEXT();
 
-	ctx->dispatch.resume_transform_feedback(ctx, );
+	ctx->dispatch.resume_transform_feedback(ctx);
 }
 
 void glGetProgramBinary(GLuint program, GLsizei bufSize, GLsizei *length, GLenum *binaryFormat, void *binary)
@@ -700,7 +700,7 @@ void glProgramBinary(GLuint program, GLenum binaryFormat, const void *binary, GL
 {
 	GLMContext ctx = GET_CONTEXT();
 
-	ctx->dispatch.program_binary(ctx, program, binaryFormat, binarylength);
+	ctx->dispatch.program_binary(ctx, program, binaryFormat, binary, length);
 }
 
 void glProgramParameteri(GLuint program, GLenum pname, GLint value)
@@ -1225,7 +1225,7 @@ void glBlendBarrier()
 {
 	GLMContext ctx = GET_CONTEXT();
 
-	ctx->dispatch.blend_barrier(ctx, );
+	ctx->dispatch.blend_barrier(ctx);
 }
 
 void glCopyImageSubData(GLuint srcName, GLenum srcTarget, GLint srcLevel, GLint srcX, GLint srcY, GLint srcZ, GLuint dstName, GLenum dstTarget, GLint dstLevel, GLint dstX, GLint dstY, GLint dstZ, GLsizei srcWidth, GLsizei srcHeight, GLsizei srcDepth)
@@ -1274,7 +1274,7 @@ void glPopDebugGroup()
 {
 	GLMContext ctx = GET_CONTEXT();
 
-	ctx->dispatch.pop_debug_group(ctx, );
+	ctx->dispatch.pop_debug_group(ctx);
 }
 
 void glObjectLabel(GLenum identifier, GLuint name, GLsizei length, const GLchar *label)
@@ -1295,14 +1295,14 @@ void glObjectPtrLabel(const void *ptr, GLsizei length, const GLchar *label)
 {
 	GLMContext ctx = GET_CONTEXT();
 
-	ctx->dispatch.object_ptr_label(ctx, ptrlength, label);
+	ctx->dispatch.object_ptr_label(ctx, ptr, length, label);
 }
 
 void glGetObjectPtrLabel(const void *ptr, GLsizei bufSize, GLsizei *length, GLchar *label)
 {
 	GLMContext ctx = GET_CONTEXT();
 
-	ctx->dispatch.get_object_ptr_label(ctx, ptrbufSize, length, label);
+	ctx->dispatch.get_object_ptr_label(ctx, ptr, bufSize, length, label);
 }
 
 void glGetPointerv(GLenum pname, void **params)
@@ -1372,21 +1372,21 @@ void glDrawElementsBaseVertex(GLenum mode, GLsizei count, GLenum type, const voi
 {
 	GLMContext ctx = GET_CONTEXT();
 
-	ctx->dispatch.draw_elements_base_vertex(ctx, mode, count, type, indicesbasevertex);
+	ctx->dispatch.draw_elements_base_vertex(ctx, mode, count, type, indices, basevertex);
 }
 
 void glDrawRangeElementsBaseVertex(GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const void *indices, GLint basevertex)
 {
 	GLMContext ctx = GET_CONTEXT();
 
-	ctx->dispatch.draw_range_elements_base_vertex(ctx, mode, start, end, count, type, indicesbasevertex);
+	ctx->dispatch.draw_range_elements_base_vertex(ctx, mode, start, end, count, type, indices, basevertex);
 }
 
 void glDrawElementsInstancedBaseVertex(GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei instancecount, GLint basevertex)
 {
 	GLMContext ctx = GET_CONTEXT();
 
-	ctx->dispatch.draw_elements_instanced_base_vertex(ctx, mode, count, type, indicesinstancecount, basevertex);
+	ctx->dispatch.draw_elements_instanced_base_vertex(ctx, mode, count, type, indices, instancecount, basevertex);
 }
 
 void glFramebufferTexture(GLenum target, GLenum attachment, GLuint texture, GLint level)
@@ -1407,7 +1407,7 @@ GLenum  glGetGraphicsResetStatus()
 {
 	GLMContext ctx = GET_CONTEXT();
 
-	return ctx->dispatch.get_graphics_reset_status(ctx, );
+	return ctx->dispatch.get_graphics_reset_status(ctx);
 }
 
 void glReadnPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLsizei bufSize, void *data)
