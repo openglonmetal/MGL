@@ -45,11 +45,19 @@ typedef struct {
     int major, minor;
 } GLVersion;
 
-GLVersion *get_gl_versions()
+GLVersion *get_gl_versions(unsigned es_only)
 {
-    static GLVersion gl_versions[] = {{1,0}, {1,1}, {1,2}, {1,3}, {1,4}, {1,5}, {2,0}, {2,1}, {3,0}, {3,1}, {3,2}, {3,3}, {4,0}, {4,1}, {4,2}, {4,3}, {4,4}, {4,5}, {4,6}, {0,0}};
+    if (es_only)
+    {
+        static GLVersion gl_es_version[] = {{3,0}, {3,1}, {3,2}, {0,0}};
+        
+        return gl_es_version;
+    }
 
+    static GLVersion gl_versions[] = {{1,0}, {1,1}, {1,2}, {1,3}, {1,4}, {1,5}, {2,0}, {2,1}, {3,0}, {3,1}, {3,2}, {3,3}, {4,0}, {4,1}, {4,2}, {4,3}, {4,4}, {4,5}, {4,6}, {0,0}};
+    
     return gl_versions;
+
 }
 
 char *insert_string(char *src, char *insert, size_t insert_at)
@@ -605,7 +613,7 @@ ezxml_t find_command(ezxml_t registry, const char *str)
     return NULL;
 }
 
-ezxml_t find_feature(ezxml_t registry, const char *feature)
+ezxml_t find_feature(ezxml_t registry, const char *feature, unsigned es_only)
 {
     ezxml_t node;
 
@@ -620,9 +628,19 @@ ezxml_t find_feature(ezxml_t registry, const char *feature)
         assert(name);
 
         // search by api and version
-        if (!strcmp(api, "gl") && !strcmp(name, feature))
+        if (es_only == 0)
         {
-            return node;
+            if (!strcmp(api, "gl") && !strcmp(name, feature))
+            {
+                return node;
+            }
+        }
+        else
+        {
+            if (!strcmp(api, "gles2") && !strcmp(name, feature))
+            {
+                return node;
+            }
         }
     }
 
@@ -676,40 +694,54 @@ void print_features(ezxml_t registry, ezxml_t feature, int type, FILE *fout)
     }
 }
 
-void print_required_features(ezxml_t registry, const char *version, int mode, FILE *fout)
+void print_required_features(ezxml_t registry, const char *version, int mode, FILE *fout, unsigned es_only)
 {
     ezxml_t feature;
 
-    feature = find_feature(registry, version);
+    feature = find_feature(registry, version, es_only);
     assert(feature);
 
     print_features(registry, feature, mode, fout);
 }
 
-void print_required(ezxml_t registry, FILE *fp_out)
+void print_required(ezxml_t registry, FILE *fp_out, unsigned es_only)
 {
-    GLVersion *gl_versions = get_gl_versions();
+    GLVersion *gl_versions = get_gl_versions(es_only);
     char version_str[64];
 
     for (int i=0; gl_versions[i].major !=0; i++)
     {
-        sprintf(version_str, "GL_VERSION_%d_%d", gl_versions[i].major, gl_versions[i].minor);
+        if (es_only == 0)
+        {
+            sprintf(version_str, "GL_VERSION_%d_%d", gl_versions[i].major, gl_versions[i].minor);
+        }
+        else
+        {
+            sprintf(version_str, "GL_ES_VERSION_%d_%d", gl_versions[i].major, gl_versions[i].minor);
+        }
 
         fprintf(fp_out, "\n\n#ifndef %s\n", version_str);
         fprintf(fp_out, "#define %s 1\n", version_str);
         fprintf(fp_out, "\n// %s enums\n\n", version_str);
-        print_required_features(registry, string(version_str), kEnum, fp_out);
+        print_required_features(registry, string(version_str), kEnum, fp_out, es_only);
         fprintf(fp_out, "#endif // %s\n\n", version_str);
     }
 
     for (int i=0; gl_versions[i].major !=0; i++)
     {
-        sprintf(version_str, "GL_VERSION_%d_%d", gl_versions[i].major, gl_versions[i].minor);
+        if (es_only == 0)
+        {
+            sprintf(version_str, "GL_VERSION_%d_%d", gl_versions[i].major, gl_versions[i].minor);
+        }
+        else
+        {
+            sprintf(version_str, "GL_ES_VERSION_%d_%d", gl_versions[i].major, gl_versions[i].minor);
+        }
 
         fprintf(fp_out, "\n\n#ifndef %s\n", version_str);
         fprintf(fp_out, "#define %s 1\n", version_str);
         fprintf(fp_out, "\n// %s commands\n\n", version_str);
-        print_required_features(registry, string(version_str), KCommand, fp_out);
+        print_required_features(registry, string(version_str), KCommand, fp_out, es_only);
         fprintf(fp_out, "#endif // %s\n\n", version_str);
     }
 }
@@ -744,18 +776,25 @@ void print_required_feature_commands(ezxml_t registry, ezxml_t feature, int mode
     }
 }
 
-void print_required_commands(ezxml_t registry, int mode, FILE *fout)
+void print_required_commands(ezxml_t registry, int mode, FILE *fout, unsigned es_only)
 {
-    GLVersion *gl_versions = get_gl_versions();
+    GLVersion *gl_versions = get_gl_versions(es_only);
     char version_str[64];
 
     for (int i=0; gl_versions[i].major !=0; i++)
     {
         ezxml_t feature;
 
-        sprintf(version_str, "GL_VERSION_%d_%d", gl_versions[i].major, gl_versions[i].minor);
+        if (es_only == 0)
+        {
+            sprintf(version_str, "GL_VERSION_%d_%d", gl_versions[i].major, gl_versions[i].minor);
+        }
+        else
+        {
+            sprintf(version_str, "GL_ES_VERSION_%d_%d", gl_versions[i].major, gl_versions[i].minor);
+        }
 
-        feature = find_feature(registry, version_str);
+        feature = find_feature(registry, version_str, es_only);
         assert(feature);
 
         print_required_feature_commands(registry, feature, mode, fout);
@@ -767,7 +806,7 @@ void print_about(FILE *fp_out, const char *filename)
     fprintf(fp_out, "//\n// %s\n", filename);
     fprintf(fp_out, "//\n// Autogenerated from gl.xml\n");
     fprintf(fp_out, "//\n// Mike Larson\n");
-    fprintf(fp_out, "//\n// October 2021\n");
+    fprintf(fp_out, "//\n// January 2026\n");
     fprintf(fp_out, "//\n\n");
 }
 
@@ -794,7 +833,7 @@ void print_mgl_core_header(ezxml_t registry)
     }
 
     // print all the required enums and prototypes
-    print_required(registry, fp_out);
+    print_required(registry, fp_out, 0);
 
     //fclose(fp_out);
 }
@@ -812,7 +851,24 @@ void print_mgl_core_source(ezxml_t registry)
     print_about(fp_out, filename);
 
     // print the required commands
-    print_required_commands(registry, kGLFuncs, fp_out);
+    print_required_commands(registry, kGLFuncs, fp_out, 0);
+
+    fclose(fp_out);
+}
+
+void print_mgl_es_source(ezxml_t registry)
+{
+    FILE *fp_out;
+    const char *filename = "/tmp/gl_es.c";
+
+    fp_out = fopen(filename, "w");
+    assert(fp_out);
+
+    // print mgl_core.h header
+    print_about(fp_out, filename);
+
+    // print the required commands
+    print_required_commands(registry, kGLFuncs, fp_out, 1);
 
     fclose(fp_out);
 }
@@ -828,13 +884,23 @@ void print_mgl_dispatch(ezxml_t registry)
     // print mgl_core.h header
     print_about(fp_out, filename);
 
-    fprintf(fp_out, "struct GLMDispatchTable {\n");
-
-    // print the required commands
-    print_required_commands(registry, kMGLDispatch, fp_out);
-
-    fprintf(fp_out, "};\n");
-
+    for (int version=0; version<2; version++)
+    {
+        if (version == 0)
+        {
+            fprintf(fp_out, "struct GLMDispatchTable {\n");
+        }
+        else
+        {
+            fprintf(fp_out, "\nstruct GLM_ES_DispatchTable {\n");
+        }
+        
+        // print the required commands
+        print_required_commands(registry, kMGLDispatch, fp_out, version);
+        
+        fprintf(fp_out, "};\n");
+    }
+    
     fclose(fp_out);
 }
 
@@ -850,14 +916,27 @@ void print_mgl_init_dispatch(ezxml_t registry)
     print_about(fp_out, filename);
 
     fprintf(fp_out, "#include \"mgl.h\"\n\n");
-    fprintf(fp_out, "void init_dispatch(GLMContext ctx)\n");
-    fprintf(fp_out, "{\n");
 
-    // print the required commands
-    print_required_commands(registry, kMGLDispatchInit, fp_out);
-
-    fprintf(fp_out, "};\n");
-
+    for (int version=0; version<2; version++)
+    {
+        
+        if (version == 0)
+        {
+            fprintf(fp_out, "void init_dispatch(GLMContext ctx)\n");
+        }
+        else
+        {
+            fprintf(fp_out, "void init_es_dispatch(GLMContext ctx)\n");
+        }
+        
+        fprintf(fp_out, "{\n");
+        
+        // print the required commands
+        print_required_commands(registry, kMGLDispatchInit, fp_out, version);
+        
+        fprintf(fp_out, "};\n");
+    }
+    
     fclose(fp_out);
 }
 
@@ -873,7 +952,7 @@ void print_mgl_header(ezxml_t registry)
     print_about(fp_out, filename);
 
     // print the required commands
-    print_required_commands(registry, kMGLHeaders, fp_out);
+    print_required_commands(registry, kMGLHeaders, fp_out, 0);
 
     fclose(fp_out);
 }
@@ -890,7 +969,7 @@ void print_mgl_functions(ezxml_t registry)
     print_about(fp_out, filename);
 
     // print the required commands
-    print_required_commands(registry, kMGLFuncs, fp_out);
+    print_required_commands(registry, kMGLFuncs, fp_out, 0);
 
     fclose(fp_out);
 }
@@ -908,6 +987,9 @@ int main(int argc, char **argv)
 
     // mgl gl exported functions
     print_mgl_core_source(registry);
+
+    // mgl es exported functions
+    print_mgl_es_source(registry);
 
     // mgl dispatch table
     print_mgl_dispatch(registry);

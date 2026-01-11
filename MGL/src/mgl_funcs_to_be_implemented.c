@@ -1906,3 +1906,17 @@ void mglViewportIndexedfv(GLMContext ctx, GLuint index, const GLfloat *v)
 	// TODO: Implement
 	(void)ctx;
 }
+
+#ifdef MGL_GL_ES
+void  mglBlendBarrier(GLMContext ctx)
+{
+    // Unimplemented function
+    assert(0);
+
+}
+
+void mglPrimitiveBoundingBox(GLMContext ctx, GLfloat minX, GLfloat minY, GLfloat minZ, GLfloat minW, GLfloat maxX, GLfloat maxY, GLfloat maxZ, GLfloat maxW)
+{
+    
+}
+#endif

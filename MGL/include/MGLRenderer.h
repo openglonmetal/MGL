@@ -37,6 +37,7 @@ typedef struct GLMContextRec_t *GLMContext;
 
 - (id) initMGLRendererFromContext: (void *)glm_ctx andBindToWindow: (NSWindow *)window;
 - (id) createMGLRendererFromContext: (void *)glm_ctx andBindToWindow: (NSWindow *)window;
+- (void) createMGLRendererAndBindToContext: (GLMContext) glm_ctx view: (NSView *) view;
 
 @end
 

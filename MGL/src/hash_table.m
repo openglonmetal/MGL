@@ -57,7 +57,7 @@ void *searchHashTable(HashTable *table, GLuint name)
     
     if (name >= table->size)
     {
-        fprintf(stderr, "MGL: searchHashTable - name %u exceeds table size %u, returning NULL\n", name, table->size);
+        fprintf(stderr, "MGL: searchHashTable - name %u exceeds table size %zu, returning NULL\n", name, table->size);
         return NULL;
     }
 
@@ -81,7 +81,7 @@ void insertHashElement(HashTable *table, GLuint name, void *data)
     // some calls allow the user to specify a name...
     while(table->size <= name)
     {
-        GLuint old_size = table->size;
+        size_t old_size = table->size;
 
         // CRITICAL: Check for integer overflow before multiplication
         if (old_size > UINT_MAX / 2) {
@@ -114,7 +114,7 @@ void insertHashElement(HashTable *table, GLuint name, void *data)
         }
 
         // Initialize new entries
-        for (GLuint i = old_size; i < table->size; i++) {
+        for (size_t i = old_size; i < table->size; i++) {
             table->keys[i].data = NULL;
         }
     }
@@ -127,7 +127,7 @@ void deleteHashElement(HashTable *table, GLuint name)
     assert(table);
 
     if (name >= table->size) {
-        fprintf(stderr, "MGL: deleteHashElement - name %u exceeds table size %u\n", name, table->size);
+        fprintf(stderr, "MGL: deleteHashElement - name %u exceeds table size %zu\n", name, table->size);
         return;
     }
 

@@ -1074,4 +1074,9 @@ void mglMultiDrawArraysIndirectCount(GLMContext ctx, GLenum mode, const void *in
 void mglMultiDrawElementsIndirectCount(GLMContext ctx, GLenum mode, GLenum type, const void *indirect, GLintptr drawcount, GLsizei maxdrawcount, GLsizei stride);
 void mglPolygonOffsetClamp(GLMContext ctx, GLfloat factor, GLfloat units, GLfloat clamp);
 
+#ifdef MGL_GL_ES
+void  mglBlendBarrier(GLMContext ctx);
+void mglPrimitiveBoundingBox(GLMContext ctx, GLfloat minX, GLfloat minY, GLfloat minZ, GLfloat minW, GLfloat maxX, GLfloat maxY, GLfloat maxZ, GLfloat maxW);
+#endif
+
 #endif /* mgl_h */

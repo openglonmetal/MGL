@@ -265,7 +265,7 @@ $(GLFW_BUILD_DIR)/%.o: $(GLFW_SRC_DIR)/%.m
 
 clean:
 	rm -rf $(build_dir)
-	rm libmgl.dylib
+	rm -f libmgl.dylib
 	rm -f libglfw.dylib
 
 install-pkgdeps: download-pkgdeps compile-pkgdeps

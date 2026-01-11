@@ -29,7 +29,7 @@ typedef struct {
 } HashObj;
 
 typedef struct {
-    unsigned size;
+    size_t size;
     GLuint current_name;
     HashObj *keys;
 } HashTable;

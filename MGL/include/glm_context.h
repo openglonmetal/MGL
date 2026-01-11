@@ -693,7 +693,14 @@ struct GLMMetalFuncs {
 typedef struct GLMContextRec_t {
     GLuint      context_flags;
 
+#ifdef MGL_GL_CORE
     struct GLMDispatchTable dispatch;
+#endif
+    
+#ifdef MGL_GL_ES
+    struct GLM_ES_DispatchTable dispatch;
+#endif
+
     struct GLMMetalFuncs mtl_funcs;
 
     GLMState    state;

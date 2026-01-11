@@ -39,7 +39,7 @@ GLMContext MGLgetCurrentContext(void);
 void MGLsetCurrentContext(GLMContext ctx);
 
 // MGLswapBuffers can take NULL for the ctx, in this case it will use the current ctx
-void MGLswapBuffers(GLMContext ctx=NULL);
+void MGLswapBuffers(GLMContext ctx);
 
 // MGLget can take NULL for the ctx, in this case it will use the current ctx
 void MGLget(GLMContext ctx, GLenum param, GLuint *data);

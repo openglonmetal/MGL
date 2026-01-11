@@ -39,7 +39,6 @@
 		FF7B7AAC27728C1D00C2028F /* mgl_funcs_to_be_implemented.c in Sources */ = {isa = PBXBuildFile; fileRef = FF7B7A9327728C1D00C2028F /* mgl_funcs_to_be_implemented.c */; };
 		FF7B7AAD27728C1D00C2028F /* rendering.c in Sources */ = {isa = PBXBuildFile; fileRef = FF7B7A9427728C1D00C2028F /* rendering.c */; };
 		FF7B7AAE27728C1D00C2028F /* glm_context.c in Sources */ = {isa = PBXBuildFile; fileRef = FF7B7A9527728C1D00C2028F /* glm_context.c */; };
-		FF7B7AAF27728C1D00C2028F /* hash_table.c in Sources */ = {isa = PBXBuildFile; fileRef = FF7B7A9627728C1D00C2028F /* hash_table.c */; };
 		FF7B7AB027728C1D00C2028F /* glm_dispatch.c in Sources */ = {isa = PBXBuildFile; fileRef = FF7B7A9727728C1D00C2028F /* glm_dispatch.c */; };
 		FF7B7AB127728C1D00C2028F /* shaders.c in Sources */ = {isa = PBXBuildFile; fileRef = FF7B7A9827728C1D00C2028F /* shaders.c */; };
 		FF7B7AB227728C1D00C2028F /* vertex_buffers.c in Sources */ = {isa = PBXBuildFile; fileRef = FF7B7A9927728C1D00C2028F /* vertex_buffers.c */; };
@@ -86,12 +85,87 @@
 		FF99BF832ADF311B008AE33A /* libspirv-cross-cpp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DFB50A9028ADD0030084D12B /* libspirv-cross-cpp.a */; };
 		FF99BF842ADF311B008AE33A /* libspirv-cross-util.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DFB50A8A28ADD0020084D12B /* libspirv-cross-util.a */; };
 		FF99BF872ADF320E008AE33A /* libglslang-default-resource-limits.a in Frameworks */ = {isa = PBXBuildFile; fileRef = FF99BF722ADF304A008AE33A /* libglslang-default-resource-limits.a */; };
-		FF99BF882ADF3248008AE33A /* libSPVRemapper.a in Frameworks */ = {isa = PBXBuildFile; fileRef = FF7B789D2771804500C2028F /* libSPVRemapper.a */; };
 		FF99BF892ADF3248008AE33A /* libSPIRV.a in Frameworks */ = {isa = PBXBuildFile; fileRef = FF7B789E2771804500C2028F /* libSPIRV.a */; };
 		FF99BF8E2AE05FB6008AE33A /* libspirv-cross-hlsl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DFB50A8928ADD0020084D12B /* libspirv-cross-hlsl.a */; };
 		FFA1EB712782851500EEE5AD /* compute.c in Sources */ = {isa = PBXBuildFile; fileRef = FFA1EB702782851500EEE5AD /* compute.c */; };
 		FFA83047276F9EBF003F1EA0 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FFA83046276F9EBF003F1EA0 /* main.cpp */; };
 		FFA83092277026C5003F1EA0 /* gl.xml in CopyFiles */ = {isa = PBXBuildFile; fileRef = FFA83091277026B6003F1EA0 /* gl.xml */; };
+		FFD4EE2E2F1429700023B6C3 /* hash_table.m in Sources */ = {isa = PBXBuildFile; fileRef = FFD4EE2B2F1429700023B6C3 /* hash_table.m */; };
+		FFD4EE2F2F1429700023B6C3 /* mgl_toolchain.c in Sources */ = {isa = PBXBuildFile; fileRef = FFD4EE2D2F1429700023B6C3 /* mgl_toolchain.c */; };
+		FFD4EE302F1429700023B6C3 /* mgl_safety.h in Headers */ = {isa = PBXBuildFile; fileRef = FFD4EE2C2F1429700023B6C3 /* mgl_safety.h */; };
+		FFD4EE312F144A8F0023B6C3 /* gl.xml in CopyFiles */ = {isa = PBXBuildFile; fileRef = FFA83091277026B6003F1EA0 /* gl.xml */; };
+		FFD4EE3C2F14585E0023B6C3 /* gltypes.h in Headers */ = {isa = PBXBuildFile; fileRef = FF7B7ABB27728C3100C2028F /* gltypes.h */; };
+		FFD4EE3D2F14585E0023B6C3 /* enums.h in Headers */ = {isa = PBXBuildFile; fileRef = FF7B7AC227728C3100C2028F /* enums.h */; };
+		FFD4EE3E2F14585E0023B6C3 /* vertex_arrays.h in Headers */ = {isa = PBXBuildFile; fileRef = FF99BF6C2ADF27ED008AE33A /* vertex_arrays.h */; };
+		FFD4EE3F2F14585E0023B6C3 /* glm_dispatch.h in Headers */ = {isa = PBXBuildFile; fileRef = FF7B7ABF27728C3100C2028F /* glm_dispatch.h */; };
+		FFD4EE402F14585E0023B6C3 /* glm_limits.h in Headers */ = {isa = PBXBuildFile; fileRef = FF7B7AC827728C3100C2028F /* glm_limits.h */; };
+		FFD4EE412F14585E0023B6C3 /* pixel_utils.h in Headers */ = {isa = PBXBuildFile; fileRef = FF7B7AC527728C3100C2028F /* pixel_utils.h */; };
+		FFD4EE422F14585E0023B6C3 /* mgl.h in Headers */ = {isa = PBXBuildFile; fileRef = FF7B7AC427728C3100C2028F /* mgl.h */; };
+		FFD4EE432F14585E0023B6C3 /* glm_params.h in Headers */ = {isa = PBXBuildFile; fileRef = FF7B7AC727728C3100C2028F /* glm_params.h */; };
+		FFD4EE442F14585E0023B6C3 /* MGLContext.h in Headers */ = {isa = PBXBuildFile; fileRef = FF7B7AC327728C3100C2028F /* MGLContext.h */; };
+		FFD4EE452F14585E0023B6C3 /* utils.h in Headers */ = {isa = PBXBuildFile; fileRef = FF7B7ABA27728C3100C2028F /* utils.h */; };
+		FFD4EE462F14585E0023B6C3 /* MGLRenderer.h in Headers */ = {isa = PBXBuildFile; fileRef = FF7B7ABC27728C3100C2028F /* MGLRenderer.h */; };
+		FFD4EE472F14585E0023B6C3 /* mgl_safety.h in Headers */ = {isa = PBXBuildFile; fileRef = FFD4EE2C2F1429700023B6C3 /* mgl_safety.h */; };
+		FFD4EE482F14585E0023B6C3 /* programs.h in Headers */ = {isa = PBXBuildFile; fileRef = FF2DC2622D2C9B040040B838 /* programs.h */; };
+		FFD4EE492F14585E0023B6C3 /* error.h in Headers */ = {isa = PBXBuildFile; fileRef = FF7B7AB927728C3100C2028F /* error.h */; };
+		FFD4EE4A2F14585E0023B6C3 /* hash_table.h in Headers */ = {isa = PBXBuildFile; fileRef = FF7B7AC027728C3100C2028F /* hash_table.h */; };
+		FFD4EE4B2F14585E0023B6C3 /* shaders.h in Headers */ = {isa = PBXBuildFile; fileRef = FF7B7ABD27728C3100C2028F /* shaders.h */; };
+		FFD4EE4C2F14585E0023B6C3 /* glm_context.h in Headers */ = {isa = PBXBuildFile; fileRef = FF7B7ABE27728C3100C2028F /* glm_context.h */; };
+		FFD4EE4E2F14585E0023B6C3 /* utils.c in Sources */ = {isa = PBXBuildFile; fileRef = FF7B7A8E27728C1D00C2028F /* utils.c */; };
+		FFD4EE502F14585E0023B6C3 /* get.c in Sources */ = {isa = PBXBuildFile; fileRef = FF7B7A8827728C1D00C2028F /* get.c */; };
+		FFD4EE512F14585E0023B6C3 /* mgl_funcs_to_be_implemented.c in Sources */ = {isa = PBXBuildFile; fileRef = FF7B7A9327728C1D00C2028F /* mgl_funcs_to_be_implemented.c */; };
+		FFD4EE522F14585E0023B6C3 /* vertex_buffers.c in Sources */ = {isa = PBXBuildFile; fileRef = FF7B7A9927728C1D00C2028F /* vertex_buffers.c */; };
+		FFD4EE532F14585E0023B6C3 /* error.c in Sources */ = {isa = PBXBuildFile; fileRef = FF7B7A8F27728C1D00C2028F /* error.c */; };
+		FFD4EE542F14585E0023B6C3 /* textures.c in Sources */ = {isa = PBXBuildFile; fileRef = FF7B7A8D27728C1D00C2028F /* textures.c */; };
+		FFD4EE552F14585E0023B6C3 /* rendering.c in Sources */ = {isa = PBXBuildFile; fileRef = FF7B7A9427728C1D00C2028F /* rendering.c */; };
+		FFD4EE562F14585E0023B6C3 /* vertex_arrays.c in Sources */ = {isa = PBXBuildFile; fileRef = FF7B7A9227728C1D00C2028F /* vertex_arrays.c */; };
+		FFD4EE572F14585E0023B6C3 /* pixel_utils.c in Sources */ = {isa = PBXBuildFile; fileRef = FF7B7A8727728C1D00C2028F /* pixel_utils.c */; };
+		FFD4EE582F14585E0023B6C3 /* shaders.c in Sources */ = {isa = PBXBuildFile; fileRef = FF7B7A9827728C1D00C2028F /* shaders.c */; };
+		FFD4EE592F14585E0023B6C3 /* program.c in Sources */ = {isa = PBXBuildFile; fileRef = FF7B7A8627728C1D00C2028F /* program.c */; };
+		FFD4EE5A2F14585E0023B6C3 /* MGLTextures.m in Sources */ = {isa = PBXBuildFile; fileRef = FF7B7A8527728C1D00C2028F /* MGLTextures.m */; };
+		FFD4EE5B2F14585E0023B6C3 /* non_core_unimplemented.c in Sources */ = {isa = PBXBuildFile; fileRef = FF7B7A8B27728C1D00C2028F /* non_core_unimplemented.c */; };
+		FFD4EE5C2F14585E0023B6C3 /* MGLRenderer.m in Sources */ = {isa = PBXBuildFile; fileRef = FF7B7A9A27728C1D00C2028F /* MGLRenderer.m */; };
+		FFD4EE5D2F14585E0023B6C3 /* hash_table.m in Sources */ = {isa = PBXBuildFile; fileRef = FFD4EE2B2F1429700023B6C3 /* hash_table.m */; };
+		FFD4EE5E2F14585E0023B6C3 /* mgl_toolchain.c in Sources */ = {isa = PBXBuildFile; fileRef = FFD4EE2D2F1429700023B6C3 /* mgl_toolchain.c */; };
+		FFD4EE5F2F14585E0023B6C3 /* glm_dispatch.c in Sources */ = {isa = PBXBuildFile; fileRef = FF7B7A9727728C1D00C2028F /* glm_dispatch.c */; };
+		FFD4EE602F14585E0023B6C3 /* gl_es.c in Sources */ = {isa = PBXBuildFile; fileRef = FFD4EE322F1454E70023B6C3 /* gl_es.c */; };
+		FFD4EE612F14585E0023B6C3 /* samplers.c in Sources */ = {isa = PBXBuildFile; fileRef = FF8F91A72780FBBD00A1E546 /* samplers.c */; };
+		FFD4EE622F14585E0023B6C3 /* state.c in Sources */ = {isa = PBXBuildFile; fileRef = FF7B7A8427728C1D00C2028F /* state.c */; };
+		FFD4EE632F14585E0023B6C3 /* fence.c in Sources */ = {isa = PBXBuildFile; fileRef = FF7B7A9127728C1D00C2028F /* fence.c */; };
+		FFD4EE642F14585E0023B6C3 /* glm_context.c in Sources */ = {isa = PBXBuildFile; fileRef = FF7B7A9527728C1D00C2028F /* glm_context.c */; };
+		FFD4EE652F14585E0023B6C3 /* draw_buffers.c in Sources */ = {isa = PBXBuildFile; fileRef = FF7B7A9027728C1D00C2028F /* draw_buffers.c */; };
+		FFD4EE662F14585E0023B6C3 /* buffers.c in Sources */ = {isa = PBXBuildFile; fileRef = FF7B7A8C27728C1D00C2028F /* buffers.c */; };
+		FFD4EE672F14585E0023B6C3 /* glm_params.c in Sources */ = {isa = PBXBuildFile; fileRef = FF7B7A8A27728C1D00C2028F /* glm_params.c */; };
+		FFD4EE682F14585E0023B6C3 /* tex_param.c in Sources */ = {isa = PBXBuildFile; fileRef = FF4811712776963E00BBF7C7 /* tex_param.c */; };
+		FFD4EE692F14585E0023B6C3 /* compute.c in Sources */ = {isa = PBXBuildFile; fileRef = FFA1EB702782851500EEE5AD /* compute.c */; };
+		FFD4EE6A2F14585E0023B6C3 /* uniforms.c in Sources */ = {isa = PBXBuildFile; fileRef = FF2DC25F2D2C9A830040B838 /* uniforms.c */; };
+		FFD4EE6B2F14585E0023B6C3 /* framebuffers.c in Sources */ = {isa = PBXBuildFile; fileRef = FF7B7A8927728C1D00C2028F /* framebuffers.c */; };
+		FFD4EE6D2F14585E0023B6C3 /* libspirv-cross-hlsl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DFB50A8928ADD0020084D12B /* libspirv-cross-hlsl.a */; };
+		FFD4EE6E2F14585E0023B6C3 /* libSPIRV.a in Frameworks */ = {isa = PBXBuildFile; fileRef = FF7B789E2771804500C2028F /* libSPIRV.a */; };
+		FFD4EE6F2F14585E0023B6C3 /* libglslang-default-resource-limits.a in Frameworks */ = {isa = PBXBuildFile; fileRef = FF99BF722ADF304A008AE33A /* libglslang-default-resource-limits.a */; };
+		FFD4EE702F14585E0023B6C3 /* libspirv-cross-c.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DFB50A8D28ADD0030084D12B /* libspirv-cross-c.a */; };
+		FFD4EE712F14585E0023B6C3 /* libspirv-cross-msl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DFB50A8E28ADD0030084D12B /* libspirv-cross-msl.a */; };
+		FFD4EE722F14585E0023B6C3 /* libspirv-cross-glsl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DFB50A8C28ADD0030084D12B /* libspirv-cross-glsl.a */; };
+		FFD4EE732F14585E0023B6C3 /* libspirv-cross-core.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DFB50A8B28ADD0030084D12B /* libspirv-cross-core.a */; };
+		FFD4EE742F14585E0023B6C3 /* libspirv-cross-reflect.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DFB50A8F28ADD0030084D12B /* libspirv-cross-reflect.a */; };
+		FFD4EE752F14585E0023B6C3 /* libspirv-cross-cpp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DFB50A9028ADD0030084D12B /* libspirv-cross-cpp.a */; };
+		FFD4EE762F14585E0023B6C3 /* libspirv-cross-util.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DFB50A8A28ADD0020084D12B /* libspirv-cross-util.a */; };
+		FFD4EE772F14585E0023B6C3 /* libSPIRV-Tools-diff.a in Frameworks */ = {isa = PBXBuildFile; fileRef = FF99BF742ADF30E0008AE33A /* libSPIRV-Tools-diff.a */; };
+		FFD4EE782F14585E0023B6C3 /* libSPIRV-Tools-lint.a in Frameworks */ = {isa = PBXBuildFile; fileRef = FF99BF752ADF30E0008AE33A /* libSPIRV-Tools-lint.a */; };
+		FFD4EE792F14585E0023B6C3 /* libSPIRV-Tools-opt.a in Frameworks */ = {isa = PBXBuildFile; fileRef = FF99BF762ADF30E0008AE33A /* libSPIRV-Tools-opt.a */; };
+		FFD4EE7A2F14585E0023B6C3 /* libSPIRV-Tools-link.a in Frameworks */ = {isa = PBXBuildFile; fileRef = FF99BF772ADF30E0008AE33A /* libSPIRV-Tools-link.a */; };
+		FFD4EE7B2F14585E0023B6C3 /* libSPIRV-Tools-reduce.a in Frameworks */ = {isa = PBXBuildFile; fileRef = FF99BF782ADF30E0008AE33A /* libSPIRV-Tools-reduce.a */; };
+		FFD4EE7C2F14585E0023B6C3 /* libSPIRV-Tools.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DFC728FC289485A000990595 /* libSPIRV-Tools.a */; };
+		FFD4EE7D2F14585E0023B6C3 /* libGenericCodeGen.a in Frameworks */ = {isa = PBXBuildFile; fileRef = FF7B788D27717FA400C2028F /* libGenericCodeGen.a */; };
+		FFD4EE7E2F14585E0023B6C3 /* libMachineIndependent.a in Frameworks */ = {isa = PBXBuildFile; fileRef = FF7B788E27717FA400C2028F /* libMachineIndependent.a */; };
+		FFD4EE7F2F14585E0023B6C3 /* libglslang.a in Frameworks */ = {isa = PBXBuildFile; fileRef = FF7B788F27717FA400C2028F /* libglslang.a */; };
+		FFD4EE802F14585E0023B6C3 /* libOSDependent.a in Frameworks */ = {isa = PBXBuildFile; fileRef = FF7B78A52771806C00C2028F /* libOSDependent.a */; };
+		FFD4EE822F14585E0023B6C3 /* wgl.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = FF7B77E827710FE100C2028F /* wgl.h */; };
+		FFD4EE832F14585E0023B6C3 /* wglext.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = FF7B77E927710FE100C2028F /* wglext.h */; };
+		FFD4EE842F14585E0023B6C3 /* glext.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = FF7B77EA27710FE100C2028F /* glext.h */; };
+		FFD4EE852F14585E0023B6C3 /* glxext.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = FF7B77EB27710FE100C2028F /* glxext.h */; };
+		FFD4EE862F14585E0023B6C3 /* glcorearb.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = FF7B77EC27710FE100C2028F /* glcorearb.h */; };
+		FFD4EE8D2F1459640023B6C3 /* libMGL_ES.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = FFD4EE8C2F14585E0023B6C3 /* libMGL_ES.dylib */; };
 		FFE8B2C92D29B4CA006B1015 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FFE8B2C82D29B4CA006B1015 /* AppKit.framework */; };
 /* End PBXBuildFile section */
 
@@ -138,17 +212,39 @@
 			remoteGlobalIDString = FF8F918A277E312E00A1E546;
 			remoteInfo = "SPIRV-Headers";
 		};
+		FFD4EE362F14585E0023B6C3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FFA82FF8276F97DE003F1EA0 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = FF8F918A277E312E00A1E546;
+			remoteInfo = "SPIRV-Headers";
+		};
+		FFD4EE382F14585E0023B6C3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FFA82FF8276F97DE003F1EA0 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = FF8F9165277E309800A1E546;
+			remoteInfo = "SPIRV-Tools";
+		};
+		FFD4EE3A2F14585E0023B6C3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FFA82FF8276F97DE003F1EA0 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = FF8F9173277E30D500A1E546;
+			remoteInfo = "SPIRV-Cross";
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
 		FF7B784627714BE700C2028F /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
-			dstSubfolderSpec = 0;
+			buildActionMask = 12;
+			dstPath = "";
+			dstSubfolderSpec = 16;
 			files = (
+				FFD4EE312F144A8F0023B6C3 /* gl.xml in CopyFiles */,
 			);
-			runOnlyForDeploymentPostprocessing = 1;
+			runOnlyForDeploymentPostprocessing = 0;
 		};
 		FF85F21A2D286A9600A5BDCD /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
@@ -192,6 +288,30 @@
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 1;
+		};
+		FFD4EE812F14585E0023B6C3 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = include/GL;
+			dstSubfolderSpec = 16;
+			files = (
+				FFD4EE822F14585E0023B6C3 /* wgl.h in CopyFiles */,
+				FFD4EE832F14585E0023B6C3 /* wglext.h in CopyFiles */,
+				FFD4EE842F14585E0023B6C3 /* glext.h in CopyFiles */,
+				FFD4EE852F14585E0023B6C3 /* glxext.h in CopyFiles */,
+				FFD4EE862F14585E0023B6C3 /* glcorearb.h in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FFD4EE872F14585E0023B6C3 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = lib;
+			dstSubfolderSpec = 16;
+			files = (
+				FFD4EE8D2F1459640023B6C3 /* libMGL_ES.dylib in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
 
@@ -260,7 +380,6 @@
 		FF7B7A9327728C1D00C2028F /* mgl_funcs_to_be_implemented.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mgl_funcs_to_be_implemented.c; sourceTree = "<group>"; };
 		FF7B7A9427728C1D00C2028F /* rendering.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = rendering.c; sourceTree = "<group>"; };
 		FF7B7A9527728C1D00C2028F /* glm_context.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = glm_context.c; sourceTree = "<group>"; };
-		FF7B7A9627728C1D00C2028F /* hash_table.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = hash_table.c; sourceTree = "<group>"; };
 		FF7B7A9727728C1D00C2028F /* glm_dispatch.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = glm_dispatch.c; sourceTree = "<group>"; };
 		FF7B7A9827728C1D00C2028F /* shaders.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = shaders.c; sourceTree = "<group>"; };
 		FF7B7A9927728C1D00C2028F /* vertex_buffers.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = vertex_buffers.c; sourceTree = "<group>"; };
@@ -298,6 +417,11 @@
 		FFA83044276F9EBE003F1EA0 /* test_mgl_glfw */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = test_mgl_glfw; sourceTree = BUILT_PRODUCTS_DIR; };
 		FFA83046276F9EBF003F1EA0 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		FFA83091277026B6003F1EA0 /* gl.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = gl.xml; path = "external/OpenGL-Registry/xml/gl.xml"; sourceTree = SOURCE_ROOT; };
+		FFD4EE2B2F1429700023B6C3 /* hash_table.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = hash_table.m; sourceTree = "<group>"; };
+		FFD4EE2C2F1429700023B6C3 /* mgl_safety.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mgl_safety.h; sourceTree = "<group>"; };
+		FFD4EE2D2F1429700023B6C3 /* mgl_toolchain.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mgl_toolchain.c; sourceTree = "<group>"; };
+		FFD4EE322F1454E70023B6C3 /* gl_es.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = gl_es.c; sourceTree = "<group>"; };
+		FFD4EE8C2F14585E0023B6C3 /* libMGL_ES.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libMGL_ES.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		FFE8B2C82D29B4CA006B1015 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
@@ -328,7 +452,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				FF99BF8E2AE05FB6008AE33A /* libspirv-cross-hlsl.a in Frameworks */,
-				FF99BF882ADF3248008AE33A /* libSPVRemapper.a in Frameworks */,
 				FF99BF892ADF3248008AE33A /* libSPIRV.a in Frameworks */,
 				FF99BF872ADF320E008AE33A /* libglslang-default-resource-limits.a in Frameworks */,
 				FF99BF7E2ADF311B008AE33A /* libspirv-cross-c.a in Frameworks */,
@@ -370,6 +493,33 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		FFD4EE6C2F14585E0023B6C3 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FFD4EE6D2F14585E0023B6C3 /* libspirv-cross-hlsl.a in Frameworks */,
+				FFD4EE6E2F14585E0023B6C3 /* libSPIRV.a in Frameworks */,
+				FFD4EE6F2F14585E0023B6C3 /* libglslang-default-resource-limits.a in Frameworks */,
+				FFD4EE702F14585E0023B6C3 /* libspirv-cross-c.a in Frameworks */,
+				FFD4EE712F14585E0023B6C3 /* libspirv-cross-msl.a in Frameworks */,
+				FFD4EE722F14585E0023B6C3 /* libspirv-cross-glsl.a in Frameworks */,
+				FFD4EE732F14585E0023B6C3 /* libspirv-cross-core.a in Frameworks */,
+				FFD4EE742F14585E0023B6C3 /* libspirv-cross-reflect.a in Frameworks */,
+				FFD4EE752F14585E0023B6C3 /* libspirv-cross-cpp.a in Frameworks */,
+				FFD4EE762F14585E0023B6C3 /* libspirv-cross-util.a in Frameworks */,
+				FFD4EE772F14585E0023B6C3 /* libSPIRV-Tools-diff.a in Frameworks */,
+				FFD4EE782F14585E0023B6C3 /* libSPIRV-Tools-lint.a in Frameworks */,
+				FFD4EE792F14585E0023B6C3 /* libSPIRV-Tools-opt.a in Frameworks */,
+				FFD4EE7A2F14585E0023B6C3 /* libSPIRV-Tools-link.a in Frameworks */,
+				FFD4EE7B2F14585E0023B6C3 /* libSPIRV-Tools-reduce.a in Frameworks */,
+				FFD4EE7C2F14585E0023B6C3 /* libSPIRV-Tools.a in Frameworks */,
+				FFD4EE7D2F14585E0023B6C3 /* libGenericCodeGen.a in Frameworks */,
+				FFD4EE7E2F14585E0023B6C3 /* libMachineIndependent.a in Frameworks */,
+				FFD4EE7F2F14585E0023B6C3 /* libglslang.a in Frameworks */,
+				FFD4EE802F14585E0023B6C3 /* libOSDependent.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		FFE8B2CC2D29B60D006B1015 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -404,7 +554,11 @@
 		FF7B7A8127728C1D00C2028F /* src */ = {
 			isa = PBXGroup;
 			children = (
+				FFD4EE2C2F1429700023B6C3 /* mgl_safety.h */,
+				FFD4EE2B2F1429700023B6C3 /* hash_table.m */,
+				FFD4EE2D2F1429700023B6C3 /* mgl_toolchain.c */,
 				FF7B7AF6277290EB00C2028F /* gl_core.c */,
+				FFD4EE322F1454E70023B6C3 /* gl_es.c */,
 				FF7B7A9327728C1D00C2028F /* mgl_funcs_to_be_implemented.c */,
 				FF7B7A8B27728C1D00C2028F /* non_core_unimplemented.c */,
 				FF7B7A8727728C1D00C2028F /* pixel_utils.c */,
@@ -433,7 +587,6 @@
 				FF7B7A9027728C1D00C2028F /* draw_buffers.c */,
 				FF7B7A9427728C1D00C2028F /* rendering.c */,
 				FF7B7A8927728C1D00C2028F /* framebuffers.c */,
-				FF7B7A9627728C1D00C2028F /* hash_table.c */,
 				FF7B7A8527728C1D00C2028F /* MGLTextures.m */,
 				FF7B7A9A27728C1D00C2028F /* MGLRenderer.m */,
 			);
@@ -486,6 +639,7 @@
 				FF7B784827714BE700C2028F /* spec_parser */,
 				FF85F2102D28658200A5BDCD /* MGL Tests.xctest */,
 				FF2DC2592D2C64B20040B838 /* MetalGL.framework */,
+				FFD4EE8C2F14585E0023B6C3 /* libMGL_ES.dylib */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -583,11 +737,36 @@
 				FF7B7AD327728C3200C2028F /* MGLContext.h in Headers */,
 				FF7B7ACA27728C3100C2028F /* utils.h in Headers */,
 				FF7B7ACC27728C3100C2028F /* MGLRenderer.h in Headers */,
+				FFD4EE302F1429700023B6C3 /* mgl_safety.h in Headers */,
 				FF2DC2632D2C9B040040B838 /* programs.h in Headers */,
 				FF7B7AC927728C3100C2028F /* error.h in Headers */,
 				FF7B7AD027728C3100C2028F /* hash_table.h in Headers */,
 				FF7B7ACD27728C3100C2028F /* shaders.h in Headers */,
 				FF7B7ACE27728C3100C2028F /* glm_context.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FFD4EE3B2F14585E0023B6C3 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FFD4EE3C2F14585E0023B6C3 /* gltypes.h in Headers */,
+				FFD4EE3D2F14585E0023B6C3 /* enums.h in Headers */,
+				FFD4EE3E2F14585E0023B6C3 /* vertex_arrays.h in Headers */,
+				FFD4EE3F2F14585E0023B6C3 /* glm_dispatch.h in Headers */,
+				FFD4EE402F14585E0023B6C3 /* glm_limits.h in Headers */,
+				FFD4EE412F14585E0023B6C3 /* pixel_utils.h in Headers */,
+				FFD4EE422F14585E0023B6C3 /* mgl.h in Headers */,
+				FFD4EE432F14585E0023B6C3 /* glm_params.h in Headers */,
+				FFD4EE442F14585E0023B6C3 /* MGLContext.h in Headers */,
+				FFD4EE452F14585E0023B6C3 /* utils.h in Headers */,
+				FFD4EE462F14585E0023B6C3 /* MGLRenderer.h in Headers */,
+				FFD4EE472F14585E0023B6C3 /* mgl_safety.h in Headers */,
+				FFD4EE482F14585E0023B6C3 /* programs.h in Headers */,
+				FFD4EE492F14585E0023B6C3 /* error.h in Headers */,
+				FFD4EE4A2F14585E0023B6C3 /* hash_table.h in Headers */,
+				FFD4EE4B2F14585E0023B6C3 /* shaders.h in Headers */,
+				FFD4EE4C2F14585E0023B6C3 /* glm_context.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -745,6 +924,28 @@
 			productReference = FFA83044276F9EBE003F1EA0 /* test_mgl_glfw */;
 			productType = "com.apple.product-type.tool";
 		};
+		FFD4EE342F14585E0023B6C3 /* MGL_ES */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FFD4EE892F14585E0023B6C3 /* Build configuration list for PBXNativeTarget "MGL_ES" */;
+			buildPhases = (
+				FFD4EE3B2F14585E0023B6C3 /* Headers */,
+				FFD4EE4D2F14585E0023B6C3 /* Sources */,
+				FFD4EE6C2F14585E0023B6C3 /* Frameworks */,
+				FFD4EE812F14585E0023B6C3 /* CopyFiles */,
+				FFD4EE872F14585E0023B6C3 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				FFD4EE352F14585E0023B6C3 /* PBXTargetDependency */,
+				FFD4EE372F14585E0023B6C3 /* PBXTargetDependency */,
+				FFD4EE392F14585E0023B6C3 /* PBXTargetDependency */,
+			);
+			name = MGL_ES;
+			productName = MGL;
+			productReference = FFD4EE8C2F14585E0023B6C3 /* libMGL_ES.dylib */;
+			productType = "com.apple.product-type.library.dynamic";
+		};
 		FFE8B2CE2D29B60D006B1015 /* MetalGL */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = FFE8B2DF2D29B60E006B1015 /* Build configuration list for PBXNativeTarget "MetalGL" */;
@@ -820,6 +1021,7 @@
 				FF8F9165277E309800A1E546 /* SPIRV-Tools */,
 				FF8F9173277E30D500A1E546 /* SPIRV-Cross */,
 				FFA82FFF276F97DE003F1EA0 /* MGL */,
+				FFD4EE342F14585E0023B6C3 /* MGL_ES */,
 				FFE8B2CE2D29B60D006B1015 /* MetalGL */,
 				FFA83043276F9EBE003F1EA0 /* test_mgl_glfw */,
 				FFA8302B276F9CE4003F1EA0 /* enum_parser */,
@@ -874,7 +1076,6 @@
 				FF7B7AB227728C1D00C2028F /* vertex_buffers.c in Sources */,
 				FF7B7AA827728C1D00C2028F /* error.c in Sources */,
 				FF7B7AA627728C1D00C2028F /* textures.c in Sources */,
-				FF7B7AAF27728C1D00C2028F /* hash_table.c in Sources */,
 				FF7B7AAD27728C1D00C2028F /* rendering.c in Sources */,
 				FF7B7AAB27728C1D00C2028F /* vertex_arrays.c in Sources */,
 				FF7B7AA027728C1D00C2028F /* pixel_utils.c in Sources */,
@@ -883,6 +1084,8 @@
 				FF7B7A9E27728C1D00C2028F /* MGLTextures.m in Sources */,
 				FF7B7AA427728C1D00C2028F /* non_core_unimplemented.c in Sources */,
 				FF7B7AB327728C1D00C2028F /* MGLRenderer.m in Sources */,
+				FFD4EE2E2F1429700023B6C3 /* hash_table.m in Sources */,
+				FFD4EE2F2F1429700023B6C3 /* mgl_toolchain.c in Sources */,
 				FF7B7AB027728C1D00C2028F /* glm_dispatch.c in Sources */,
 				FF8F91A82780FBBD00A1E546 /* samplers.c in Sources */,
 				FF7B7A9D27728C1D00C2028F /* state.c in Sources */,
@@ -912,6 +1115,42 @@
 			buildActionMask = 2147483647;
 			files = (
 				FFA83047276F9EBF003F1EA0 /* main.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FFD4EE4D2F14585E0023B6C3 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FFD4EE4E2F14585E0023B6C3 /* utils.c in Sources */,
+				FFD4EE502F14585E0023B6C3 /* get.c in Sources */,
+				FFD4EE512F14585E0023B6C3 /* mgl_funcs_to_be_implemented.c in Sources */,
+				FFD4EE522F14585E0023B6C3 /* vertex_buffers.c in Sources */,
+				FFD4EE532F14585E0023B6C3 /* error.c in Sources */,
+				FFD4EE542F14585E0023B6C3 /* textures.c in Sources */,
+				FFD4EE552F14585E0023B6C3 /* rendering.c in Sources */,
+				FFD4EE562F14585E0023B6C3 /* vertex_arrays.c in Sources */,
+				FFD4EE572F14585E0023B6C3 /* pixel_utils.c in Sources */,
+				FFD4EE582F14585E0023B6C3 /* shaders.c in Sources */,
+				FFD4EE592F14585E0023B6C3 /* program.c in Sources */,
+				FFD4EE5A2F14585E0023B6C3 /* MGLTextures.m in Sources */,
+				FFD4EE5B2F14585E0023B6C3 /* non_core_unimplemented.c in Sources */,
+				FFD4EE5C2F14585E0023B6C3 /* MGLRenderer.m in Sources */,
+				FFD4EE5D2F14585E0023B6C3 /* hash_table.m in Sources */,
+				FFD4EE5E2F14585E0023B6C3 /* mgl_toolchain.c in Sources */,
+				FFD4EE5F2F14585E0023B6C3 /* glm_dispatch.c in Sources */,
+				FFD4EE602F14585E0023B6C3 /* gl_es.c in Sources */,
+				FFD4EE612F14585E0023B6C3 /* samplers.c in Sources */,
+				FFD4EE622F14585E0023B6C3 /* state.c in Sources */,
+				FFD4EE632F14585E0023B6C3 /* fence.c in Sources */,
+				FFD4EE642F14585E0023B6C3 /* glm_context.c in Sources */,
+				FFD4EE652F14585E0023B6C3 /* draw_buffers.c in Sources */,
+				FFD4EE662F14585E0023B6C3 /* buffers.c in Sources */,
+				FFD4EE672F14585E0023B6C3 /* glm_params.c in Sources */,
+				FFD4EE682F14585E0023B6C3 /* tex_param.c in Sources */,
+				FFD4EE692F14585E0023B6C3 /* compute.c in Sources */,
+				FFD4EE6A2F14585E0023B6C3 /* uniforms.c in Sources */,
+				FFD4EE6B2F14585E0023B6C3 /* framebuffers.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -955,6 +1194,21 @@
 			isa = PBXTargetDependency;
 			target = FF8F918A277E312E00A1E546 /* SPIRV-Headers */;
 			targetProxy = FF99BF8A2ADF3F89008AE33A /* PBXContainerItemProxy */;
+		};
+		FFD4EE352F14585E0023B6C3 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = FF8F918A277E312E00A1E546 /* SPIRV-Headers */;
+			targetProxy = FFD4EE362F14585E0023B6C3 /* PBXContainerItemProxy */;
+		};
+		FFD4EE372F14585E0023B6C3 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = FF8F9165277E309800A1E546 /* SPIRV-Tools */;
+			targetProxy = FFD4EE382F14585E0023B6C3 /* PBXContainerItemProxy */;
+		};
+		FFD4EE392F14585E0023B6C3 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = FF8F9173277E30D500A1E546 /* SPIRV-Cross */;
+			targetProxy = FFD4EE3A2F14585E0023B6C3 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -1276,6 +1530,7 @@
 					"-DSPIRV_CROSS_C_API_GLSL=1",
 					"-DSPIRV_CROSS_C_API_CPP=1",
 					"-DSPIRV_CROSS_C_API_REFLECT=1",
+					"-DMGL_GL_CORE",
 				);
 				OTHER_LDFLAGS = (
 					"-lstdc++",
@@ -1331,6 +1586,7 @@
 					"-DSPIRV_CROSS_C_API_GLSL=1",
 					"-DSPIRV_CROSS_C_API_CPP=1",
 					"-DSPIRV_CROSS_C_API_REFLECT=1",
+					"-DMGL_GL_CORE",
 				);
 				OTHER_LDFLAGS = (
 					"-lstdc++",
@@ -1420,6 +1676,118 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SYSTEM_HEADER_SEARCH_PATHS = "";
 				USER_HEADER_SEARCH_PATHS = "";
+			};
+			name = Release;
+		};
+		FFD4EE8A2F14585E0023B6C3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "compiler-default";
+				CLANG_WARN_DOCUMENTATION_COMMENTS = NO;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Automatic;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = A54HA75PNX;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				EXECUTABLE_PREFIX = lib;
+				GCC_C_LANGUAGE_STANDARD = "compiler-default";
+				HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)/external/SPIRV-Headers/include",
+					"$(SRCROOT)/external/SPIRV-Tools/build",
+					"$(SRCROOT)/external/SPIRV-Tools/",
+					"$(SRCROOT)/external/SPIRV-Tools/include",
+					"$(SRCROOT)/external/SPIRV-Cross/",
+					"$(SRCROOT)/external/glslang/glslang/Include",
+					"$(SRCROOT)/MGL/include",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(PROJECT_DIR)/external/glslang/build/StandAlone",
+					"$(PROJECT_DIR)/external/glslang/build/glslang",
+					"$(PROJECT_DIR)/external/glslang/build/SPIRV",
+					"$(PROJECT_DIR)/external/glslang/build/glslang/OSDependent/Unix",
+					"$(PROJECT_DIR)/external/SPIRV-Tools/build/source",
+					"$(PROJECT_DIR)/external/SPIRV-Cross/build",
+					"$(PROJECT_DIR)/external/SPIRV-Tools/build/source/diff",
+					"$(PROJECT_DIR)/external/SPIRV-Tools/build/source/lint",
+					"$(PROJECT_DIR)/external/SPIRV-Tools/build/source/opt",
+					"$(PROJECT_DIR)/external/SPIRV-Tools/build/source/link",
+					"$(PROJECT_DIR)/external/SPIRV-Tools/build/source/reduce",
+				);
+				MACH_O_TYPE = mh_dylib;
+				MACOSX_DEPLOYMENT_TARGET = 13.5;
+				OTHER_CFLAGS = (
+					"-DENABLE_OPT=0",
+					"-DSPIRV_CROSS_C_API_MSL=1",
+					"-DSPIRV_CROSS_C_API_GLSL=1",
+					"-DSPIRV_CROSS_C_API_CPP=1",
+					"-DSPIRV_CROSS_C_API_REFLECT=1",
+					"-DMGL_GL_ES",
+				);
+				OTHER_LDFLAGS = (
+					"-lstdc++",
+					"-v",
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SKIP_INSTALL = NO;
+				SYSTEM_HEADER_SEARCH_PATHS = "";
+			};
+			name = Debug;
+		};
+		FFD4EE8B2F14585E0023B6C3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "compiler-default";
+				CLANG_WARN_DOCUMENTATION_COMMENTS = NO;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Automatic;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = A54HA75PNX;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				EXECUTABLE_PREFIX = lib;
+				GCC_C_LANGUAGE_STANDARD = "compiler-default";
+				HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)/external/SPIRV-Headers/include",
+					"$(SRCROOT)/external/SPIRV-Tools/build",
+					"$(SRCROOT)/external/SPIRV-Tools/",
+					"$(SRCROOT)/external/SPIRV-Tools/include",
+					"$(SRCROOT)/external/SPIRV-Cross/",
+					"$(SRCROOT)/external/glslang/glslang/Include",
+					"$(SRCROOT)/MGL/include",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(PROJECT_DIR)/external/glslang/build/StandAlone",
+					"$(PROJECT_DIR)/external/glslang/build/glslang",
+					"$(PROJECT_DIR)/external/glslang/build/SPIRV",
+					"$(PROJECT_DIR)/external/glslang/build/glslang/OSDependent/Unix",
+					"$(PROJECT_DIR)/external/SPIRV-Tools/build/source",
+					"$(PROJECT_DIR)/external/SPIRV-Cross/build",
+					"$(PROJECT_DIR)/external/SPIRV-Tools/build/source/diff",
+					"$(PROJECT_DIR)/external/SPIRV-Tools/build/source/lint",
+					"$(PROJECT_DIR)/external/SPIRV-Tools/build/source/opt",
+					"$(PROJECT_DIR)/external/SPIRV-Tools/build/source/link",
+					"$(PROJECT_DIR)/external/SPIRV-Tools/build/source/reduce",
+				);
+				MACH_O_TYPE = mh_dylib;
+				MACOSX_DEPLOYMENT_TARGET = 13.5;
+				OTHER_CFLAGS = (
+					"-DENABLE_OPT=0",
+					"-DSPIRV_CROSS_C_API_MSL=1",
+					"-DSPIRV_CROSS_C_API_GLSL=1",
+					"-DSPIRV_CROSS_C_API_CPP=1",
+					"-DSPIRV_CROSS_C_API_REFLECT=1",
+					"-DMGL_GL_ES",
+				);
+				OTHER_LDFLAGS = (
+					"-lstdc++",
+					"-v",
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SKIP_INSTALL = NO;
+				SYSTEM_HEADER_SEARCH_PATHS = "";
 			};
 			name = Release;
 		};
@@ -1579,6 +1947,15 @@
 			buildConfigurations = (
 				FFA83049276F9EBF003F1EA0 /* Debug */,
 				FFA8304A276F9EBF003F1EA0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		FFD4EE892F14585E0023B6C3 /* Build configuration list for PBXNativeTarget "MGL_ES" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FFD4EE8A2F14585E0023B6C3 /* Debug */,
+				FFD4EE8B2F14585E0023B6C3 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
