@@ -1,5 +1,5 @@
 # MGL
-# OpenGL 4.6 on Metal
+# OpenGL 4.6 and ES 3.x on Metal
 
 This is a start for porting OpenGL 4.6 on top of Metal, most of it is functional and has been tested. The tests are functional, not coverage tests so they test the functionality of a path not all the possible permutations.
 
@@ -307,6 +307,9 @@ This is the best way to start adding functionality, until you open it up it will
 
 ## Why the focus on 4.6 functionality?
 OpenGL is huge, and the effort was intended capture 4.6 functionality rather than try to implement it all (and that includes a lot of 3.x functionality). This is a good path to embed functionality into the base then add in all the older functionality later using the paths you want rather than hacking apart older paths to make modern OpenGL functionality.
+
+## Why add ES 3.x support?
+Well because people were asking for it, ES 3.x is a subset of the OpenGL core. It builds along side the OpenGL 4.6 core with the ES 3.x restictions in place and a separate library for just ES 3.x functions to live in. I am not a ES 3.x user but I hope to get more testing done on ES 3.x soon.
 
 ## Contributing
 If you want to contribute that would be great, it's all written in C.. in the same style all of the OpenGL framework from Apple was written in. If you don't like the coding style, don't change it. Just follow the same coding style and put your efforts into testing and functionality.
