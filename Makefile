@@ -21,8 +21,10 @@ glslang_include_path ?= ./external/glslang/glslang/Include
 #glslang_include_path ?= $(glslang_path)/build/include/glslang $(glslang_path)/glslang/Include
 #glslang_lib_path ?= $(glslang_path)/build/glslang $(glslang_path)/build/OGLCompilersDLL $(glslang_path)/build/glslang/OSDependent/Unix $(glslang_path)/build/StandAlone $(glslang_path)/build/SPIRV
 
-# build dir
+# build dirs
 build_dir ?= build
+build_core_dir := $(build_dir)/core
+build_es_dir := $(build_dir)/es
 
 CFLAGS += -Wall #-Wunused-parameter #-Wextra
 CFLAGS += -gfull
@@ -59,6 +61,14 @@ CXXFLAGS += -I./external/glfw/include -I./external/glfw/src
 CFLAGS += -D_COCOA -D_GLFW_COCOA
 CXXFLAGS += -D_COCOA -D_GLFW_COCOA
 
+# GL_CORE SPECIFIC FLAGS
+CFLAGS_GL_CORE := $(CFLAGS) -DMGL_GL_CORE
+CXXFLAGS_GL_CORE := $(CXXFLAGS) -DMGL_GL_CORE
+
+# GL_ES SPECIFIC FLAGS
+CFLAGS_GL_ES := $(CFLAGS) -DMGL_GL_ES
+CXXFLAGS_GL_ES := $(CXXFLAGS) -DMGL_GL_ES
+
 # Add CoreFoundation framework headers for GLFW Objective-C compilation
 GLFW_FRAMEWORKS = -framework Cocoa -framework CoreFoundation -framework CoreGraphics \
                   -framework IOKit -framework Foundation -framework QuartzCore \
@@ -88,11 +98,13 @@ GLFW_M_SOURCES = $(GLFW_SRC_DIR)/cocoa_init.m \
 # Simplified GLFW object paths - use a flat structure for easier building
 GLFW_BUILD_DIR = $(build_dir)/glfw
 GLFW_C_OBJS = $(GLFW_C_SOURCES:$(GLFW_SRC_DIR)/%.c=$(GLFW_BUILD_DIR)/%.o)
+
 GLFW_M_OBJS = $(GLFW_M_SOURCES:$(GLFW_SRC_DIR)/%.m=$(GLFW_BUILD_DIR)/%.o)
 glfw_objs = $(GLFW_C_OBJS) $(GLFW_M_OBJS)
 
 ifneq ($(SDK_ROOT),)
-CFLAGS += -isysroot $(SDK_ROOT)
+CFLAGS_GL_CORE += -isysroot $(SDK_ROOT)
+CFLAGS_GL_ES += -isysroot $(SDK_ROOT)
 endif
 
 LIBS += -L$(spirv_cross_lib_path) -lspirv-cross-core -lspirv-cross-c -lspirv-cross-cpp -lspirv-cross-msl -lspirv-cross-glsl -lspirv-cross-hlsl -lspirv-cross-reflect
@@ -125,14 +137,40 @@ default: lib
 brew_prefix := $(shell brew --prefix)
 
 # mgl
-mgl_srcs_c := $(wildcard MGL/src/*.c)
+#mgl_srcs_c := $(wildcard MGL/src/*.c)
+mgl_srcs_c := $(filter-out %/gl_core.c  %/gl_es.c, $(wildcard MGL/src/*.c))
+
 mgl_srcs_objc := $(wildcard MGL/src/*.m)
 
-mgl_objs := $(mgl_srcs_c:.c=.o) $(mgl_srcs_cpp:.cpp=.o)
-mgl_objs := $(addprefix $(build_dir)/,$(mgl_objs))
+mgl_core_c := MGL/src/gl_core.c
+mgl_es_c := MGL/src/gl_es.c
 
-mgl_arc_objs := $(mgl_srcs_objc:.m=.o)
-mgl_arc_objs := $(addprefix $(build_dir)/arc/,$(mgl_arc_objs))
+mgl_core_obj := $(mgl_core_c:.c=.o)
+mgl_core_obj := $(addprefix $(build_core_dir)/,$(mgl_core_obj))
+
+mgl_es_obj := $(mgl_es_c:.c=.o)
+mgl_es_obj := $(addprefix $(build_es_dir)/,$(mgl_es_obj))
+
+# core objs
+mgl_core_objs := $(mgl_srcs_c:.c=.o) $(mgl_srcs_cpp:.cpp=.o)
+mgl_core_objs := $(addprefix $(build_core_dir)/,$(mgl_core_objs))
+
+mgl_core_objs := $(mgl_srcs_c:.c=.o) $(mgl_srcs_cpp:.cpp=.o)
+mgl_core_objs := $(addprefix $(build_core_dir)/,$(mgl_core_objs))
+
+mgl_core_arc_objs := $(mgl_srcs_objc:.m=.o)
+mgl_core_arc_objs := $(addprefix $(build_core_dir)/arc/,$(mgl_core_arc_objs))
+
+# es objs
+mgl_es_objs := $(mgl_srcs_c:.c=.o) $(mgl_srcs_cpp:.cpp=.o)
+mgl_es_objs := $(addprefix $(build_es_dir)/,$(mgl_es_objs))
+
+mgl_es_objs := $(mgl_srcs_c:.c=.o) $(mgl_srcs_cpp:.cpp=.o)
+mgl_es_objs := $(addprefix $(build_es_dir)/,$(mgl_es_objs))
+
+mgl_es_arc_objs := $(mgl_srcs_objc:.m=.o)
+mgl_es_arc_objs := $(addprefix $(build_es_dir)/arc/,$(mgl_es_arc_objs))
+
 
 # Define the directories and repositories
 EXT_DIRS = ./external/OpenGL-Registry \
@@ -186,19 +224,29 @@ $(EXT_DIRS):
 
 
 deps += $(mgl_objs:.o=.d)
+deps += $(mgl_core_obj:.o=.d)
+deps += $(mgl_es_obj:.o=.d)
 deps += $(mgl_arc_objs:.o=.d)
 
 
 mgl_lib := $(build_dir)/libmgl.dylib
+mgl_es_lib := $(build_dir)/libmgl_es.dylib
 
 mgl_toolchain_obj := $(build_dir)/MGL/src/mgl_toolchain.o
 mgl_toolchain_lib := $(build_dir)/libmgl_toolchain.a
 
-$(mgl_lib): $(mgl_objs) $(mgl_arc_objs)
+$(mgl_lib): $(mgl_core_objs) $(mgl_core_arc_objs) $(mgl_gl_obj)
 	@mkdir -p $(dir $@)
-	$(CC) -dynamiclib -o $@ $^ $(LIBS)
+	$(CC) -D$(CFLAGS_GL_CORE) -dynamiclib -o $@ $^ $(LIBS)
 	# loading dynamic library requires this
 	ln -fs $(mgl_lib) .
+
+$(mgl_es_lib): $(mgl_es_objs) $(mgl_es_arc_objs) $(mgl_es_obj)
+	@mkdir -p $(dir $@)
+	$(CC) -D$(CFLAGS_GL_ES) -dynamiclib -o $@ $^ $(LIBS)
+	# loading dynamic library requires this
+	ln -fs $(mgl_es_lib) .
+
 
 $(mgl_toolchain_lib): $(mgl_toolchain_obj)
 	@mkdir -p $(dir $@)
@@ -220,7 +268,7 @@ $(build_dir)/libglfw.dylib: external/glfw/build/src/libglfw3.a $(mgl_lib)
 
 # specific rules
 
-lib: $(mgl_lib) $(build_dir)/libglfw.dylib
+lib: $(mgl_lib) $(mgl_es_lib) $(build_dir)/libglfw.dylib
 
 toolchain: $(mgl_toolchain_lib)
 
@@ -232,19 +280,49 @@ dbg: $(test_exe)
 
 
 # generic rules
-$(build_dir)/%.o: %.c
+
+#
+# core build
+#
+$(build_core_dir)/%.o: %.c
 	@mkdir -p $(dir $@)
-	$(CC) -MMD $(CFLAGS) -c $< -o $@
+	$(CC) -MMD $(CFLAGS_GL_CORE) -c $< -o $@
 
 #-std=gnu17 
-$(build_dir)/%.o: %.cpp
+$(build_core_dir)/%.o: %.cpp
 	@mkdir -p $(dir $@)
-	$(CXX) -MMD $(CFLAGS) -c $< -o $@
+	$(CXX) -MMD $(CXXFLAGS_GL_CORE) -c $< -o $@
 
 #-std=c++14
-$(build_dir)/arc/%.o: %.m
+$(build_core_dir)/arc/%.o: %.m
 	@mkdir -p $(dir $@)
-	clang -fobjc-arc -fmodules -MMD $(CFLAGS) \
+	clang -fobjc-arc -fmodules -MMD $(CFLAGS_GL_CORE) \
+		-framework Cocoa -framework CoreFoundation -framework CoreGraphics \
+		-framework IOKit -framework Foundation -framework QuartzCore \
+		-framework Metal -framework OpenGL \
+		-c $< -o $@
+
+$(build_core_dir)/%.o: %.m
+	@mkdir -p $(dir $@)
+	clang -fmodules -MMD $(CFLAGS_GL_CORE) -c $< -o $@
+
+
+#
+# es build
+#
+$(build_es_dir)/%.o: %.c
+	@mkdir -p $(dir $@)
+	$(CC) -MMD $(CFLAGS_GL_ES) -c $< -o $@
+
+#-std=gnu17
+$(build_es_dir)/%.o: %.cpp
+	@mkdir -p $(dir $@)
+	$(CXX) -MMD $(CXXFLAGS_GL_ES) -c $< -o $@
+
+#-std=c++14
+$(build_es_dir)/arc/%.o: %.m
+	@mkdir -p $(dir $@)
+	clang -fobjc-arc -fmodules -MMD $(CFLAGS_GL_ES) \
 		-framework Cocoa -framework CoreFoundation -framework CoreGraphics \
 		-framework IOKit -framework Foundation -framework QuartzCore \
 		-framework Metal -framework OpenGL \
@@ -252,7 +330,10 @@ $(build_dir)/arc/%.o: %.m
 
 $(build_dir)/%.o: %.m
 	@mkdir -p $(dir $@)
-	clang -fmodules -MMD $(CFLAGS) -c $< -o $@
+	clang -fmodules -MMD $(CXXFLAGS_GL_ES) -c $< -o $@
+
+
+
 
 # GLFW-specific build rules with simplified flat directory structure
 $(GLFW_BUILD_DIR)/%.o: $(GLFW_SRC_DIR)/%.c
@@ -266,6 +347,7 @@ $(GLFW_BUILD_DIR)/%.o: $(GLFW_SRC_DIR)/%.m
 clean:
 	rm -rf $(build_dir)
 	rm -f libmgl.dylib
+	rm -f libmgl_es.dylib
 	rm -f libglfw.dylib
 
 install-pkgdeps: download-pkgdeps compile-pkgdeps
