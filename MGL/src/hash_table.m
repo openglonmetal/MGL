@@ -125,6 +125,8 @@ void insertHashElement(HashTable *table, GLuint name, void *data)
         fprintf(stderr, "MGL: insertHashElement - name %u exceeds table size %u, unable to insert\n", name, table->size);
         return;
     }
+
+    assert(table->keys[name].data == NULL);
     table->keys[name].data = data;
 }
 
