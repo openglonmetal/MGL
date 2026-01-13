@@ -122,7 +122,7 @@ void insertHashElement(HashTable *table, GLuint name, void *data)
 /* Ensure name is within bounds after resizing (or capping at UINT_MAX). */
     if (name >= table->size)
     {
-        fprintf(stderr, "MGL: insertHashElement - name %u exceeds table size %u, unable to insert\n", name, table->size);
+        fprintf(stderr, "MGL: insertHashElement - name %u exceeds table size %zu, unable to insert\n", name, table->size);
         return;
     }
 
