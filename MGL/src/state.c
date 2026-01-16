@@ -208,10 +208,10 @@ void mglScissor(GLMContext ctx, GLint x, GLint y, GLsizei width, GLsizei height)
     ERROR_CHECK_RETURN(width >= 0, GL_INVALID_VALUE);
     ERROR_CHECK_RETURN(height >= 0, GL_INVALID_VALUE);
 
-    ctx->state.var.scissor_box[0] = x;
-    ctx->state.var.scissor_box[1] = y;
-    ctx->state.var.scissor_box[2] = width;
-    ctx->state.var.scissor_box[3] = height;
+    ctx->state.var.scissor_box[0] = (GLuint)x;
+    ctx->state.var.scissor_box[1] = (GLuint)y;
+    ctx->state.var.scissor_box[2] = (GLuint)width;
+    ctx->state.var.scissor_box[3] = (GLuint)height;
 
     ctx->state.dirty_bits |= DIRTY_RENDER_STATE;
 }
@@ -259,8 +259,8 @@ void mglStencilFunc(GLMContext ctx, GLenum func, GLint ref, GLuint mask)
         case GL_NEVER:
             ctx->state.var.stencil_func = func;
             ctx->state.var.stencil_back_func = func;
-            ctx->state.var.stencil_ref = ref;
-            ctx->state.var.stencil_back_ref = ref;
+            ctx->state.var.stencil_ref = (GLuint)ref;
+            ctx->state.var.stencil_back_ref = (GLuint)ref;
             ctx->state.var.stencil_writemask = mask;
             ctx->state.var.stencil_back_writemask = mask;
             break;
@@ -402,22 +402,22 @@ void mglStencilFuncSeparate(GLMContext ctx, GLenum face, GLenum func, GLint ref,
     {
         case GL_FRONT:
             ctx->state.var.stencil_func = func;
-            ctx->state.var.stencil_ref = ref;
+            ctx->state.var.stencil_ref = (GLuint)ref;
             ctx->state.var.stencil_writemask = mask;
             break;
 
         case GL_BACK:
             ctx->state.var.stencil_back_func = func;
-            ctx->state.var.stencil_back_ref = ref;
+            ctx->state.var.stencil_back_ref = (GLuint)ref;
             ctx->state.var.stencil_back_writemask = mask;
             break;
 
         case GL_FRONT_AND_BACK:
             ctx->state.var.stencil_func = func;
-            ctx->state.var.stencil_ref = ref;
+            ctx->state.var.stencil_ref = (GLuint)ref;
             ctx->state.var.stencil_writemask = mask;
             ctx->state.var.stencil_back_func = func;
-            ctx->state.var.stencil_back_ref = ref;
+            ctx->state.var.stencil_back_ref = (GLuint)ref;
             ctx->state.var.stencil_back_writemask = mask;
             break;
 
@@ -500,10 +500,10 @@ void mglViewport(GLMContext ctx, GLint x, GLint y, GLsizei width, GLsizei height
     ERROR_CHECK_RETURN(width > 0, GL_INVALID_VALUE);
     ERROR_CHECK_RETURN(height > 0, GL_INVALID_VALUE);
 
-    ctx->state.viewport[0] = x;
-    ctx->state.viewport[1] = y;
-    ctx->state.viewport[2] = width;
-    ctx->state.viewport[3] = height;
+    ctx->state.viewport[0] = (GLuint)x;
+    ctx->state.viewport[1] = (GLuint)y;
+    ctx->state.viewport[2] = (GLuint)width;
+    ctx->state.viewport[3] = (GLuint)height;
 
     ctx->state.dirty_bits |= DIRTY_RENDER_STATE;
 }

@@ -45,7 +45,7 @@ extern void mglDrawBuffer(GLMContext ctx, GLenum buf);
 
 typedef struct SyncList_t {
     GLuint count;
-    GLuint  size;
+    size_t  size;
     Sync **list;
 } SyncList;
 
@@ -67,6 +67,18 @@ enum {
     _BACK_LEFT,
     _BACK_RIGHT,
     _MAX_DRAW_BUFFERS
+};
+
+// I am sure there are better ways to do this, but I hate warnings
+// these are all deprecated formats and issue warnings
+enum {Dep_MTLPixelFormatPVRTC_RGB_2BPP = 160,
+    Dep_MTLPixelFormatPVRTC_RGB_2BPP_sRGB  = 161,
+    Dep_MTLPixelFormatPVRTC_RGB_4BPP = 162,
+    Dep_MTLPixelFormatPVRTC_RGB_4BPP_sRGB = 163,
+    Dep_MTLPixelFormatPVRTC_RGBA_2BPP = 164,
+    Dep_MTLPixelFormatPVRTC_RGBA_2BPP_sRGB = 165,
+    Dep_MTLPixelFormatPVRTC_RGBA_4BPP = 166,
+    Dep_MTLPixelFormatPVRTC_RGBA_4BPP_sRGB = 167
 };
 
 // CRITICAL SECURITY: Safe Metal object validation helper
@@ -509,7 +521,7 @@ void logDirtyBits(GLMContext ctx)
         //
         // we need to cache this mapping, its called on each draw command
         //
-        for(int att=0;att<ctx->state.max_vertex_attribs; att++)
+        for(GLuint att=0;att<ctx->state.max_vertex_attribs; att++)
         {
             if (VAO_STATE(enabled_attribs) & (0x1 << att))
             {
@@ -544,7 +556,7 @@ void logDirtyBits(GLMContext ctx)
                     bool found_buffer = false;
 
                     // find vao attrib with same buffer
-                    for (int map=vao_buffer_start;
+                    for (GLuint map=vao_buffer_start;
                          (found_buffer == false) && map<buffer_map->count;
                          map++)
                     {
@@ -669,7 +681,7 @@ void logDirtyBits(GLMContext ctx)
 - (bool) checkForDirtyBufferData:  (BufferMapList *)buffer_map_list
 {
     // update vbos, some vbos may not have metal buffers yet
-    for(int i=0;i<buffer_map_list->count; i++)
+    for(GLuint i=0;i<buffer_map_list->count; i++)
     {
         Buffer *gl_buffer;
 
@@ -690,7 +702,7 @@ void logDirtyBits(GLMContext ctx)
 - (bool) updateDirtyBaseBufferList: (BufferMapList *)buffer_map_list
 {
     // update vbos, some vbos may not have metal buffers yet
-    for(int i=0;i<buffer_map_list->count; i++)
+    for(GLuint i=0;i<buffer_map_list->count; i++)
     {
         Buffer *gl_buffer;
 
@@ -716,7 +728,7 @@ void logDirtyBits(GLMContext ctx)
     
     assert(_currentRenderEncoder);
 
-    for(int i=0; i<ctx->state.vertex_buffer_map_list.count; i++)
+    for(GLuint i=0; i<ctx->state.vertex_buffer_map_list.count; i++)
     {
         map = &ctx->state.vertex_buffer_map_list.buffers[i];
         
@@ -757,7 +769,7 @@ void logDirtyBits(GLMContext ctx)
     
     assert(_currentRenderEncoder);
 
-    for(int i=0; i<ctx->state.fragment_buffer_map_list.count; i++)
+    for(GLuint i=0; i<ctx->state.fragment_buffer_map_list.count; i++)
     {
         map = &ctx->state.fragment_buffer_map_list.buffers[i];
 
@@ -791,7 +803,7 @@ void logDirtyBits(GLMContext ctx)
 
 - (int) getVertexBufferIndexWithAttributeSet: (int) attribute
 {
-    for(int i=0; i<ctx->state.vertex_buffer_map_list.count; i++)
+    for(GLuint i=0; i<ctx->state.vertex_buffer_map_list.count; i++)
     {
         if (ctx->state.vertex_buffer_map_list.buffers[i].attribute_mask & (0x1 << attribute))
             return i;
@@ -806,7 +818,7 @@ void logDirtyBits(GLMContext ctx)
 
 - (void)swizzleTexDesc:(MTLTextureDescriptor *)tex_desc forTex:(Texture*)tex
 {
-    unsigned channel_r, channel_g, channel_b, channel_a;
+    uint8_t channel_r, channel_g, channel_b, channel_a;
 
     channel_r = channel_g = channel_b = channel_a = 0;
 
@@ -927,9 +939,9 @@ void logDirtyBits(GLMContext ctx)
             return NULL;
         }
 
-        for(int face=0; face<num_faces; face++)
+        for(GLuint face=0; face<num_faces; face++)
         {
-            for (int i=0; i<tex->num_levels; i++)
+            for (GLuint i=0; i<tex->num_levels; i++)
             {
                 // incomplete texture
                 if (tex->faces[face].levels[i].complete == false)
@@ -943,7 +955,7 @@ void logDirtyBits(GLMContext ctx)
     {
         // single level texture
         // incomplete texture
-        for(int face=0; face<num_faces; face++)
+        for(GLuint face=0; face<num_faces; face++)
         {
             if (tex->faces[face].levels[0].complete == false)
                 return NULL;
@@ -977,10 +989,10 @@ void logDirtyBits(GLMContext ctx)
             needsFormatConversion = YES;
             pixelFormat = MTLPixelFormatRGBA8Unorm;
             break;
-        case MTLPixelFormatPVRTC_RGBA_2BPP:
-        case MTLPixelFormatPVRTC_RGBA_4BPP:
-        case MTLPixelFormatPVRTC_RGB_2BPP:
-        case MTLPixelFormatPVRTC_RGB_4BPP:
+        case Dep_MTLPixelFormatPVRTC_RGBA_2BPP:
+        case Dep_MTLPixelFormatPVRTC_RGBA_4BPP:
+        case Dep_MTLPixelFormatPVRTC_RGB_2BPP:
+        case Dep_MTLPixelFormatPVRTC_RGB_4BPP:
             // PVRTC compression can cause issues in virtualization
             needsFormatConversion = YES;
             pixelFormat = MTLPixelFormatRGBA8Unorm;
@@ -1092,23 +1104,26 @@ void logDirtyBits(GLMContext ctx)
         NSLog(@"MGL DEBUG: Texture details: target=0x%x, internalformat=0x%x, levels=%d",
               tex->target, tex->internalformat, tex->num_levels);
 
-        MTLRegion region;
+        // unused
+        // MTLRegion region;
 
-        for(int face=0; face<num_faces; face++)
+        for(GLuint face=0; face<num_faces; face++)
         {
-            for (int level=0; level<tex->num_levels; level++)
+            for (GLuint level=0; level<tex->num_levels; level++)
             {
                 width = tex->faces[face].levels[level].width;
                 height = tex->faces[face].levels[level].height;
                 depth = tex->faces[face].levels[level].depth;
 
+                // unused
+#if 0
                 if (depth > 1)
                     region = MTLRegionMake3D(0,0,0,width,height,depth);
                 else if (height > 1)
                     region = MTLRegionMake2D(0,0,width,height);
                 else
                     region = MTLRegionMake1D(0,width);
-
+#endif
                 NSUInteger bytesPerRow;
                 NSUInteger bytesPerImage;
 
@@ -1150,7 +1165,7 @@ void logDirtyBits(GLMContext ctx)
                                 uint8_t *srcPtr = (uint8_t *)srcData;
                                 uint8_t *dstPtr = (uint8_t *)alignedData;
 
-                                for (NSUInteger row = 0; row < height; row++) {
+                                for (NSUInteger row = 0; row < texHeight; row++) {
                                     NSUInteger copySize = (srcRowSize < dstRowSize) ? srcRowSize : dstRowSize;
                                     memcpy(dstPtr + (row * dstRowSize), srcPtr + (row * srcRowSize), copySize);
                                     // Clear padding to zero
@@ -1225,16 +1240,46 @@ void logDirtyBits(GLMContext ctx)
                         // adjust GL to metal bytesPerImage
                         bytesPerImage /= num_layers;
 
+                        // region is set but unused
+#if 0
                         if (depth > 1) // 2d array
+                        {
                             region = MTLRegionMake3D(0,0,0,width,height,1);
+                        }
                         else if (height >= 1) // 1d array
+                        {
                             region = MTLRegionMake2D(0,0,width,1);
-                        else // ?
-                            // CRITICAL FIX: Handle assertion gracefully instead of crashing
-            NSLog(@"MGL ERROR: Assertion hit in MGLRenderer.m at line %d", __LINE__);
-            return NULL;
+                        }
+                        else
+                        {
 
-                        for(int layer=0; layer<num_layers; layer++)
+                            // CRITICAL FIX: Handle assertion gracefully instead of crashing
+                            NSLog(@"MGL ERROR: Assertion hit in MGLRenderer.m at line %d", __LINE__);
+
+                            // this caused a never exectued warning for for(int layer=0; layer<num_layers; layer++) below
+                            // always bracket your code..
+                            return NULL;
+                        }
+#else
+                        if (depth > 1) // 2d array
+                        {
+                        }
+                        else if (height >= 1) // 1d array
+                        {
+                            
+                        }
+                        else
+                        {
+                            // CRITICAL FIX: Handle assertion gracefully instead of crashing
+                            NSLog(@"MGL ERROR: Assertion hit in MGLRenderer.m at line %d", __LINE__);
+
+                            // this caused a never exectued warning for for(int layer=0; layer<num_layers; layer++) below
+                            // always bracket your code..
+                            return NULL;
+                        }
+#endif
+                        
+                        for(GLuint layer=0; layer<num_layers; layer++)
                         {
                             offset = bytesPerImage * layer;
 
@@ -1434,7 +1479,8 @@ void logDirtyBits(GLMContext ctx)
     else
     {
         // PROPER FIX: Enable texture filling with AGX safety and proper memory alignment
-        MTLRegion region = MTLRegionMake2D(0, 0, texture.width, texture.height);
+        // commented out, region is never used
+        //MTLRegion region = MTLRegionMake2D(0, 0, texture.width, texture.height);
 
         NSLog(@"MGL INFO: PROPER FIX - Processing texture fill (tex=%d, dims=%lux%lu)", tex->name, (unsigned long)texture.width, (unsigned long)texture.height);
 
@@ -1806,7 +1852,7 @@ void logDirtyBits(GLMContext ctx)
                         }
 
                         free(properData);
-                        skip_fill_operation:;
+                        // unused skip_fill_operation:;
                     } else {
                         NSLog(@"MGL ERROR: Failed to allocate properly aligned texture data");
                     }
@@ -2097,7 +2143,7 @@ void logDirtyBits(GLMContext ctx)
     //     @property (nonatomic) NSUInteger maxAnisotropy;
     if (tex_param->max_anisotropy > 1.0)
     {
-        samplerDescriptor.maxAnisotropy = tex_param->max_anisotropy;
+        samplerDescriptor.maxAnisotropy = (NSUInteger)tex_param->max_anisotropy;
     }
 
     //    @property (nonatomic) MTLSamplerAddressMode sAddressMode;
@@ -2261,7 +2307,7 @@ void logDirtyBits(GLMContext ctx)
         // something is very wrong..
         assert(textures_to_be_mapped < TEXTURE_UNITS);
 
-        for (int i=0; textures_to_be_mapped > 0; i++)
+        for (GLuint i=0; textures_to_be_mapped > 0; i++)
         {
             RETURN_FALSE_ON_FAILURE(i < count);
 
@@ -2552,7 +2598,7 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
     return ptr->spirv_resources_list[stage][type].count;
 }
 
-- (int) getProgramBinding: (int) stage type: (int) type index: (int) index
+- (int) getProgramBinding: (GLuint) stage type: (GLuint) type index: (GLuint) index
 {
     Program *ptr;
 
@@ -2582,7 +2628,7 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
     return ptr->spirv_resources_list[stage][type].list[index].binding;
 }
 
-- (int) getProgramLocation: (int) stage type: (int) type index: (int) index
+- (int) getProgramLocation: (GLuint) stage type: (GLuint)type index: (GLuint) index
 {
     Program *ptr;
 
@@ -2699,9 +2745,9 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
     frame = [_layer frame];
 
     tex_desc = [[MTLTextureDescriptor alloc] init];
-    tex_desc.width = frame.size.width;
-    tex_desc.height = frame.size.height;
-    tex_desc.width = frame.size.width;
+    tex_desc.width = (NSUInteger)frame.size.width;
+    tex_desc.height = (NSUInteger)frame.size.height;
+    tex_desc.width = (NSUInteger)frame.size.width;
     tex_desc.pixelFormat = pixelFormat;
     tex_desc.usage = MTLTextureUsageRenderTarget;
 
@@ -2722,9 +2768,9 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
     MTLTextureDescriptor *tex_desc;
 
     tex_desc = [[MTLTextureDescriptor alloc] init];
-    tex_desc.width = size.width;
-    tex_desc.height = size.height;
-    tex_desc.width = size.width;
+    tex_desc.width = (NSUInteger)size.width;
+    tex_desc.height = (NSUInteger)size.height;
+    tex_desc.width = (NSUInteger)size.width;
     tex_desc.pixelFormat = pixelFormat;
     tex_desc.usage = MTLTextureUsageRenderTarget;
 
@@ -2739,7 +2785,7 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
     return texture;
 }
 
-- (bool) checkDrawBufferSize:(GLuint) index;
+- (GLboolean) checkDrawBufferSize:(GLuint) index
 {
     NSRect frame;
     NSSize size;
@@ -2920,8 +2966,8 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
         NSRect frame;
         frame = [_layer frame];
 
-        ctx->state.var.scissor_box[2] = frame.size.width;
-        ctx->state.var.scissor_box[3] = frame.size.height;
+        ctx->state.var.scissor_box[2] = (GLuint)frame.size.width;
+        ctx->state.var.scissor_box[3] = (GLuint)frame.size.height;
     }
 
     _renderPassDescriptor = [MTLRenderPassDescriptor renderPassDescriptor];
@@ -3111,7 +3157,7 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
 
         if (ctx->state.framebuffer) {
             Framebuffer * fbo = ctx->state.framebuffer;
-            for(int i=0; i<STATE(max_color_attachments);i++) {
+            for(GLuint i=0; i<STATE(max_color_attachments);i++) {
                 FBOAttachment * fboa;
                 fboa = &fbo->color_attachments[i];
                 if (fboa->clear_bitmask & GL_COLOR_BUFFER_BIT) {
@@ -3591,7 +3637,7 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
 
         fbo = ctx->state.framebuffer;
 
-        for (int i=0; i<STATE(max_color_attachments); i++)
+        for (GLuint i=0; i<STATE(max_color_attachments); i++)
         {
             if (fbo->color_attachments[i].texture)
             {
@@ -3678,7 +3724,7 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
     [vertexDescriptor reset]; // ??? debug
 
     // we can bind a new vertex descriptor without creating a new renderbuffer
-    for(int i=0;i<ctx->state.max_vertex_attribs; i++)
+    for(GLuint i=0;i<ctx->state.max_vertex_attribs; i++)
     {
         if (VAO_STATE(enabled_attribs) & (0x1 << i))
         {
@@ -4354,7 +4400,7 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
         ctx->state.dirty_bits &= ~DIRTY_BUFFER;
     }
 
-    for(int i=0; i<ctx->state.compute_buffer_map_list.count; i++)
+    for(GLuint i=0; i<ctx->state.compute_buffer_map_list.count; i++)
     {
         Buffer *ptr;
 
@@ -4651,12 +4697,14 @@ void mtlDispatchComputeIndirect(GLMContext glm_ctx, GLintptr indirect)
 -(void) flushCommandBuffer: (bool) finish
 {
     // SAFETY: Check Metal objects before processing
-    if (!_device || !_commandQueue) {
+    if (!_device || !_commandQueue)
+    {
         NSLog(@"MGL ERROR: Metal device or queue is NULL in flushCommandBuffer");
         return;
     }
 
-    if (![self processGLState: false]) {
+    if (![self processGLState: false])
+    {
         NSLog(@"MGL WARNING: processGLState failed in flushCommandBuffer, continuing with cleanup");
         // Don't return - continue with cleanup to prevent resource leaks
     }
@@ -4665,14 +4713,16 @@ void mtlDispatchComputeIndirect(GLMContext glm_ctx, GLintptr indirect)
     [self endRenderEncoding];
 
     // SAFETY: Check command buffer before using
-    if (!_currentCommandBuffer) {
+    if (!_currentCommandBuffer)
+    {
         NSLog(@"MGL WARNING: No current command buffer in flushCommandBuffer");
         [self newCommandBuffer];
         return;
     }
 
     // CRITICAL FIX: Proper command buffer validation and state management
-    if (!_currentCommandBuffer) {
+    if (!_currentCommandBuffer)
+    {
         NSLog(@"MGL ERROR: No command buffer available for commit");
         return;
     }
@@ -4680,20 +4730,23 @@ void mtlDispatchComputeIndirect(GLMContext glm_ctx, GLintptr indirect)
     // Check buffer status safely without race conditions
     MTLCommandBufferStatus currentStatus = _currentCommandBuffer.status;
 
-    if (currentStatus >= MTLCommandBufferStatusCommitted) {
+    if (currentStatus >= MTLCommandBufferStatusCommitted)
+    {
         NSLog(@"MGL WARNING: Command buffer already committed");
         return;
     }
 
     // Validate command buffer before committing
-    if (_currentCommandBuffer.error) {
+    if (_currentCommandBuffer.error)
+    {
         NSLog(@"MGL ERROR: Command buffer has error before commit: %@", _currentCommandBuffer.error);
         [self cleanupCommandBuffer];
         return;
     }
 
     // GPU ERROR THROTTLING: Check for excessive recent failures
-    if (![self validateMetalObjects]) {
+    if (![self validateMetalObjects])
+    {
         NSLog(@"MGL WARNING: GPU throttling active - skipping command buffer commit");
         [self cleanupCommandBuffer];
         return;
@@ -4732,44 +4785,54 @@ void mtlDispatchComputeIndirect(GLMContext glm_ctx, GLintptr indirect)
         }
 
         // CRITICAL FIX: Safe error checking after commit with proper exception handling
-        @try {
-        NSError* commitError = nil;
-        @try {
-            commitError = _currentCommandBuffer.error;
-        } @catch (NSException *e) {
-            NSLog(@"MGL WARNING: Exception accessing command buffer error: %@", e);
-            [self recordGPUError];
-            [self cleanupCommandBuffer];
-            return;
-        }
+        @try
+        {
+            NSError* commitError = nil;
+            @try
+            {
+                commitError = _currentCommandBuffer.error;
+            }
+            @catch (NSException *e)
+            {
+                NSLog(@"MGL WARNING: Exception accessing command buffer error: %@", e);
+                [self recordGPUError];
+                [self cleanupCommandBuffer];
+                return;
+            }
 
-        if (commitError) {
-            NSLog(@"MGL ERROR: Command buffer failed after commit: %@", commitError);
+            if (commitError)
+            {
+                NSLog(@"MGL ERROR: Command buffer failed after commit: %@", commitError);
 
-            // CRITICAL FIX: Record error before any cleanup operations
-            [self recordGPUError];
+                // CRITICAL FIX: Record error before any cleanup operations
+                [self recordGPUError];
 
-            // Intelligent error recovery based on error type
-            if (([commitError.domain containsString:@"IOGPUCommandQueueErrorDomain"] ||
-                 [commitError.domain containsString:@"MTLCommandBufferErrorDomain"]) && commitError.code == 4) {
+                // Intelligent error recovery based on error type
+                if (([commitError.domain containsString:@"IOGPUCommandQueueErrorDomain"] ||
+                     [commitError.domain containsString:@"MTLCommandBufferErrorDomain"]) && commitError.code == 4)
+                {
 
-                NSLog(@"MGL CRITICAL: GPU ignoring submissions due to excessive errors (%@) - implementing AGX recovery", commitError.domain);
+                    NSLog(@"MGL CRITICAL: GPU ignoring submissions due to excessive errors (%@) - implementing AGX recovery", commitError.domain);
 
-                // CRITICAL: AGX driver requires complete command queue recreation
-                [NSThread sleepForTimeInterval:1.0];  // Longer pause for AGX driver
+                    // CRITICAL: AGX driver requires complete command queue recreation
+                    [NSThread sleepForTimeInterval:1.0];  // Longer pause for AGX driver
 
-                // Force complete Metal state reset to clear the error condition
-                [self resetMetalState];
+                    // Force complete Metal state reset to clear the error condition
+                    [self resetMetalState];
 
-                // Create fresh command buffer after AGX recovery
-                [self newCommandBuffer];
+                    // Create fresh command buffer after AGX recovery
+                    [self newCommandBuffer];
 
-                NSLog(@"MGL RECOVERY: AGX driver error state cleared, continuing operations");
-            } else {
-                // Record other GPU errors for throttling (already done above)
+                    NSLog(@"MGL RECOVERY: AGX driver error state cleared, continuing operations");
+                }
+                else
+                {
+                    // Record other GPU errors for throttling (already done above)
+                }
             }
         }
-        } @catch (NSException *exception) {
+        @catch (NSException *exception)
+        {
             NSLog(@"MGL ERROR: Error checking command buffer status: %@", exception);
             [self recordGPUError];
         }
@@ -4816,25 +4879,31 @@ void mtlDeleteMTLObj (GLMContext glm_ctx, void *obj)
 -(void) mtlGetSync:(GLMContext) glm_ctx sync: (Sync *)sync
 {
     // SAFETY: Check Metal objects before processing
-    if (!_device || !_commandQueue) {
+    if (!_device || !_commandQueue)
+    {
         NSLog(@"MGL ERROR: Metal device or queue is NULL in mtlGetSync");
         return;
     }
 
-    if (![self processGLState: false]) {
+    if (![self processGLState: false])
+    {
         NSLog(@"MGL WARNING: processGLState failed in mtlGetSync");
         return;
     }
 
     if (_currentEvent == NULL)
     {
-        @try {
+        @try
+        {
             _currentEvent = [_device newEvent];
-            if (!_currentEvent) {
+            if (!_currentEvent)
+            {
                 NSLog(@"MGL ERROR: Failed to create Metal event");
                 return;
             }
-        } @catch (NSException *exception) {
+        }
+        @catch (NSException *exception)
+        {
             NSLog(@"MGL ERROR: Exception creating Metal event: %@", exception);
             return;
         }
@@ -4848,14 +4917,16 @@ void mtlDeleteMTLObj (GLMContext glm_ctx, void *obj)
     {
         // CRITICAL SECURITY FIX: Check malloc results instead of using assert()
         _currentCommandBufferSyncList = (SyncList *)malloc(sizeof(SyncList));
-        if (!_currentCommandBufferSyncList) {
+        if (!_currentCommandBufferSyncList)
+        {
             NSLog(@"MGL SECURITY ERROR: Failed to allocate SyncList");
             return;
         }
 
         _currentCommandBufferSyncList->size = 8;
         _currentCommandBufferSyncList->list = (Sync **)malloc(sizeof(Sync *) * 8);
-        if (!_currentCommandBufferSyncList->list) {
+        if (!_currentCommandBufferSyncList->list)
+        {
             NSLog(@"MGL SECURITY ERROR: Failed to allocate SyncList array");
             free(_currentCommandBufferSyncList);
             _currentCommandBufferSyncList = NULL;
@@ -4871,7 +4942,8 @@ void mtlDeleteMTLObj (GLMContext glm_ctx, void *obj)
     if (_currentCommandBufferSyncList->count >= _currentCommandBufferSyncList->size)
     {
         // CRITICAL SECURITY FIX: Check for integer overflow before multiplication
-        if (_currentCommandBufferSyncList->size > SIZE_MAX / 2 / sizeof(Sync *)) {
+        if (_currentCommandBufferSyncList->size > SIZE_MAX / 2 / sizeof(Sync *))
+        {
             NSLog(@"MGL SECURITY ERROR: SyncList size would overflow, preventing expansion");
             return;
         }
@@ -4879,7 +4951,8 @@ void mtlDeleteMTLObj (GLMContext glm_ctx, void *obj)
         size_t new_size = _currentCommandBufferSyncList->size * 2;
         Sync **new_list = (Sync **)realloc(_currentCommandBufferSyncList->list,
                                            sizeof(Sync *) * new_size);
-        if (!new_list) {
+        if (!new_list)
+        {
             NSLog(@"MGL SECURITY ERROR: Failed to reallocate SyncList array");
             return;
         }
@@ -4899,28 +4972,34 @@ void mtlGetSync (GLMContext glm_ctx, Sync *sync)
 -(void) mtlWaitForSync:(GLMContext) glm_ctx sync: (Sync *)sync
 {
     // CRITICAL SAFETY: Validate sync object before processing
-    if (!sync) {
+    if (!sync)
+    {
         NSLog(@"MGL ERROR: mtlWaitForSync - sync object is NULL");
         return;
     }
 
     // SAFETY: Check processGLState result before continuing
-    if (![self processGLState: false]) {
+    if (![self processGLState: false])
+    {
         NSLog(@"MGL WARNING: mtlWaitForSync - processGLState failed, skipping sync wait");
         return;  // Don't try to release potentially corrupted sync object
     }
 
     // SAFETY: Validate mtl_event before releasing - prevent objc_release crash
-    if (!sync->mtl_event) {
+    if (!sync->mtl_event)
+    {
         NSLog(@"MGL WARNING: mtlWaitForSync - sync->mtl_event is NULL");
         return;
     }
 
-    @try {
+    @try
+    {
         NSLog(@"MGL INFO: Releasing Metal sync event");
         CFBridgingRelease(sync->mtl_event);
         sync->mtl_event = NULL;
-    } @catch (NSException *exception) {
+    }
+    @catch (NSException *exception)
+    {
         NSLog(@"MGL ERROR: Exception releasing sync event: %@", exception);
         // Don't crash - set to NULL to prevent double release
         sync->mtl_event = NULL;
@@ -4962,20 +5041,24 @@ void mtlFlush (GLMContext glm_ctx, bool finish)
         }
 
         // CRITICAL FIX: Enhanced command buffer validation for AGX compatibility
-        if (!_currentCommandBuffer) {
+        if (!_currentCommandBuffer)
+        {
             NSLog(@"MGL AGX: Command buffer is NULL in mtlSwapBuffers, creating new buffer");
             _currentCommandBuffer = [_commandQueue commandBuffer];
-            if (!_currentCommandBuffer) {
+            if (!_currentCommandBuffer)
+            {
                 NSLog(@"MGL AGX ERROR: Failed to create command buffer in mtlSwapBuffers");
                 return;
             }
         }
 
         // CRITICAL FIX: Comprehensive drawable validation for AGX compatibility
-        if (_drawable == NULL) {
+        if (_drawable == NULL)
+        {
             NSLog(@"MGL WARNING: Drawable is NULL in mtlSwapBuffers, getting new drawable");
             _drawable = [_layer nextDrawable];
-            if (_drawable == NULL) {
+            if (_drawable == NULL)
+            {
                 NSLog(@"MGL ERROR: Failed to obtain any drawable from Metal layer");
                 [_currentCommandBuffer commit];
                 return;
@@ -4983,38 +5066,45 @@ void mtlFlush (GLMContext glm_ctx, bool finish)
         }
 
         // Validate drawable and layer compatibility for AGX driver
-        if (_layer == NULL) {
+        if (_layer == NULL)
+        {
             NSLog(@"MGL ERROR: Metal layer is NULL, cannot present drawable");
             [_currentCommandBuffer commit];
             return;
         }
 
         // CRITICAL FIX: Validate command buffer state before presentation
-        if (!_currentCommandBuffer) {
+        if (!_currentCommandBuffer)
+        {
             NSLog(@"MGL ERROR: No command buffer available for presentation");
             return;
         }
 
         MTLCommandBufferStatus bufferStatus = _currentCommandBuffer.status;
-        if (bufferStatus >= MTLCommandBufferStatusCommitted) {
+        if (bufferStatus >= MTLCommandBufferStatusCommitted)
+        {
             NSLog(@"MGL WARNING: Command buffer already committed (status: %ld), creating new buffer", (long)bufferStatus);
             [self newCommandBuffer];
-            if (!_currentCommandBuffer) {
+            if (!_currentCommandBuffer)
+            {
                 NSLog(@"MGL ERROR: Failed to create new command buffer for presentation");
                 return;
             }
         }
 
         // CRITICAL FIX: Safe drawable presentation with AGX error handling
-        @try {
+        @try
+        {
             // Final validation of drawable texture
-            if (_drawable.texture == NULL) {
+            if (_drawable.texture == NULL)
+            {
                 NSLog(@"MGL ERROR: Drawable texture is NULL, cannot present");
                 return;
             }
 
             // Check drawable texture dimensions are valid
-            if (_drawable.texture.width == 0 || _drawable.texture.height == 0) {
+            if (_drawable.texture.width == 0 || _drawable.texture.height == 0)
+            {
                 NSLog(@"MGL ERROR: Drawable has invalid dimensions: %dx%d",
                       (int)_drawable.texture.width, (int)_drawable.texture.height);
                 return;
@@ -5027,7 +5117,9 @@ void mtlFlush (GLMContext glm_ctx, bool finish)
             // Present the drawable with proper error handling
             [_currentCommandBuffer presentDrawable: _drawable];
 
-        } @catch (NSException *exception) {
+        }
+        @catch (NSException *exception)
+        {
             NSLog(@"MGL ERROR: Critical drawable presentation failure: %@", exception);
             NSLog(@"MGL ERROR: Exception name: %@, reason: %@", [exception name], [exception reason]);
 
@@ -5035,24 +5127,31 @@ void mtlFlush (GLMContext glm_ctx, bool finish)
             [self cleanupCommandBuffer];
 
             // Don't present, but still commit the command buffer if possible
-            @try {
+            @try
+            {
                 [_currentCommandBuffer commit];
-            } @catch (NSException *commitException) {
+            }
+            @catch (NSException *commitException)
+            {
                 NSLog(@"MGL ERROR: Command buffer commit also failed: %@", commitException);
             }
             return;
         }
 
-        @try {
+        @try
+        {
             // AGX Driver Compatibility: Use specialized commit method for AGX
             [self commitCommandBufferWithAGXRecovery:_currentCommandBuffer];
-        } @catch (NSException *exception) {
+        }
+        @catch (NSException *exception)
+        {
             NSLog(@"MGL ERROR: Failed to commit command buffer: %@", exception);
             [self recordGPUError];
         }
 
         _drawable = [_layer nextDrawable];
-        if (_drawable == NULL) {
+        if (_drawable == NULL)
+        {
             NSLog(@"MGL WARNING: Failed to get next drawable in mtlSwapBuffers");
             // Don't assert - just continue without creating new command buffer
             return;
@@ -5066,23 +5165,29 @@ void mtlSwapBuffers (GLMContext glm_ctx)
 {
     // CRITICAL FIX: Validate context and Metal object pointer before dereferencing
     // This prevents pointer authentication failures from corrupted pointers
-    if (!glm_ctx) {
+    if (!glm_ctx)
+    {
         NSLog(@"MGL CRITICAL: mtlSwapBuffers - GLM context is NULL");
         return;
     }
 
     // Validate the Metal object pointer (realistic bounds for 64-bit systems)
-    if (!glm_ctx->mtl_funcs.mtlObj || ((uintptr_t)glm_ctx->mtl_funcs.mtlObj < 0x1000) || ((uintptr_t)glm_ctx->mtl_funcs.mtlObj > 0x100000000000ULL)) {
+    if (!glm_ctx->mtl_funcs.mtlObj || ((uintptr_t)glm_ctx->mtl_funcs.mtlObj < 0x1000) || ((uintptr_t)glm_ctx->mtl_funcs.mtlObj > 0x100000000000ULL))
+    {
         NSLog(@"MGL CRITICAL: mtlSwapBuffers - Invalid Metal object pointer: %p", glm_ctx->mtl_funcs.mtlObj);
         NSLog(@"MGL CRITICAL: This indicates memory corruption or context destruction");
         return;
     }
 
     // Call the Objective-C method using Objective-C syntax
-    @autoreleasepool {
-        @try {
+    @autoreleasepool
+    {
+        @try
+        {
             [(__bridge id) glm_ctx->mtl_funcs.mtlObj mtlSwapBuffers: glm_ctx];
-        } @catch (NSException *exception) {
+        }
+        @catch (NSException *exception)
+        {
             NSLog(@"MGL CRITICAL: mtlSwapBuffers - Exception caught: %@", exception);
             NSLog(@"MGL CRITICAL: Exception reason: %@", [exception reason]);
         }
@@ -5188,7 +5293,8 @@ void mtlFlushBufferRange(GLMContext glm_ctx, Buffer *buf, GLintptr offset, GLsiz
 #pragma mark C interface to mtlReadDrawable
 -(void) mtlReadDrawable:(GLMContext) glm_ctx pixelBytes:(void *)pixelBytes bytesPerRow:(NSUInteger)bytesPerRow bytesPerImage:(NSUInteger)bytesPerImage fromRegion:(MTLRegion)region
 {
-    id<MTLTexture> texture;
+    // unused variable
+    // id<MTLTexture> texture;
 
     // if tex is null we are pulling from a readbuffer or a drawable
     if (glm_ctx->state.readbuffer)
@@ -5202,8 +5308,8 @@ void mtlFlushBufferRange(GLMContext glm_ctx, Buffer *buf, GLintptr offset, GLsiz
         assert(drawbuffer <= STATE(max_color_attachments));
 
         // CRITICAL FIX: Handle assertion gracefully instead of crashing
-            NSLog(@"MGL ERROR: Assertion hit in MGLRenderer.m at line %d", __LINE__);
-            return;
+        NSLog(@"MGL ERROR: Assertion hit in MGLRenderer.m at line %d", __LINE__);
+        return;
         
         //tex = [self framebufferAttachmentTexture: &fbo->color_attachments[drawbuffer]];
         //assert(tex);
@@ -5333,7 +5439,9 @@ void mtlFlushBufferRange(GLMContext glm_ctx, Buffer *buf, GLintptr offset, GLsiz
     }
     else
     {
- 
+        // ??
+        NSLog(@"Not sure what to do here tex is null %s:%d\n", __FUNCTION__, __LINE__);
+        return;
     }
 
     if ([texture isFramebufferOnly] == NO)
@@ -5506,18 +5614,21 @@ Buffer *getIndirectBuffer(GLMContext ctx)
     MTLPrimitiveType primitiveType;
 
     // AGGRESSIVE MEMORY SAFETY: Immediate validation before any Metal operations (realistic bounds)
-    if (!ctx || ((uintptr_t)ctx < 0x1000) || ((uintptr_t)ctx > 0x100000000000ULL)) {
+    if (!ctx || ((uintptr_t)ctx < 0x1000) || ((uintptr_t)ctx > 0x100000000000ULL))
+    {
         NSLog(@"MGL ERROR: mtlDrawArrays - Invalid context detected, aborting");
         return; // Early return to prevent crash
     }
 
-    if ([self processGLState: true] == false) {
+    if ([self processGLState: true] == false)
+    {
         NSLog(@"MGL ERROR: mtlDrawArrays - processGLState failed, aborting");
         return; // Early return instead of continuing with invalid state
     }
 
     // Additional safety check after processGLState
-    if (!_currentRenderEncoder) {
+    if (!_currentRenderEncoder)
+    {
         NSLog(@"MGL ERROR: mtlDrawArrays - No current render encoder, aborting");
         return;
     }
@@ -5525,11 +5636,14 @@ Buffer *getIndirectBuffer(GLMContext ctx)
     primitiveType = getMTLPrimitiveType(mode);
     assert(primitiveType != 0xFFFFFFFF);
 
-    @try {
+    @try
+    {
         [_currentRenderEncoder drawPrimitives: primitiveType
                                  vertexStart: first
                                  vertexCount: count];
-    } @catch (NSException *exception) {
+    }
+    @catch (NSException *exception)
+    {
         NSLog(@"MGL ERROR: mtlDrawArrays - drawPrimitives failed: %@", exception);
         // Don't crash, just return gracefully
     }
@@ -5538,26 +5652,33 @@ Buffer *getIndirectBuffer(GLMContext ctx)
 void mtlDrawArrays(GLMContext glm_ctx, GLenum mode, GLint first, GLsizei count)
 {
     // FINAL FAILSAFE: Catch any unhandled exceptions to prevent QEMU crashes
-    @try {
+    @try
+    {
         // Validate context before bridging (realistic bounds for 64-bit systems)
-        if (!glm_ctx || ((uintptr_t)glm_ctx < 0x1000) || ((uintptr_t)glm_ctx > 0x100000000000ULL)) {
+        if (!glm_ctx || ((uintptr_t)glm_ctx < 0x1000) || ((uintptr_t)glm_ctx > 0x100000000000ULL))
+        {
             NSLog(@"MGL CRITICAL: mtlDrawArrays - Invalid GLM context, aborting operation");
             return;
         }
 
         // Validate the Metal object pointer (realistic bounds for 64-bit systems)
-        if (!glm_ctx->mtl_funcs.mtlObj || ((uintptr_t)glm_ctx->mtl_funcs.mtlObj < 0x1000) || ((uintptr_t)glm_ctx->mtl_funcs.mtlObj > 0x100000000000ULL)) {
+        if (!glm_ctx->mtl_funcs.mtlObj || ((uintptr_t)glm_ctx->mtl_funcs.mtlObj < 0x1000) || ((uintptr_t)glm_ctx->mtl_funcs.mtlObj > 0x100000000000ULL))
+        {
             NSLog(@"MGL CRITICAL: mtlDrawArrays - Invalid Metal object, aborting operation");
             return;
         }
 
         [(__bridge id) glm_ctx->mtl_funcs.mtlObj mtlDrawArrays: glm_ctx mode: mode first: first count: count];
-    } @catch (NSException *exception) {
+    }
+    @catch (NSException *exception)
+    {
         NSLog(@"MGL CRITICAL: mtlDrawArrays - Unhandled exception caught: %@", exception);
         NSLog(@"MGL CRITICAL: Exception reason: %@", [exception reason]);
         NSLog(@"MGL CRITICAL: This is a failsafe to prevent QEMU crashes");
         // Don't crash, just return gracefully
-    } @catch (id exception) {
+    }
+    @catch (id exception)
+    {
         NSLog(@"MGL CRITICAL: mtlDrawArrays - Unknown exception caught: %@", exception);
         // Final safety net
     }
@@ -6238,7 +6359,7 @@ void mtlMultiDrawElementsIndirect(GLMContext glm_ctx, GLenum mode, GLenum type, 
     glm_ctx->mtl_funcs.mtlDispatchComputeIndirect = mtlDispatchComputeIndirect;
 }
 
-- (id) initMGLRendererFromContext: (void *)glm_ctx andBindToWindow: (NSWindow *)window;
+- (id) initMGLRendererFromContext: (void *)glm_ctx andBindToWindow: (NSWindow *)window
 {
     assert (window);
     assert (glm_ctx);
@@ -6257,7 +6378,7 @@ void mtlMultiDrawElementsIndirect(GLMContext glm_ctx, GLenum mode, GLenum type, 
     return self;
 }
 
-- (id) createMGLRendererFromContext: (void *)glm_ctx andBindToWindow: (NSWindow *)window;
+- (id) createMGLRendererFromContext: (void *)glm_ctx andBindToWindow: (NSWindow *)window
 {
     assert (window);
     assert (glm_ctx);
@@ -6316,9 +6437,12 @@ void* CppCreateMGLRendererHeadless (void *glm_ctx)
 
     // CRITICAL FIX: Initialize thread synchronization lock
     _metalStateLock = [[NSLock alloc] init];
-    if (!_metalStateLock) {
+    if (!_metalStateLock)
+    {
         NSLog(@"MGL ERROR: Failed to create metal state lock");
-    } else {
+    }
+    else
+    {
         NSLog(@"MGL INFO: Metal state lock created successfully");
     }
 
@@ -6335,7 +6459,8 @@ void* CppCreateMGLRendererHeadless (void *glm_ctx)
 
     // Create the Metal device
     _device = MTLCreateSystemDefaultDevice();
-    if (!_device) {
+    if (!_device)
+    {
         NSLog(@"MGL ERROR: Metal device not found - this is required for Apple Silicon");
         return; // Exit early rather than continuing with nil device
     }
@@ -6347,7 +6472,8 @@ void* CppCreateMGLRendererHeadless (void *glm_ctx)
     NSString *deviceName = [_device name];
 
     // DETECTION: Check if running in QEMU virtualization but keep Metal enabled
-    if ([deviceName containsString:@"AGX"]) {
+    if ([deviceName containsString:@"AGX"])
+    {
         isVirtualized = YES;
         NSLog(@"MGL INFO: AGX device detected - enabling virtualization compatibility mode: %@", deviceName);
         NSLog(@"MGL INFO: Metal functionality will be maintained with AGX virtualization safety measures");
@@ -6355,13 +6481,15 @@ void* CppCreateMGLRendererHeadless (void *glm_ctx)
 
     // Create command queue with virtualization-safe settings
     MTLCommandQueueDescriptor *queueDescriptor = [[MTLCommandQueueDescriptor alloc] init];
-    if (isVirtualized) {
+    if (isVirtualized)
+    {
         NSLog(@"MGL INFO: VIRTUALIZED AGX - Enabling virtualization-safe command queue settings");
         queueDescriptor.maxCommandBufferCount = 16;  // Limit concurrent buffers for virtualization safety
     }
 
     _commandQueue = [_device newCommandQueueWithDescriptor:queueDescriptor];
-    if (!_commandQueue) {
+    if (!_commandQueue)
+    {
         NSLog(@"MGL ERROR: Failed to create Metal command queue");
         return;
     }
@@ -6374,7 +6502,8 @@ void* CppCreateMGLRendererHeadless (void *glm_ctx)
     NSLog(@"MGL INFO: PROPER FIX - Creating Metal layer with AGX-safe settings");
 
     _layer = [[CAMetalLayer alloc] init];
-    if (!_layer) {
+    if (!_layer)
+    {
         NSLog(@"MGL ERROR: Failed to create Metal layer");
         return;
     }
@@ -6387,25 +6516,32 @@ void* CppCreateMGLRendererHeadless (void *glm_ctx)
     _layer.presentsWithTransaction = NO;
 
     // AGX-safe scale factor handling
-    int scaleFactor = [[NSScreen mainScreen] backingScaleFactor];
+    CGFloat scaleFactor = [[NSScreen mainScreen] backingScaleFactor];
     [_layer setContentsScale: scaleFactor];
 
     // AGX-safe layer attachment
-    if ([_view layer]) {
+    if ([_view layer])
+    {
         [[_view layer] addSublayer: _layer];
-    } else {
+    }
+    else
+    {
         [_view setLayer: _layer];
     }
 
     mglDrawBuffer(glm_ctx, GL_FRONT);
 
     // Create initial command buffer for AGX safety
-    @try {
+    @try
+    {
         _currentCommandBuffer = [_commandQueue commandBuffer];
-        if (!_currentCommandBuffer) {
+        if (!_currentCommandBuffer)
+        {
             NSLog(@"MGL ERROR: Failed to create initial Metal command buffer");
         }
-    } @catch (NSException *exception) {
+    }
+    @catch (NSException *exception)
+    {
         NSLog(@"MGL ERROR: Exception creating initial Metal command buffer: %@", exception);
     }
     
@@ -6426,7 +6562,8 @@ void* CppCreateMGLRendererHeadless (void *glm_ctx)
 {
     NSLog(@"MGL PROACTIVE: Starting essential texture creation");
 
-    @try {
+    @try
+    {
         // Create a simple 2D texture with gradient pattern to prevent magenta screens
         MTLTextureDescriptor *proactiveDesc = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm
                                                                                                           width:256
@@ -6436,13 +6573,18 @@ void* CppCreateMGLRendererHeadless (void *glm_ctx)
         proactiveDesc.storageMode = MTLStorageModeShared;
 
         id<MTLTexture> proactiveTexture = [_device newTextureWithDescriptor:proactiveDesc];
-        if (proactiveTexture) {
+        if (proactiveTexture)
+        {
             // Create gradient pattern data
             uint32_t *gradientData = calloc(256 * 256, sizeof(uint32_t));
-            if (gradientData) {
+            
+            if (gradientData)
+            {
                 // Create blue-green gradient pattern
-                for (NSUInteger y = 0; y < 256; y++) {
-                    for (NSUInteger x = 0; x < 256; x++) {
+                for (NSUInteger y = 0; y < 256; y++)
+                {
+                    for (NSUInteger x = 0; x < 256; x++)
+                    {
                         NSUInteger index = y * 256 + x;
                         uint8_t r = (uint8_t)((x * 128) / 256 + 64);      // Red: 64-192
                         uint8_t g = (uint8_t)((y * 128) / 256 + 64);      // Green: 64-192
@@ -6460,21 +6602,28 @@ void* CppCreateMGLRendererHeadless (void *glm_ctx)
 
                 free(gradientData);
                 NSLog(@"MGL PROACTIVE SUCCESS: Created 256x256 gradient texture (prevents magenta screen)");
-            } else {
+            }
+            else
+            {
                 NSLog(@"MGL PROACTIVE WARNING: Could not allocate gradient data");
             }
 
             // Store the proactive texture for future use
-            if (!_proactiveTextures) {
+            if (!_proactiveTextures)
+            {
                 _proactiveTextures = [[NSMutableArray alloc] init];
             }
+            
             [_proactiveTextures addObject:proactiveTexture];
-
-        } else {
+        }
+        else
+        {
             NSLog(@"MGL PROACTIVE ERROR: Could not create proactive texture");
         }
 
-    } @catch (NSException *exception) {
+    }
+    @catch (NSException *exception)
+    {
         NSLog(@"MGL PROACTIVE ERROR: Exception creating proactive textures: %@", exception.reason);
     }
 
@@ -6496,7 +6645,8 @@ void* CppCreateMGLRendererHeadless (void *glm_ctx)
     NSError *error = nil;
     BOOL success = [MTLCaptureManager.sharedCaptureManager startCaptureWithDescriptor:descriptor
                                                                                 error:&error];
-    if (!success) {
+    if (!success)
+    {
         NSLog(@" error capturing mtl => %@ ", [error localizedDescription] );
     }
 }
@@ -6512,7 +6662,8 @@ void* CppCreateMGLRendererHeadless (void *glm_ctx)
 {
     NSLog(@"MGL INFO: MGLRenderer dealloc - cleaning up Metal resources");
 
-    @try {
+    @try
+    {
         // Stop any ongoing capture
         [MTLCaptureManager.sharedCaptureManager stopCapture];
 
@@ -6520,58 +6671,69 @@ void* CppCreateMGLRendererHeadless (void *glm_ctx)
         [self endRenderEncoding];
 
         // Cleanup command buffer and encoder
-        if (_currentCommandBuffer) {
+        if (_currentCommandBuffer)
+        {
             NSLog(@"MGL INFO: Releasing current command buffer");
             _currentCommandBuffer = nil;
         }
 
-        if (_currentRenderEncoder) {
+        if (_currentRenderEncoder)
+        {
             NSLog(@"MGL INFO: Releasing current render encoder");
             _currentRenderEncoder = nil;
         }
 
         // Cleanup sync objects
-        if (_currentEvent) {
+        if (_currentEvent)
+        {
             NSLog(@"MGL INFO: Releasing current sync event");
             _currentEvent = nil;
         }
 
         // Cleanup pipeline state
-        if (_pipelineState) {
+        if (_pipelineState)
+        {
             NSLog(@"MGL INFO: Releasing pipeline state");
             _pipelineState = nil;
         }
 
         // Cleanup drawable and layer
-        if (_drawable) {
+        if (_drawable)
+        {
             NSLog(@"MGL INFO: Releasing drawable");
             _drawable = nil;
         }
 
-        if (_layer) {
+        if (_layer)
+        {
             NSLog(@"MGL INFO: Removing and releasing layer");
             [_layer removeFromSuperlayer];
             _layer = nil;
         }
 
         // Cleanup command queue and device
-        if (_commandQueue) {
+        if (_commandQueue)
+        {
             NSLog(@"MGL INFO: Releasing command queue");
             _commandQueue = nil;
         }
 
-        if (_device) {
+        if (_device)
+        {
             NSLog(@"MGL INFO: Releasing Metal device");
             _device = nil;
         }
 
         // Cleanup thread lock
-        if (_metalStateLock) {
+        if (_metalStateLock)
+        {
             NSLog(@"MGL INFO: Releasing metal state lock");
             _metalStateLock = nil;
         }
 
-    } @catch (NSException *exception) {
+    }
+    @catch (NSException *exception)
+    {
         NSLog(@"MGL ERROR: Exception during dealloc cleanup: %@", exception);
     }
 
@@ -6583,15 +6745,18 @@ void* CppCreateMGLRendererHeadless (void *glm_ctx)
 - (BOOL)validateMetalObjects
 {
     // PROPER FIX: Comprehensive Metal object validation with GPU health monitoring
-    @try {
+    @try
+    {
         // Check Metal device validity
-        if (!_device) {
+        if (!_device)
+        {
             NSLog(@"MGL ERROR: Metal device is nil during validation");
             return NO;
         }
 
         // Check command queue validity
-        if (!_commandQueue) {
+        if (!_commandQueue)
+        {
             NSLog(@"MGL ERROR: Metal command queue is nil during validation");
             return NO;
         }
@@ -6603,29 +6768,37 @@ void* CppCreateMGLRendererHeadless (void *glm_ctx)
         static NSUInteger maxErrorsPerWindow = 3;
 
         // Get current error tracking from command buffer if available
-        if (_currentCommandBuffer && _currentCommandBuffer.error) {
+        if (_currentCommandBuffer && _currentCommandBuffer.error)
+        {
             NSTimeInterval currentTime = [[NSDate date] timeIntervalSince1970];
 
             // Check if this is within the throttle window
-            if (currentTime - lastErrorTime < throttleWindow) {
+            if (currentTime - lastErrorTime < throttleWindow)
+            {
                 consecutiveGpuErrors++;
                 NSLog(@"MGL GPU THROTTLING: %lu consecutive GPU errors detected", (unsigned long)consecutiveGpuErrors);
 
                 // If we've exceeded the error threshold, temporarily disable operations
-                if (consecutiveGpuErrors > maxErrorsPerWindow) {
+                if (consecutiveGpuErrors > maxErrorsPerWindow)
+                {
                     NSLog(@"MGL CRITICAL: GPU error threshold exceeded - throttling operations for %.1f seconds", throttleWindow);
 
                     // Force a reset and temporary pause
                     [self resetMetalState];
 
                     // Reset counter after pause
-                    if (currentTime - lastErrorTime > throttleWindow) {
+                    if (currentTime - lastErrorTime > throttleWindow)
+                    {
                         consecutiveGpuErrors = 0;
-                    } else {
+                    }
+                    else
+                    {
                         return NO; // Skip this operation to prevent more errors
                     }
                 }
-            } else {
+            }
+            else
+            {
                 // Reset counter if outside throttle window
                 consecutiveGpuErrors = 1;
                 lastErrorTime = currentTime;
@@ -6633,16 +6806,20 @@ void* CppCreateMGLRendererHeadless (void *glm_ctx)
         }
 
         // Check for virtualization environment changes
-        if (@available(macOS 11.0, *)) {
+        if (@available(macOS 11.0, *))
+        {
             // Device registry ID changes indicate virtualization issues
-            if (_device.registryID == 0) {
+            if (_device.registryID == 0)
+            {
                 NSLog(@"MGL WARNING: Detected virtualized Metal environment - enabling safety mode");
                 // Note: _isVirtualized would be an instance variable to track virtualization state
             }
         }
 
         return YES;
-    } @catch (NSException *exception) {
+    }
+    @catch (NSException *exception)
+    {
         NSLog(@"MGL ERROR: Metal object validation failed: %@", exception);
         return NO;
     }
@@ -6654,7 +6831,8 @@ void* CppCreateMGLRendererHeadless (void *glm_ctx)
     NSLog(@"MGL ERROR: Metal operation '%@' failed: %@", operation, error);
 
     // Analyze error code for specific recovery strategies
-    switch (error.code) {
+    switch (error.code)
+    {
         case MTLCommandBufferStatusError:
             NSLog(@"MGL INFO: Command buffer execution failed - recreating command buffer");
             [self cleanupCommandBuffer];
@@ -6664,12 +6842,17 @@ void* CppCreateMGLRendererHeadless (void *glm_ctx)
             NSLog(@"MGL ERROR: Unknown Metal error code %ld - attempting recovery", (long)error.code);
 
             // Handle common error scenarios based on error code
-            if (error.code >= 1000 && error.code < 2000) {
+            if (error.code >= 1000 && error.code < 2000)
+            {
                 NSLog(@"MGL INFO: Detected feature compatibility issue - using safer settings");
-            } else if (error.code >= 2000 && error.code < 3000) {
+            }
+            else if (error.code >= 2000 && error.code < 3000)
+            {
                 NSLog(@"MGL INFO: Detected memory issue - clearing resources");
                 [self clearTextureCache];
-            } else {
+            }
+            else
+            {
                 NSLog(@"MGL ERROR: Unknown Metal error - attempting full recovery");
                 [self resetMetalState];
             }
@@ -6686,7 +6869,8 @@ void* CppCreateMGLRendererHeadless (void *glm_ctx)
     // For now, we focus on basic resource cleanup
 
     // Force garbage collection using available methods
-    if (@available(macOS 10.15, *)) {
+    if (@available(macOS 10.15, *))
+    {
         // Simply nil out some references to encourage garbage collection
         // This is a placeholder for more sophisticated cache management
     }
@@ -6695,20 +6879,26 @@ void* CppCreateMGLRendererHeadless (void *glm_ctx)
 - (void)cleanupCommandBuffer
 {
     // PROPER FIX: Safe command buffer cleanup
-    @try {
-        if (_currentCommandBuffer) {
-            if (_currentCommandBuffer.status == MTLCommandBufferStatusCommitted) {
+    @try
+    {
+        if (_currentCommandBuffer)
+        {
+            if (_currentCommandBuffer.status == MTLCommandBufferStatusCommitted)
+            {
                 // Wait for completion before cleanup
                 [_currentCommandBuffer waitUntilCompleted];
             }
             _currentCommandBuffer = nil;
         }
 
-        if (_currentRenderEncoder) {
+        if (_currentRenderEncoder)
+        {
             [_currentRenderEncoder endEncoding];
             _currentRenderEncoder = nil;
         }
-    } @catch (NSException *exception) {
+    }
+    @catch (NSException *exception)
+    {
         NSLog(@"MGL ERROR: Exception during command buffer cleanup: %@", exception);
     }
 }
@@ -6724,9 +6914,12 @@ void* CppCreateMGLRendererHeadless (void *glm_ctx)
     NSLog(@"MGL AGX RECOVERY: Recreating command queue to clear GPU error state");
     _commandQueue = nil;
     _commandQueue = [_device newCommandQueue];
-    if (!_commandQueue) {
+    if (!_commandQueue)
+    {
         NSLog(@"MGL CRITICAL: Failed to recreate command queue during AGX recovery");
-    } else {
+    }
+    else
+    {
         NSLog(@"MGL AGX RECOVERY: Command queue successfully recreated");
     }
 
@@ -6743,13 +6936,15 @@ void* CppCreateMGLRendererHeadless (void *glm_ctx)
 // AGX Driver Compatibility: Specialized command buffer commit with recovery
 - (void)commitCommandBufferWithAGXRecovery:(id<MTLCommandBuffer>)commandBuffer
 {
-    if (!commandBuffer) {
+    if (!commandBuffer)
+    {
         NSLog(@"MGL ERROR: Cannot commit NULL command buffer");
         return;
     }
 
     // Pre-commit validation for AGX driver
-    if (commandBuffer.error) {
+    if (commandBuffer.error)
+    {
         NSLog(@"MGL AGX WARNING: Command buffer has pre-commit error: %@", commandBuffer.error);
         [self recordGPUError];
     }
@@ -6757,13 +6952,15 @@ void* CppCreateMGLRendererHeadless (void *glm_ctx)
     // Add completion handler for AGX error detection
     __block typeof(self) blockSelf = self;
     [commandBuffer addCompletedHandler:^(id<MTLCommandBuffer> buffer) {
-        if (buffer.error) {
+        if (buffer.error)
+        {
             NSLog(@"MGL AGX ERROR: Command buffer completed with error: %@", buffer.error);
             [blockSelf recordGPUError];
 
             // Specific handling for AGX driver rejection
             if ([buffer.error.domain isEqualToString:@"MTLCommandBufferErrorDomain"] &&
-                buffer.error.code == 4) { // "Ignored (for causing prior/excessive GPU errors)"
+                buffer.error.code == 4)
+            { // "Ignored (for causing prior/excessive GPU errors)"
                 NSLog(@"MGL AGX RECOVERY: Triggering reset due to driver rejection");
 
                 // Force more aggressive recovery for AGX driver
@@ -6772,11 +6969,14 @@ void* CppCreateMGLRendererHeadless (void *glm_ctx)
                     [blockSelf resetMetalState];
                 });
             }
-        } else {
+        }
+        else
+        {
             [blockSelf recordGPUSuccess];
 
             // AGX Recovery: Clear recovery mode on success
-            if (blockSelf->_gpuErrorRecoveryMode) {
+            if (blockSelf->_gpuErrorRecoveryMode)
+            {
                 NSLog(@"MGL AGX RECOVERY: Exiting GPU recovery mode after successful completion");
                 blockSelf->_gpuErrorRecoveryMode = NO;
             }
@@ -6785,31 +6985,37 @@ void* CppCreateMGLRendererHeadless (void *glm_ctx)
 
     // CRITICAL FIX: Enhanced command buffer validation before commit
     // Prevents MTLReleaseAssertionFailure in AGX driver
-    if (!commandBuffer) {
+    if (!commandBuffer)
+    {
         NSLog(@"MGL AGX ERROR: Cannot commit nil command buffer");
         return;
     }
 
     // Check command buffer status before commit
     MTLCommandBufferStatus status = [commandBuffer status];
-    if (status >= MTLCommandBufferStatusCommitted) {
+    if (status >= MTLCommandBufferStatusCommitted)
+    {
         NSLog(@"MGL AGX WARNING: Command buffer already committed (status: %ld) - skipping commit", (long)status);
         return;
     }
 
     // Validate command buffer is in a valid state for commit
-    if (status == MTLCommandBufferStatusError) {
+    if (status == MTLCommandBufferStatusError)
+    {
         NSLog(@"MGL AGX ERROR: Command buffer in error state - skipping commit");
         [self recordGPUError];
         return;
     }
 
     // Commit with exception handling
-    @try {
+    @try
+    {
         NSLog(@"MGL AGX: Committing command buffer (status: %ld)", (long)status);
         [commandBuffer commit];
         NSLog(@"MGL AGX: Command buffer committed successfully");
-    } @catch (NSException *exception) {
+    }
+    @catch (NSException *exception)
+    {
         NSLog(@"MGL AGX ERROR: Command buffer commit exception: %@", exception);
         [self recordGPUError];
 
@@ -6830,8 +7036,10 @@ void* CppCreateMGLRendererHeadless (void *glm_ctx)
     NSTimeInterval currentTime = [[NSDate date] timeIntervalSince1970];
 
     // PROPER FIX: More realistic recovery window based on actual AGX behavior
-    if (currentTime - _lastGPUErrorTime > 15.0) {
-        if (_consecutiveGPUErrors > 0) {
+    if (currentTime - _lastGPUErrorTime > 15.0)
+    {
+        if (_consecutiveGPUErrors > 0)
+        {
             NSLog(@"MGL AGX: Recovery timeout - attempting GPU operations (had %lu errors)", (unsigned long)_consecutiveGPUErrors);
         }
         _consecutiveGPUErrors = 0;
@@ -6841,8 +7049,10 @@ void* CppCreateMGLRendererHeadless (void *glm_ctx)
 
     // PROPER FIX: Threshold based on actual AGX driver tolerance
     // AGX driver starts rejecting after just a few errors in virtualization
-    if (_consecutiveGPUErrors >= 3 || _gpuErrorRecoveryMode) {
-        if (!_gpuErrorRecoveryMode) {
+    if (_consecutiveGPUErrors >= 3 || _gpuErrorRecoveryMode)
+    {
+        if (!_gpuErrorRecoveryMode)
+        {
             NSLog(@"MGL AGX: Entering recovery mode after %lu consecutive errors", (unsigned long)_consecutiveGPUErrors);
             _gpuErrorRecoveryMode = YES;
 
@@ -6861,7 +7071,8 @@ void* CppCreateMGLRendererHeadless (void *glm_ctx)
     NSLog(@"MGL AGX: Clearing problematic GPU state for recovery");
 
     // Clear current problematic resources
-    if (_currentCommandBuffer) {
+    if (_currentCommandBuffer)
+    {
         _currentCommandBuffer = nil;
     }
 
@@ -6891,7 +7102,8 @@ void* CppCreateMGLRendererHeadless (void *glm_ctx)
 
 - (void)recordGPUSuccess
 {
-    if (_consecutiveGPUErrors > 0) {
+    if (_consecutiveGPUErrors > 0)
+    {
         NSLog(@"MGL AGX: GPU operation succeeded, resetting error count (was %lu)", (unsigned long)_consecutiveGPUErrors);
         _consecutiveGPUErrors = 0;
         _gpuErrorRecoveryMode = NO;
@@ -6906,14 +7118,15 @@ void* CppCreateMGLRendererHeadless (void *glm_ctx)
     // PROPER FIX: Dynamic alignment based on pixel format and GPU capabilities
     // Instead of hardcoded 256, use optimal alignment for each format
 
-    switch(format) {
+    switch(format)
+    {
         // Compressed formats have different alignment requirements
-        case MTLPixelFormatPVRTC_RGBA_2BPP:
-        case MTLPixelFormatPVRTC_RGB_2BPP:
+        case Dep_MTLPixelFormatPVRTC_RGBA_2BPP:
+        case Dep_MTLPixelFormatPVRTC_RGB_2BPP:
             return 8; // 2bpp formats need 8-byte alignment
 
-        case MTLPixelFormatPVRTC_RGBA_4BPP:
-        case MTLPixelFormatPVRTC_RGB_4BPP:
+        case Dep_MTLPixelFormatPVRTC_RGBA_4BPP:
+        case Dep_MTLPixelFormatPVRTC_RGB_4BPP:
             return 4; // 4bpp formats need 4-byte alignment
 
         case MTLPixelFormatEAC_R11Unorm:
@@ -7013,11 +7226,14 @@ void* CppCreateMGLRendererHeadless (void *glm_ctx)
 
         default:
             // For unknown formats, check if we're running on Apple Silicon AGX
-            if (@available(macOS 11.0, *)) {
+            if (@available(macOS 11.0, *))
+            {
                 // Check for AGX GPU family
                 if ([_device.name containsString:@"AGX"] ||
                     [_device.name containsString:@"Apple"] ||
-                    _device.registryID == 0) { // Virtualized environment
+                    _device.registryID == 0)
+                {
+                    // Virtualized environment
                     return 16; // Conservative alignment for AGX
                 }
             }

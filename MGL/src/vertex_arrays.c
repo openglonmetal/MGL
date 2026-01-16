@@ -61,7 +61,7 @@ GLsizei typeSize(GLenum type)
     return 0;
 }
 
-GLsizei genStrideFromTypeSize(GLenum type, GLint size)
+GLsizei genStrideFromTypeSize(GLenum type, GLsizei size)
 {
     return typeSize(type) * size;
 }
@@ -184,7 +184,7 @@ void mglDeleteVertexArrays(GLMContext ctx, GLsizei n, const GLuint *arrays)
 
 GLboolean mglIsVertexArray(GLMContext ctx, GLuint array)
 {
-    return isVAO(ctx, array);
+    return (GLboolean)isVAO(ctx, array);
 }
 
 void mglGetVertexAttribdv(GLMContext ctx, GLuint index, GLenum pname, GLdouble *params)
@@ -307,7 +307,7 @@ void mglGetVertexAttribfv(GLMContext ctx, GLuint index, GLenum pname, GLfloat *p
     }
 }
 
-void setVertexAttrib(GLMContext ctx, GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void *pointer)
+void setVertexAttrib(GLMContext ctx, GLuint index, GLsizei size, GLenum type, GLboolean normalized, GLsizei stride, const void *pointer)
 {
 
     if (stride == 0)

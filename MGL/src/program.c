@@ -497,7 +497,7 @@ char *parseSPIRVShaderToMetal(GLMContext ctx, Program *ptr, int stage)
         res = spvc_compiler_get_entry_points(compiler_msl, &entry_points, &num_entry_points);
         assert(res);
         
-        for(int i=0; i<num_entry_points; i++)
+        for(GLuint i=0; i<num_entry_points; i++)
         {
             DEBUG_PRINT("Entry point: %s Execution Model: %d\n", entry_points[i].name, entry_points[i].execution_model);
         }

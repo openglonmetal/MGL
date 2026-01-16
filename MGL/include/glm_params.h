@@ -347,8 +347,8 @@ typedef struct GLMParams_t {
     GLuint max_compute_atomic_counters;
     GLuint max_combined_compute_uniform_components;
     GLuint max_compute_work_group_invocations;
-    GLint max_compute_work_group_count[3];
-    GLint max_compute_work_group_size[3];
+    GLuint max_compute_work_group_count[3];
+    GLuint max_compute_work_group_size[3];
     GLuint dispatch_indirect_buffer_binding;
     GLuint max_debug_group_stack_depth;
     GLuint debug_group_stack_depth;

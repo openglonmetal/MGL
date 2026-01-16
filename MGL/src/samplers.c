@@ -313,7 +313,6 @@ void mglSamplerParameterIiv(GLMContext ctx, GLuint sampler, GLenum pname, const 
 
 void mglSamplerParameterIuiv(GLMContext ctx, GLuint sampler, GLenum pname, const GLuint *param)
 {
-    GLfloat fparam = 0.0;
     Sampler *ptr;
 
     ptr = getSampler(ctx, sampler);
@@ -334,7 +333,7 @@ void mglSamplerParameterIuiv(GLMContext ctx, GLuint sampler, GLenum pname, const
         return;
     }
 
-    if (setParam(ctx, &ptr->params, pname, *param, fparam))
+    if (setParam(ctx, &ptr->params, pname, (GLuint)*param, 0))
     {
         ptr->dirty_bits |= DIRTY_SAMPLER_PARAM;
     }
@@ -395,9 +394,9 @@ void mglGetSamplerParameteriv(GLMContext ctx, GLuint sampler, GLenum pname, GLin
 
     if(getParam(ctx, &ptr->params, pname, params, &fparam))
     {
-        if (fparam)
+        if (fparam > 0.0)
         {
-            *params = (float)fparam;
+            *params = (GLint)fparam;
         }
     }
 }

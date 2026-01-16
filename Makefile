@@ -61,6 +61,12 @@ CXXFLAGS += -I./external/glfw/include -I./external/glfw/src
 CFLAGS += -D_COCOA -D_GLFW_COCOA
 CXXFLAGS += -D_COCOA -D_GLFW_COCOA
 
+ifneq ($(SDK_ROOT),)
+CFLAGS += -isysroot $(SDK_ROOT)
+CXXFLAGS += -isysroot $(SDK_ROOT)
+endif
+
+
 # GL_CORE SPECIFIC FLAGS
 CFLAGS_GL_CORE := $(CFLAGS) -DMGL_GL_CORE
 CXXFLAGS_GL_CORE := $(CXXFLAGS) -DMGL_GL_CORE
@@ -101,11 +107,6 @@ GLFW_C_OBJS = $(GLFW_C_SOURCES:$(GLFW_SRC_DIR)/%.c=$(GLFW_BUILD_DIR)/%.o)
 
 GLFW_M_OBJS = $(GLFW_M_SOURCES:$(GLFW_SRC_DIR)/%.m=$(GLFW_BUILD_DIR)/%.o)
 glfw_objs = $(GLFW_C_OBJS) $(GLFW_M_OBJS)
-
-ifneq ($(SDK_ROOT),)
-CFLAGS_GL_CORE += -isysroot $(SDK_ROOT)
-CFLAGS_GL_ES += -isysroot $(SDK_ROOT)
-endif
 
 LIBS += -L$(spirv_cross_lib_path) -lspirv-cross-core -lspirv-cross-c -lspirv-cross-cpp -lspirv-cross-msl -lspirv-cross-glsl -lspirv-cross-hlsl -lspirv-cross-reflect
 # Use static libraries from external/glslang instead of homebrew
@@ -296,15 +297,14 @@ $(build_core_dir)/%.o: %.cpp
 #-std=c++14
 $(build_core_dir)/arc/%.o: %.m
 	@mkdir -p $(dir $@)
-	clang -fobjc-arc -fmodules -MMD $(CFLAGS_GL_CORE) \
-		-framework Cocoa -framework CoreFoundation -framework CoreGraphics \
-		-framework IOKit -framework Foundation -framework QuartzCore \
-		-framework Metal -framework OpenGL \
+	clang -fobjc-arc -MMD $(CFLAGS_GL_CORE) \
 		-c $< -o $@
 
 $(build_core_dir)/%.o: %.m
 	@mkdir -p $(dir $@)
-	clang -fmodules -MMD $(CFLAGS_GL_CORE) -c $< -o $@
+	clang -MMD $(CFLAGS_GL_CORE) -c $< -o $@
+
+#	clang -fmodules -MMD $(CFLAGS_GL_CORE) -c $< -o $@
 
 
 #

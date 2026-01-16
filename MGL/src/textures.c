@@ -24,7 +24,8 @@
 
 #include <stdio.h>
 
-#include <Accelerate/Accelerate.h>
+// fails in 26.2 Tahoe
+//#include <Accelerate/Accelerate.h>
 
 #include "pixel_utils.h"
 #include "utils.h"
@@ -32,7 +33,7 @@
 
 extern void *getBufferData(GLMContext ctx, Buffer *ptr);
 
-bool texSubImage(GLMContext ctx, Texture *tex, GLuint face, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, void *pixels);
+bool texSubImage(GLMContext ctx, Texture *tex, GLuint face, GLuint level, GLuint xoffset, GLuint yoffset, GLuint zoffset, GLuint width, GLuint height, GLuint depth, GLenum format, GLenum type, void *pixels);
 
 GLuint textureIndexFromTarget(GLMContext ctx, GLenum target)
 {
@@ -153,7 +154,7 @@ static Texture *getTexture(GLMContext ctx, GLenum target, GLuint texture)
     return ptr;
 }
 
-static int isTexture(GLMContext ctx, GLuint texture)
+static GLboolean isTexture(GLMContext ctx, GLuint texture)
 {
     Texture *ptr;
 
@@ -306,7 +307,7 @@ void mglBindTexture(GLMContext ctx, GLenum target, GLuint texture)
     STATE(dirty_bits) |= DIRTY_TEX;
 }
 
-void mglBindImageTexture(GLMContext ctx, GLuint unit, GLuint texture, GLint level, GLboolean layered, GLint layer, GLenum access, GLenum internalformat)
+void mglBindImageTexture(GLMContext ctx, GLuint unit, GLuint texture, GLuint level, GLboolean layered, GLint layer, GLenum access, GLenum internalformat)
 {
     Texture *ptr;
 
@@ -607,7 +608,7 @@ void invalidateTexture(GLMContext ctx, Texture *tex)
 
     for(int face=0; face<_CUBE_MAP_MAX_FACE; face++)
     {
-        for(int i=0; i<tex->num_levels; i++)
+        for(GLuint i=0; i<tex->num_levels; i++)
         {
             if (tex->faces[face].levels[i].complete)
             {
@@ -636,7 +637,7 @@ void initBaseTexLevel(GLMContext ctx, Texture *tex, GLint internalformat, GLsize
     for(int face=0; face<_CUBE_MAP_MAX_FACE; face++)
     {
         // CRITICAL SECURITY FIX: Prevent integer overflow in mipmap allocation
-        if (tex->mipmap_levels > SIZE_MAX / sizeof(TextureLevel)) {
+        if ((size_t)tex->mipmap_levels > SIZE_MAX / sizeof(TextureLevel)) {
             fprintf(stderr, "MGL SECURITY ERROR: Mipmap levels %d would cause allocation overflow\n", tex->mipmap_levels);
             // CRITICAL FIX: Handle gracefully instead of crashing
             STATE(error) = GL_OUT_OF_MEMORY;
@@ -658,18 +659,18 @@ void initBaseTexLevel(GLMContext ctx, Texture *tex, GLint internalformat, GLsize
     tex->depth = depth;
     tex->complete = false;
 
-    for(int face=0; face<_CUBE_MAP_MAX_FACE; face++)
+    for(GLuint face=0; face<_CUBE_MAP_MAX_FACE; face++)
     {
-        for(int i=0; i<tex->mipmap_levels; i++)
+        for(GLuint i=0; i<tex->mipmap_levels; i++)
         {
             tex->faces[face].levels[i].complete = false;
         }
     }
 }
 
-bool checkTexLevelParams(GLMContext ctx, Texture *tex, GLint level, GLuint internalformat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type)
+bool checkTexLevelParams(GLMContext ctx, Texture *tex, GLuint level, GLuint internalformat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type)
 {
-    GLuint base_width, base_height;
+    GLsizei base_width, base_height;
 
     if (level >= tex->mipmap_levels)
     {
@@ -1068,7 +1069,7 @@ void unpackTexture(GLMContext ctx, Texture *tex, GLuint face, GLuint level, void
     if (depth > 1)
     {
         // 3d texture
-        for(int y=0; y<depth; y++)
+        for(size_t y=0; y<depth; y++)
         {
             memcpy(dst, src, dst_pitch);
             src += src_pitch;
@@ -1080,7 +1081,7 @@ void unpackTexture(GLMContext ctx, Texture *tex, GLuint face, GLuint level, void
         // 2d texture
         size_t copy_size = width * pixel_size;
         
-        for(int y=0; y<height; y++)
+        for(size_t y=0; y<height; y++)
         {
             memcpy(dst, src, copy_size);
             src += src_pitch;
@@ -1096,9 +1097,9 @@ void unpackTexture(GLMContext ctx, Texture *tex, GLuint face, GLuint level, void
 
 #pragma mark texImage 1D/2D/3D
 // Forward declaration
-bool texSubImage(GLMContext ctx, Texture *tex, GLuint face, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, void *pixels);
+bool texSubImage(GLMContext ctx, Texture *tex, GLuint face, GLuint level, GLuint xoffset, GLuint yoffset, GLuint zoffset, GLuint width, GLuint height, GLuint depth, GLenum format, GLenum type, void *pixels);
 
-bool createTextureLevel(GLMContext ctx, Texture *tex, GLuint face, GLint level, GLboolean is_array, GLint internalformat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, void *pixels, GLboolean proxy)
+bool createTextureLevel(GLMContext ctx, Texture *tex, GLuint face, GLuint level, GLboolean is_array, GLuint internalformat, GLuint width, GLuint height, GLuint depth, GLenum format, GLenum type, void *pixels, GLboolean proxy)
 {
     // all the levels are created on a tex storage call.. if we get here we should just assert
     if (tex->immutable_storage)
@@ -1513,33 +1514,38 @@ void mglTexImage3DMultisample(GLMContext ctx, GLenum target, GLsizei samples, GL
 }
 
 #pragma mark texSubImage
-bool texSubImage(GLMContext ctx, Texture *tex, GLuint face, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, void *pixels)
+bool texSubImage(GLMContext ctx, Texture *tex, GLuint face, GLuint level, GLuint xoffset, GLuint yoffset, GLuint zoffset, GLuint width, GLuint height, GLuint depth, GLenum format, GLenum type, void *pixels)
 {
     // Debug: Log large texture uploads (VM framebuffer size)
-    if (width >= 640 && height >= 400) {
+    if (width >= 640 && height >= 400)
+    {
         fprintf(stderr, "MGL DEBUG: texSubImage tex_id=%u %dx%d at (%d,%d) pixels=%p\n",
                 tex ? tex->name : 0, width, height, xoffset, yoffset, pixels);
     }
     
     // ERROR_CHECK_RETURN_VALUE(tex != NULL, GL_INVALID_OPERATION, false);
-    if (tex == NULL) {
+    if (tex == NULL)
+    {
         fprintf(stderr, "MGL Error: texSubImage: tex is NULL\n");
         ERROR_RETURN_VALUE(GL_INVALID_OPERATION, false);
     }
 
     // ERROR_CHECK_RETURN_VALUE(level <= tex->num_levels, GL_INVALID_OPERATION, false);
-    if (level > tex->num_levels) {
+    if (level > tex->num_levels)
+    {
         fprintf(stderr, "MGL Error: texSubImage: level %d > num_levels %d\n", level, tex->num_levels);
         ERROR_RETURN_VALUE(GL_INVALID_OPERATION, false);
     }
     
-    if (!tex->faces[face].levels) {
+    if (!tex->faces[face].levels)
+    {
         fprintf(stderr, "MGL Error: texSubImage: levels is NULL\n");
         ERROR_CHECK_RETURN_VALUE(false, GL_INVALID_OPERATION, false);
     }
     
     // ERROR_CHECK_RETURN_VALUE(tex->faces[face].levels[level].complete, GL_INVALID_OPERATION, false);
-    if (!tex->faces[face].levels[level].complete) {
+    if (!tex->faces[face].levels[level].complete)
+    {
         fprintf(stderr, "MGL Error: texSubImage: level %d not complete\n", level);
         ERROR_RETURN_VALUE(GL_INVALID_OPERATION, false);
     }
@@ -1584,7 +1590,8 @@ bool texSubImage(GLMContext ctx, Texture *tex, GLuint face, GLint level, GLint x
 
         // ERROR_CHECK_RETURN((ctx->state.unpack.row_length >> level) >= width, GL_INVALID_VALUE);
         // Fix: row_length applies to the source data for the current level, do not shift by level
-        if (ctx->state.unpack.row_length < width) {
+        if (ctx->state.unpack.row_length < width)
+        {
              ERROR_RETURN_VALUE(GL_INVALID_VALUE, false);
         }
 
@@ -1671,7 +1678,7 @@ bool texSubImage(GLMContext ctx, Texture *tex, GLuint face, GLint level, GLint x
 }
 
 #pragma mark texSubImage1D
-void texSubImage1D(GLMContext ctx, Texture *tex, GLuint face, GLint level, GLint xoffset, GLsizei width, GLenum format, GLenum type, const void *pixels)
+void texSubImage1D(GLMContext ctx, Texture *tex, GLuint face, GLint level, GLuint xoffset, GLsizei width, GLenum format, GLenum type, const void *pixels)
 {
     ERROR_CHECK_RETURN(level >= 0, GL_INVALID_VALUE);
 
@@ -1718,7 +1725,7 @@ void mglTextureSubImage1D(GLMContext ctx, GLuint texture, GLint level, GLint xof
 }
 
 #pragma mark texSubImage2D
-bool texSubImage2D(GLMContext ctx, Texture *tex, GLuint face, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *pixels)
+bool texSubImage2D(GLMContext ctx, Texture *tex, GLuint face, GLuint level, GLuint xoffset, GLuint yoffset, GLuint width, GLuint height, GLenum format, GLenum type, const void *pixels)
 {
     ERROR_CHECK_RETURN(level >= 0, GL_INVALID_VALUE);
     ERROR_CHECK_RETURN(tex, GL_INVALID_OPERATION);
@@ -1783,7 +1790,7 @@ void mglTextureSubImage2D(GLMContext ctx, GLuint texture, GLint level, GLint xof
 }
 
 #pragma mark texSubImage3D
-void texSubImage3D(GLMContext ctx, Texture *tex, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *pixels)
+void texSubImage3D(GLMContext ctx, Texture *tex, GLuint level, GLuint xoffset, GLuint yoffset, GLuint zoffset, GLuint width, GLuint height, GLuint depth, GLenum format, GLenum type, const void *pixels)
 {
 
     ERROR_CHECK_RETURN(level >= 0, GL_INVALID_VALUE);
@@ -1837,11 +1844,11 @@ void mglTextureSubImage3D(GLMContext ctx, GLuint texture, GLint level, GLint xof
 
 #pragma mark TexStorage
 
-void texStorage(GLMContext ctx, Texture *tex, GLuint faces, GLsizei levels, GLboolean is_array, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLboolean proxy)
+void texStorage(GLMContext ctx, Texture *tex, GLuint faces, GLsizei levels, GLboolean is_array, GLenum internalformat, GLuint width, GLuint height, GLuint depth, GLboolean proxy)
 {
     tex->access = GL_READ_ONLY;
 
-    for(int face=0; face<faces; face++)
+    for(GLuint face=0; face<faces; face++)
     {
         GLuint level_width, level_height;
 
@@ -2080,7 +2087,7 @@ void mglTextureStorage3DMultisample(GLMContext ctx, GLuint texture, GLsizei samp
 
 
 #pragma mark clear tex image
-void mglClearTexImage(GLMContext ctx, GLuint texture, GLint level, GLenum format, GLenum type, const void *data)
+void mglClearTexImage(GLMContext ctx, GLuint texture, GLuint level, GLenum format, GLenum type, const void *data)
 {
     fprintf(stderr, "MGL: glClearTexImage called - texture=%u level=%d\n", texture, level);
     
@@ -2090,17 +2097,19 @@ void mglClearTexImage(GLMContext ctx, GLuint texture, GLint level, GLenum format
     }
     
     // For now, use texSubImage to clear - fill with the clear data
-    GLsizei width = tex->width >> level;
-    GLsizei height = tex->height >> level;
+    GLuint width = tex->width >> level;
+    GLuint height = tex->height >> level;
     if (width < 1) width = 1;
     if (height < 1) height = 1;
     
     // If data is NULL, clear to zero
-    if (data == NULL) {
+    if (data == NULL)
+    {
         size_t pixel_size = sizeForFormatType(format, type);
 
         // CRITICAL SECURITY FIX: Prevent integer overflow in texture clear allocation
-        if (width > SIZE_MAX / height / pixel_size) {
+        if (width > SIZE_MAX / height / pixel_size)
+        {
             fprintf(stderr, "MGL SECURITY ERROR: Texture clear allocation would overflow: %dx%dx%zu\n", width, height, pixel_size);
             STATE(error) = GL_OUT_OF_MEMORY;
             return;
@@ -2108,16 +2117,20 @@ void mglClearTexImage(GLMContext ctx, GLuint texture, GLint level, GLenum format
 
         size_t size = width * height * pixel_size;
         void *clear_data = calloc(1, size);
-        if (clear_data) {
+        if (clear_data)
+        {
             texSubImage(ctx, tex, 0, level, 0, 0, 0, width, height, 1, format, type, clear_data);
             free(clear_data);
         }
-    } else {
+    }
+    else
+    {
         // Fill entire texture with the provided clear value
         size_t pixel_size = sizeForFormatType(format, type);
 
         // CRITICAL SECURITY FIX: Prevent integer overflow in texture fill allocation
-        if (width > SIZE_MAX / height / pixel_size) {
+        if (width > SIZE_MAX / height / pixel_size)
+        {
             fprintf(stderr, "MGL SECURITY ERROR: Texture fill allocation would overflow: %dx%dx%zu\n", width, height, pixel_size);
             STATE(error) = GL_OUT_OF_MEMORY;
             return;
@@ -2125,9 +2138,11 @@ void mglClearTexImage(GLMContext ctx, GLuint texture, GLint level, GLenum format
 
         size_t size = width * height * pixel_size;
         void *fill_data = malloc(size);
-        if (fill_data) {
+        if (fill_data)
+        {
             // Replicate the clear value across the entire buffer
-            for (size_t i = 0; i < width * height; i++) {
+            for (size_t i = 0; i < width * height; i++)
+            {
                 memcpy((char*)fill_data + i * pixel_size, data, pixel_size);
             }
             texSubImage(ctx, tex, 0, level, 0, 0, 0, width, height, 1, format, type, fill_data);
@@ -2136,20 +2151,22 @@ void mglClearTexImage(GLMContext ctx, GLuint texture, GLint level, GLenum format
     }
 }
 
-void mglClearTexSubImage(GLMContext ctx, GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *data)
+void mglClearTexSubImage(GLMContext ctx, GLuint texture, GLuint level, GLuint xoffset, GLint yoffset, GLuint zoffset, GLuint width, GLuint height, GLuint depth, GLenum format, GLenum type, const void *data)
 {
     fprintf(stderr, "MGL: glClearTexSubImage called - texture=%u %dx%dx%d at (%d,%d,%d)\n",
             texture, width, height, depth, xoffset, yoffset, zoffset);
     
     Texture *tex = getTex(ctx, texture, 0);
-    if (!tex) {
+    if (!tex)
+    {
         ERROR_RETURN(GL_INVALID_OPERATION);
     }
     
     size_t pixel_size = sizeForFormatType(format, type);
 
     // CRITICAL SECURITY FIX: Prevent integer overflow in texture subimage allocation
-    if (width > SIZE_MAX / height / depth / pixel_size) {
+    if (width > SIZE_MAX / height / depth / pixel_size)
+    {
         fprintf(stderr, "MGL SECURITY ERROR: Texture subimage allocation would overflow: %dx%dx%dx%zu\n", width, height, depth, pixel_size);
         STATE(error) = GL_OUT_OF_MEMORY;
         return;
@@ -2157,15 +2174,20 @@ void mglClearTexSubImage(GLMContext ctx, GLuint texture, GLint level, GLint xoff
 
     size_t size = width * height * depth * pixel_size;
     
-    if (data == NULL) {
+    if (data == NULL)
+    {
         void *clear_data = calloc(1, size);
-        if (clear_data) {
+        if (clear_data)
+        {
             texSubImage(ctx, tex, 0, level, xoffset, yoffset, zoffset, width, height, depth, format, type, clear_data);
             free(clear_data);
         }
-    } else {
+    }
+    else
+    {
         void *fill_data = malloc(size);
-        if (fill_data) {
+        if (fill_data)
+        {
             for (size_t i = 0; i < width * height * depth; i++) {
                 memcpy((char*)fill_data + i * pixel_size, data, pixel_size);
             }
@@ -2225,12 +2247,14 @@ void mglCopyTexImage2D(GLMContext ctx, GLenum target, GLint level, GLenum intern
     
     // Get or create texture
     Texture *tex = getTex(ctx, 0, target);
-    if (!tex) {
+    if (!tex)
+    {
         ERROR_RETURN(GL_INVALID_OPERATION);
     }
     
     // Initialize texture storage if needed
-    if (tex->mipmap_levels == 0) {
+    if (tex->mipmap_levels == 0)
+    {
         initBaseTexLevel(ctx, tex, internalformat, width, height, 1);
     }
     
@@ -2251,7 +2275,8 @@ void mglCopyTexSubImage2D(GLMContext ctx, GLenum target, GLint level, GLint xoff
     
     // Get the bound texture
     Texture *tex = getTex(ctx, 0, target);
-    if (!tex) {
+    if (!tex)
+    {
         fprintf(stderr, "MGL ERROR: glCopyTexSubImage2D - no texture bound\n");
         return;
     }
@@ -2266,7 +2291,8 @@ void mglCopyTexSubImage3D(GLMContext ctx, GLenum target, GLint level, GLint xoff
     fprintf(stderr, "MGL: glCopyTexSubImage3D called - stub, only 2D copy supported\n");
     // For now just do 2D copy, ignoring zoffset
     Texture *tex = getTex(ctx, 0, target);
-    if (tex) {
+    if (tex)
+    {
         ctx->mtl_funcs.mtlCopyTexSubImage(ctx, tex, level, xoffset, yoffset, x, y, width, height);
     }
 }
@@ -2280,7 +2306,8 @@ void mglCopyTextureSubImage2D(GLMContext ctx, GLuint texture, GLint level, GLint
 {
     fprintf(stderr, "MGL: glCopyTextureSubImage2D called - texture=%u %dx%d\n", texture, width, height);
     Texture *tex = getTex(ctx, texture, 0);
-    if (tex) {
+    if (tex)
+    {
         ctx->mtl_funcs.mtlCopyTexSubImage(ctx, tex, level, xoffset, yoffset, x, y, width, height);
     }
 }
@@ -2296,23 +2323,26 @@ void mglCopyTextureSubImage3D(GLMContext ctx, GLuint texture, GLint level, GLint
 
 #pragma mark get tex image
 
-void mglGetTexImage(GLMContext ctx, GLenum target, GLint level, GLenum format, GLenum type, void *pixels)
+void mglGetTexImage(GLMContext ctx, GLenum target, GLuint level, GLenum format, GLenum type, void *pixels)
 {
     fprintf(stderr, "MGL: glGetTexImage called - target=0x%x level=%d format=0x%x type=0x%x\n",
             target, level, format, type);
     
     Texture *tex = getTex(ctx, 0, target);
-    if (!tex) {
+    if (!tex)
+    {
         fprintf(stderr, "MGL ERROR: glGetTexImage - no texture bound\n");
         ERROR_RETURN(GL_INVALID_OPERATION);
     }
     
-    if (!tex->mtl_data) {
+    if (!tex->mtl_data)
+    {
         fprintf(stderr, "MGL ERROR: glGetTexImage - texture has no Metal data\n");
         ERROR_RETURN(GL_INVALID_OPERATION);
     }
     
-    if (level >= tex->num_levels) {
+    if (level >= tex->num_levels)
+    {
         fprintf(stderr, "MGL ERROR: glGetTexImage - invalid level %d (max %d)\n", level, tex->num_levels);
         ERROR_RETURN(GL_INVALID_VALUE);
     }
@@ -2325,16 +2355,16 @@ void mglGetTexImage(GLMContext ctx, GLenum target, GLint level, GLenum format, G
     
     // Calculate bytes per row
     size_t pixel_size = sizeForFormatType(format, type);
-    GLuint bytesPerRow = width * pixel_size;
-    GLuint bytesPerImage = bytesPerRow * height;
+    size_t bytesPerRow = width * pixel_size;
+    size_t bytesPerImage = bytesPerRow * height;
     
-    fprintf(stderr, "MGL: glGetTexImage - reading %dx%d, bytesPerRow=%u\n", width, height, bytesPerRow);
+    fprintf(stderr, "MGL: glGetTexImage - reading %dx%d, bytesPerRow=%zu\n", width, height, bytesPerRow);
     
     // Use the Metal function to read the texture
-    ctx->mtl_funcs.mtlGetTexImage(ctx, tex, pixels, bytesPerRow, bytesPerImage, 0, 0, width, height, level, 0);
+    ctx->mtl_funcs.mtlGetTexImage(ctx, tex, pixels, (GLuint)bytesPerRow, (GLuint)bytesPerImage, 0, 0, width, height, level, 0);
 }
 
-void mglGetTextureImage(GLMContext ctx, GLuint texture, GLint level, GLenum format, GLenum type, GLsizei bufSize, void *pixels)
+void mglGetTextureImage(GLMContext ctx, GLuint texture, GLuint level, GLenum format, GLenum type, GLsizei bufSize, void *pixels)
 {
     fprintf(stderr, "MGL: glGetTextureImage called - texture=%u level=%d\n", texture, level);
     
@@ -2343,24 +2373,27 @@ void mglGetTextureImage(GLMContext ctx, GLuint texture, GLint level, GLenum form
         ERROR_RETURN(GL_INVALID_OPERATION);
     }
     
-    if (!tex->mtl_data) {
+    if (!tex->mtl_data)
+    {
         ERROR_RETURN(GL_INVALID_OPERATION);
     }
     
-    GLsizei width = tex->width >> level;
-    GLsizei height = tex->height >> level;
+    GLuint width = tex->width >> level;
+    GLuint height = tex->height >> level;
+    
     if (width < 1) width = 1;
     if (height < 1) height = 1;
     
-    size_t pixel_size = sizeForFormatType(format, type);
-    GLuint bytesPerRow = width * pixel_size;
-    GLuint bytesPerImage = bytesPerRow * height;
+    GLsizei pixel_size = sizeForFormatType(format, type);
+    GLsizei bytesPerRow = width * pixel_size;
+    GLsizei bytesPerImage = bytesPerRow * height;
     
-    if (bytesPerImage > bufSize) {
+    if (bytesPerImage > bufSize)
+    {
         ERROR_RETURN(GL_INVALID_OPERATION);
     }
     
-    ctx->mtl_funcs.mtlGetTexImage(ctx, tex, pixels, bytesPerRow, bytesPerImage, 0, 0, width, height, level, 0);
+    ctx->mtl_funcs.mtlGetTexImage(ctx, tex, pixels, (GLuint)bytesPerRow, (GLuint)bytesPerImage, 0, 0, (GLuint)width, (GLuint)height, level, 0);
 }
 
 void mglGetTextureSubImage(GLMContext ctx, GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, GLsizei bufSize, void *pixels)
@@ -2368,15 +2401,16 @@ void mglGetTextureSubImage(GLMContext ctx, GLuint texture, GLint level, GLint xo
     fprintf(stderr, "MGL: glGetTextureSubImage called - texture=%u\n", texture);
     
     Texture *tex = getTex(ctx, texture, 0);
-    if (!tex || !tex->mtl_data) {
+    if (!tex || !tex->mtl_data)
+    {
         ERROR_RETURN(GL_INVALID_OPERATION);
     }
     
     size_t pixel_size = sizeForFormatType(format, type);
-    GLuint bytesPerRow = width * pixel_size;
-    GLuint bytesPerImage = bytesPerRow * height;
+    size_t bytesPerRow = width * pixel_size;
+    size_t bytesPerImage = bytesPerRow * height;
     
-    ctx->mtl_funcs.mtlGetTexImage(ctx, tex, pixels, bytesPerRow, bytesPerImage, xoffset, yoffset, width, height, level, zoffset);
+    ctx->mtl_funcs.mtlGetTexImage(ctx, tex, pixels, (GLuint)bytesPerRow, (GLuint)bytesPerImage, xoffset, yoffset, width, height, level, zoffset);
 }
 
 void mglGetCompressedTexImage(GLMContext ctx, GLenum target, GLint level, void *img)

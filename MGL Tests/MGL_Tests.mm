@@ -661,7 +661,7 @@ extern "C" {
         
         glDrawArrays(GL_TRIANGLES, 0, 3);
         
-        MGLswapBuffers();
+        MGLswapBuffers(MGLgetCurrentContext());
         
         bool result;
         result = [self compareResults: "testReadPixels"];

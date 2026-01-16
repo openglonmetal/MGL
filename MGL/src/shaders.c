@@ -114,7 +114,13 @@ void initGLSLInput(GLMContext ctx, GLuint type, const char *src, glslang_input_t
         input->client_version = GLSLANG_TARGET_OPENGL_450;
     } else if (glsl_version == 330) {
         /* GLSL 3.30 shaders - target OpenGL 3.30 for SPIR-V */
-        input->client_version = 330;  /* Use numeric value directly */
+        // input->client_version = 330;  /* Use numeric value directly */
+        // well any thing but the allowed enums in glslang_target_client_version_t
+        // are parsed in glslang/glslang/CInterface/glslang_c_interface.cpp
+        // which is converted to default which is GLSLANG_TARGET_VULKAN_1_0
+        // not 330, and according to the Vulkan spec there is no
+        // compatable version with 330
+        input->client_version = GLSLANG_TARGET_VULKAN_1_0;
     } else {
         /* GLSL 4.00+ - target OpenGL 4.50 for SPIR-V */
         input->client_version = GLSLANG_TARGET_OPENGL_450;
@@ -184,9 +190,13 @@ void initGLSLInput(GLMContext ctx, GLuint type, const char *src, glslang_input_t
     input->default_version = glsl_version;
     input->default_profile = GLSLANG_CORE_PROFILE;
     //input->messages = 0xFFFF & ~GLSLANG_MSG_RELAXED_ERRORS_BIT;
-    input->messages = GLSLANG_MSG_DEFAULT_BIT | GLSLANG_MSG_DEBUG_INFO_BIT | GLSLANG_MSG_RELAXED_ERRORS_BIT;
+    //
+    // problematic for checking enums... this is a bitfield, not an enum
+    // compiler bitches about value being greater than allowed enums
+    input->messages = (glslang_messages_t)(GLSLANG_MSG_DEFAULT_BIT | GLSLANG_MSG_DEBUG_INFO_BIT | GLSLANG_MSG_RELAXED_ERRORS_BIT);
     input->resource = glslang_default_resource();
 
+    
     input->force_default_version_and_profile = 1;
 }
 
@@ -231,7 +241,7 @@ Shader *getShader(GLMContext ctx, GLenum type, GLuint shader)
     return ptr;
 }
 
-int isShader(GLMContext ctx, GLuint shader)
+GLboolean isShader(GLMContext ctx, GLuint shader)
 {
     Shader *ptr;
 
@@ -621,7 +631,7 @@ void mglGetShaderInfoLog(GLMContext ctx, GLuint shader, GLsizei bufSize, GLsizei
 
         if (infoLog)
         {
-            if (bufSize >= strlen(ptr->log))
+            if (bufSize >= (GLsizei)strlen(ptr->log))
             {
                 memcpy(infoLog, ptr->log, strlen(ptr->log));
             }
@@ -646,7 +656,7 @@ void mglGetShaderSource(GLMContext ctx, GLuint shader, GLsizei bufSize, GLsizei 
 
         if (source)
         {
-            if (bufSize >= strlen(ptr->log))
+            if (bufSize >= (GLsizei)strlen(ptr->log))
             {
                 memcpy(source, ptr->src, ptr->src_len);
             }

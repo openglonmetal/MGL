@@ -17,6 +17,1001 @@ extern void mgl_lazy_init(void);
 
 #define GET_CONTEXT()   (mgl_lazy_init(), _ctx)
 
+
+void glActiveTexture(GLenum texture)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.active_texture(ctx, texture);
+}
+
+void glAttachShader(GLuint program, GLuint shader)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.attach_shader(ctx, program, shader);
+}
+
+void glBindAttribLocation(GLuint program, GLuint index, const GLchar *name)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.bind_attrib_location(ctx, program, index, name);
+}
+
+void glBindBuffer(GLenum target, GLuint buffer)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.bind_buffer(ctx, target, buffer);
+}
+
+void glBindFramebuffer(GLenum target, GLuint framebuffer)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.bind_framebuffer(ctx, target, framebuffer);
+}
+
+void glBindRenderbuffer(GLenum target, GLuint renderbuffer)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.bind_renderbuffer(ctx, target, renderbuffer);
+}
+
+void glBindTexture(GLenum target, GLuint texture)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.bind_texture(ctx, target, texture);
+}
+
+void glBlendColor(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.blend_color(ctx, red, green, blue, alpha);
+}
+
+void glBlendEquation(GLenum mode)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.blend_equation(ctx, mode);
+}
+
+void glBlendEquationSeparate(GLenum modeRGB, GLenum modeAlpha)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.blend_equation_separate(ctx, modeRGB, modeAlpha);
+}
+
+void glBlendFunc(GLenum sfactor, GLenum dfactor)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.blend_func(ctx, sfactor, dfactor);
+}
+
+void glBlendFuncSeparate(GLenum sfactorRGB, GLenum dfactorRGB, GLenum sfactorAlpha, GLenum dfactorAlpha)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.blend_func_separate(ctx, sfactorRGB, dfactorRGB, sfactorAlpha, dfactorAlpha);
+}
+
+void glBufferData(GLenum target, GLsizeiptr size, const void *data, GLenum usage)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.buffer_data(ctx, target, size, data, usage);
+}
+
+void glBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size, const void *data)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.buffer_sub_data(ctx, target, offset, size, data);
+}
+
+GLenum  glCheckFramebufferStatus(GLenum target)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    return ctx->dispatch.check_framebuffer_status(ctx, target);
+}
+
+void glClear(GLbitfield mask)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.clear(ctx, mask);
+}
+
+void glClearColor(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.clear_color(ctx, red, green, blue, alpha);
+}
+
+void glClearDepthf(GLfloat d)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.clear_depthf(ctx, d);
+}
+
+void glClearStencil(GLint s)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.clear_stencil(ctx, s);
+}
+
+void glColorMask(GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.color_mask(ctx, red, green, blue, alpha);
+}
+
+void glCompileShader(GLuint shader)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.compile_shader(ctx, shader);
+}
+
+void glCompressedTexImage2D(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLint border, GLsizei imageSize, const void *data)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.compressed_tex_image2D(ctx, target, level, internalformat, width, height, border, imageSize, data);
+}
+
+void glCompressedTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const void *data)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.compressed_tex_sub_image2D(ctx, target, level, xoffset, yoffset, width, height, format, imageSize, data);
+}
+
+void glCopyTexImage2D(GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLsizei height, GLint border)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.copy_tex_image2D(ctx, target, level, internalformat, x, y, width, height, border);
+}
+
+void glCopyTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.copy_tex_sub_image2D(ctx, target, level, xoffset, yoffset, x, y, width, height);
+}
+
+GLuint  glCreateProgram()
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    return ctx->dispatch.create_program(ctx);
+}
+
+GLuint  glCreateShader(GLenum type)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    return ctx->dispatch.create_shader(ctx, type);
+}
+
+void glCullFace(GLenum mode)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.cull_face(ctx, mode);
+}
+
+void glDeleteBuffers(GLsizei n, const GLuint *buffers)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.delete_buffers(ctx, n, buffers);
+}
+
+void glDeleteFramebuffers(GLsizei n, const GLuint *framebuffers)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.delete_framebuffers(ctx, n, framebuffers);
+}
+
+void glDeleteProgram(GLuint program)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.delete_program(ctx, program);
+}
+
+void glDeleteRenderbuffers(GLsizei n, const GLuint *renderbuffers)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.delete_renderbuffers(ctx, n, renderbuffers);
+}
+
+void glDeleteShader(GLuint shader)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.delete_shader(ctx, shader);
+}
+
+void glDeleteTextures(GLsizei n, const GLuint *textures)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.delete_textures(ctx, n, textures);
+}
+
+void glDepthFunc(GLenum func)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.depth_func(ctx, func);
+}
+
+void glDepthMask(GLboolean flag)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.depth_mask(ctx, flag);
+}
+
+void glDepthRangef(GLfloat n, GLfloat f)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.depth_rangef(ctx, n, f);
+}
+
+void glDetachShader(GLuint program, GLuint shader)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.detach_shader(ctx, program, shader);
+}
+
+void glDisable(GLenum cap)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.disable(ctx, cap);
+}
+
+void glDisableVertexAttribArray(GLuint index)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.disable_vertex_attrib_array(ctx, index);
+}
+
+void glDrawArrays(GLenum mode, GLint first, GLsizei count)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.draw_arrays(ctx, mode, first, count);
+}
+
+void glDrawElements(GLenum mode, GLsizei count, GLenum type, const void *indices)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.draw_elements(ctx, mode, count, type, indices);
+}
+
+void glEnable(GLenum cap)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.enable(ctx, cap);
+}
+
+void glEnableVertexAttribArray(GLuint index)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.enable_vertex_attrib_array(ctx, index);
+}
+
+void glFinish()
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.finish(ctx);
+}
+
+void glFlush()
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.flush(ctx);
+}
+
+void glFramebufferRenderbuffer(GLenum target, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.framebuffer_renderbuffer(ctx, target, attachment, renderbuffertarget, renderbuffer);
+}
+
+void glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.framebuffer_texture2D(ctx, target, attachment, textarget, texture, level);
+}
+
+void glFrontFace(GLenum mode)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.front_face(ctx, mode);
+}
+
+void glGenBuffers(GLsizei n, GLuint *buffers)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.gen_buffers(ctx, n, buffers);
+}
+
+void glGenerateMipmap(GLenum target)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.generate_mipmap(ctx, target);
+}
+
+void glGenFramebuffers(GLsizei n, GLuint *framebuffers)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.gen_framebuffers(ctx, n, framebuffers);
+}
+
+void glGenRenderbuffers(GLsizei n, GLuint *renderbuffers)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.gen_renderbuffers(ctx, n, renderbuffers);
+}
+
+void glGenTextures(GLsizei n, GLuint *textures)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.gen_textures(ctx, n, textures);
+}
+
+void glGetActiveAttrib(GLuint program, GLuint index, GLsizei bufSize, GLsizei *length, GLint *size, GLenum *type, GLchar *name)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.get_active_attrib(ctx, program, index, bufSize, length, size, type, name);
+}
+
+void glGetActiveUniform(GLuint program, GLuint index, GLsizei bufSize, GLsizei *length, GLint *size, GLenum *type, GLchar *name)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.get_active_uniform(ctx, program, index, bufSize, length, size, type, name);
+}
+
+void glGetAttachedShaders(GLuint program, GLsizei maxCount, GLsizei *count, GLuint *shaders)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.get_attached_shaders(ctx, program, maxCount, count, shaders);
+}
+
+GLint  glGetAttribLocation(GLuint program, const GLchar *name)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    return ctx->dispatch.get_attrib_location(ctx, program, name);
+}
+
+void glGetBooleanv(GLenum pname, GLboolean *data)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.get_booleanv(ctx, pname, data);
+}
+
+void glGetBufferParameteriv(GLenum target, GLenum pname, GLint *params)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.get_buffer_parameteriv(ctx, target, pname, params);
+}
+
+GLenum  glGetError()
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    return ctx->dispatch.get_error(ctx);
+}
+
+void glGetFloatv(GLenum pname, GLfloat *data)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.get_floatv(ctx, pname, data);
+}
+
+void glGetFramebufferAttachmentParameteriv(GLenum target, GLenum attachment, GLenum pname, GLint *params)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.get_framebuffer_attachment_parameteriv(ctx, target, attachment, pname, params);
+}
+
+void glGetIntegerv(GLenum pname, GLint *data)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.get_integerv(ctx, pname, data);
+}
+
+void glGetProgramiv(GLuint program, GLenum pname, GLint *params)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.get_programiv(ctx, program, pname, params);
+}
+
+void glGetProgramInfoLog(GLuint program, GLsizei bufSize, GLsizei *length, GLchar *infoLog)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.get_program_info_log(ctx, program, bufSize, length, infoLog);
+}
+
+void glGetRenderbufferParameteriv(GLenum target, GLenum pname, GLint *params)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.get_renderbuffer_parameteriv(ctx, target, pname, params);
+}
+
+void glGetShaderiv(GLuint shader, GLenum pname, GLint *params)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.get_shaderiv(ctx, shader, pname, params);
+}
+
+void glGetShaderInfoLog(GLuint shader, GLsizei bufSize, GLsizei *length, GLchar *infoLog)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.get_shader_info_log(ctx, shader, bufSize, length, infoLog);
+}
+
+void glGetShaderPrecisionFormat(GLenum shadertype, GLenum precisiontype, GLint *range, GLint *precision)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.get_shader_precision_format(ctx, shadertype, precisiontype, range, precision);
+}
+
+void glGetShaderSource(GLuint shader, GLsizei bufSize, GLsizei *length, GLchar *source)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.get_shader_source(ctx, shader, bufSize, length, source);
+}
+
+GLubyte const  *glGetString(GLenum name)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    return ctx->dispatch.get_string(ctx, name);
+}
+
+void glGetTexParameterfv(GLenum target, GLenum pname, GLfloat *params)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.get_tex_parameterfv(ctx, target, pname, params);
+}
+
+void glGetTexParameteriv(GLenum target, GLenum pname, GLint *params)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.get_tex_parameteriv(ctx, target, pname, params);
+}
+
+void glGetUniformfv(GLuint program, GLint location, GLfloat *params)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.get_uniformfv(ctx, program, location, params);
+}
+
+void glGetUniformiv(GLuint program, GLint location, GLint *params)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.get_uniformiv(ctx, program, location, params);
+}
+
+GLint  glGetUniformLocation(GLuint program, const GLchar *name)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    return ctx->dispatch.get_uniform_location(ctx, program, name);
+}
+
+void glGetVertexAttribfv(GLuint index, GLenum pname, GLfloat *params)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.get_vertex_attribfv(ctx, index, pname, params);
+}
+
+void glGetVertexAttribiv(GLuint index, GLenum pname, GLint *params)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.get_vertex_attribiv(ctx, index, pname, params);
+}
+
+void glGetVertexAttribPointerv(GLuint index, GLenum pname, void **pointer)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.get_vertex_attrib_pointerv(ctx, index, pname, pointer);
+}
+
+void glHint(GLenum target, GLenum mode)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.hint(ctx, target, mode);
+}
+
+GLboolean  glIsBuffer(GLuint buffer)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    return ctx->dispatch.is_buffer(ctx, buffer);
+}
+
+GLboolean  glIsEnabled(GLenum cap)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    return ctx->dispatch.is_enabled(ctx, cap);
+}
+
+GLboolean  glIsFramebuffer(GLuint framebuffer)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    return ctx->dispatch.is_framebuffer(ctx, framebuffer);
+}
+
+GLboolean  glIsProgram(GLuint program)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    return ctx->dispatch.is_program(ctx, program);
+}
+
+GLboolean  glIsRenderbuffer(GLuint renderbuffer)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    return ctx->dispatch.is_renderbuffer(ctx, renderbuffer);
+}
+
+GLboolean  glIsShader(GLuint shader)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    return ctx->dispatch.is_shader(ctx, shader);
+}
+
+GLboolean  glIsTexture(GLuint texture)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    return ctx->dispatch.is_texture(ctx, texture);
+}
+
+void glLineWidth(GLfloat width)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.line_width(ctx, width);
+}
+
+void glLinkProgram(GLuint program)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.link_program(ctx, program);
+}
+
+void glPixelStorei(GLenum pname, GLint param)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.pixel_storei(ctx, pname, param);
+}
+
+void glPolygonOffset(GLfloat factor, GLfloat units)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.polygon_offset(ctx, factor, units);
+}
+
+void glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, void *pixels)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.read_pixels(ctx, x, y, width, height, format, type, pixels);
+}
+
+void glReleaseShaderCompiler()
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.release_shader_compiler(ctx);
+}
+
+void glRenderbufferStorage(GLenum target, GLenum internalformat, GLsizei width, GLsizei height)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.renderbuffer_storage(ctx, target, internalformat, width, height);
+}
+
+void glSampleCoverage(GLfloat value, GLboolean invert)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.sample_coverage(ctx, value, invert);
+}
+
+void glScissor(GLint x, GLint y, GLsizei width, GLsizei height)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.scissor(ctx, x, y, width, height);
+}
+
+void glShaderBinary(GLsizei count, const GLuint *shaders, GLenum binaryFormat, const void *binary, GLsizei length)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.shader_binary(ctx, count, shaders, binaryFormat, binary, length);
+}
+
+void glShaderSource(GLuint shader, GLsizei count, const GLchar *const*string, const GLint *length)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.shader_source(ctx, shader, count, string, length);
+}
+
+void glStencilFunc(GLenum func, GLint ref, GLuint mask)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.stencil_func(ctx, func, ref, mask);
+}
+
+void glStencilFuncSeparate(GLenum face, GLenum func, GLint ref, GLuint mask)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.stencil_func_separate(ctx, face, func, ref, mask);
+}
+
+void glStencilMask(GLuint mask)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.stencil_mask(ctx, mask);
+}
+
+void glStencilMaskSeparate(GLenum face, GLuint mask)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.stencil_mask_separate(ctx, face, mask);
+}
+
+void glStencilOp(GLenum fail, GLenum zfail, GLenum zpass)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.stencil_op(ctx, fail, zfail, zpass);
+}
+
+void glStencilOpSeparate(GLenum face, GLenum sfail, GLenum dpfail, GLenum dppass)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.stencil_op_separate(ctx, face, sfail, dpfail, dppass);
+}
+
+void glTexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const void *pixels)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.tex_image2D(ctx, target, level, internalformat, width, height, border, format, type, pixels);
+}
+
+void glTexParameterf(GLenum target, GLenum pname, GLfloat param)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.tex_parameterf(ctx, target, pname, param);
+}
+
+void glTexParameterfv(GLenum target, GLenum pname, const GLfloat *params)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.tex_parameterfv(ctx, target, pname, params);
+}
+
+void glTexParameteri(GLenum target, GLenum pname, GLint param)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.tex_parameteri(ctx, target, pname, param);
+}
+
+void glTexParameteriv(GLenum target, GLenum pname, const GLint *params)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.tex_parameteriv(ctx, target, pname, params);
+}
+
+void glTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *pixels)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.tex_sub_image2D(ctx, target, level, xoffset, yoffset, width, height, format, type, pixels);
+}
+
+void glUniform1f(GLint location, GLfloat v0)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.uniform1f(ctx, location, v0);
+}
+
+void glUniform1fv(GLint location, GLsizei count, const GLfloat *value)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.uniform1fv(ctx, location, count, value);
+}
+
+void glUniform1i(GLint location, GLint v0)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.uniform1i(ctx, location, v0);
+}
+
+void glUniform1iv(GLint location, GLsizei count, const GLint *value)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.uniform1iv(ctx, location, count, value);
+}
+
+void glUniform2f(GLint location, GLfloat v0, GLfloat v1)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.uniform2f(ctx, location, v0, v1);
+}
+
+void glUniform2fv(GLint location, GLsizei count, const GLfloat *value)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.uniform2fv(ctx, location, count, value);
+}
+
+void glUniform2i(GLint location, GLint v0, GLint v1)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.uniform2i(ctx, location, v0, v1);
+}
+
+void glUniform2iv(GLint location, GLsizei count, const GLint *value)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.uniform2iv(ctx, location, count, value);
+}
+
+void glUniform3f(GLint location, GLfloat v0, GLfloat v1, GLfloat v2)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.uniform3f(ctx, location, v0, v1, v2);
+}
+
+void glUniform3fv(GLint location, GLsizei count, const GLfloat *value)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.uniform3fv(ctx, location, count, value);
+}
+
+void glUniform3i(GLint location, GLint v0, GLint v1, GLint v2)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.uniform3i(ctx, location, v0, v1, v2);
+}
+
+void glUniform3iv(GLint location, GLsizei count, const GLint *value)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.uniform3iv(ctx, location, count, value);
+}
+
+void glUniform4f(GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.uniform4f(ctx, location, v0, v1, v2, v3);
+}
+
+void glUniform4fv(GLint location, GLsizei count, const GLfloat *value)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.uniform4fv(ctx, location, count, value);
+}
+
+void glUniform4i(GLint location, GLint v0, GLint v1, GLint v2, GLint v3)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.uniform4i(ctx, location, v0, v1, v2, v3);
+}
+
+void glUniform4iv(GLint location, GLsizei count, const GLint *value)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.uniform4iv(ctx, location, count, value);
+}
+
+void glUniformMatrix2fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.uniform_matrix2fv(ctx, location, count, transpose, value);
+}
+
+void glUniformMatrix3fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.uniform_matrix3fv(ctx, location, count, transpose, value);
+}
+
+void glUniformMatrix4fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.uniform_matrix4fv(ctx, location, count, transpose, value);
+}
+
+void glUseProgram(GLuint program)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.use_program(ctx, program);
+}
+
+void glValidateProgram(GLuint program)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.validate_program(ctx, program);
+}
+
+void glVertexAttrib1f(GLuint index, GLfloat x)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.vertex_attrib1f(ctx, index, x);
+}
+
+void glVertexAttrib1fv(GLuint index, const GLfloat *v)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.vertex_attrib1fv(ctx, index, v);
+}
+
+void glVertexAttrib2f(GLuint index, GLfloat x, GLfloat y)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.vertex_attrib2f(ctx, index, x, y);
+}
+
+void glVertexAttrib2fv(GLuint index, const GLfloat *v)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.vertex_attrib2fv(ctx, index, v);
+}
+
+void glVertexAttrib3f(GLuint index, GLfloat x, GLfloat y, GLfloat z)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.vertex_attrib3f(ctx, index, x, y, z);
+}
+
+void glVertexAttrib3fv(GLuint index, const GLfloat *v)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.vertex_attrib3fv(ctx, index, v);
+}
+
+void glVertexAttrib4f(GLuint index, GLfloat x, GLfloat y, GLfloat z, GLfloat w)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.vertex_attrib4f(ctx, index, x, y, z, w);
+}
+
+void glVertexAttrib4fv(GLuint index, const GLfloat *v)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.vertex_attrib4fv(ctx, index, v);
+}
+
+void glVertexAttribPointer(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void *pointer)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.vertex_attrib_pointer(ctx, index, size, type, normalized, stride, pointer);
+}
+
+void glViewport(GLint x, GLint y, GLsizei width, GLsizei height)
+{
+    GLMContext ctx = GET_CONTEXT();
+
+    ctx->dispatch.viewport(ctx, x, y, width, height);
+}
+
 void glReadBuffer(GLenum src)
 {
 	GLMContext ctx = GET_CONTEXT();

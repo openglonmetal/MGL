@@ -18,14 +18,16 @@
  *
  */
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <strings.h>
-#include <assert.h>
-#include <stdint.h>  // For SIZE_MAX and UINT_MAX
-#include <limits.h>  // For UINT_MAX fallback
+//#include <stdlib.h>
+//#include <stdio.h>
+//#include <strings.h>
+//#include <assert.h>
+//#include <stdint.h>  // For SIZE_MAX and UINT_MAX
+//#include <limits.h>  // For UINT_MAX fallback
+
 
 #ifdef __APPLE__
+#import <Foundation/Foundation.h>
 #include <Metal/Metal.h>
 #endif
 

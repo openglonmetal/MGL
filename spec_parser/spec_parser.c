@@ -49,7 +49,7 @@ GLVersion *get_gl_versions(unsigned es_only)
 {
     if (es_only)
     {
-        static GLVersion gl_es_version[] = {{3,0}, {3,1}, {3,2}, {0,0}};
+        static GLVersion gl_es_version[] = {{2,0}, {3,0}, {3,1}, {3,2}, {0,0}};
         
         return gl_es_version;
     }

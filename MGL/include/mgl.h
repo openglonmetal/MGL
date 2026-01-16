@@ -887,7 +887,7 @@ void mglDrawElementsInstancedBaseInstance(GLMContext ctx, GLenum mode, GLsizei c
 void mglDrawElementsInstancedBaseVertexBaseInstance(GLMContext ctx, GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei instancecount, GLint basevertex, GLuint baseinstance);
 void mglGetInternalformativ(GLMContext ctx, GLenum target, GLenum internalformat, GLenum pname, GLsizei count, GLint *params);
 void mglGetActiveAtomicCounterBufferiv(GLMContext ctx, GLuint program, GLuint bufferIndex, GLenum pname, GLint *params);
-void mglBindImageTexture(GLMContext ctx, GLuint unit, GLuint texture, GLint level, GLboolean layered, GLint layer, GLenum access, GLenum format);
+void mglBindImageTexture(GLMContext ctx, GLuint unit, GLuint texture, GLuint level, GLboolean layered, GLuint layer, GLenum access, GLenum format);
 void mglMemoryBarrier(GLMContext ctx, GLbitfield barriers);
 void mglTexStorage1D(GLMContext ctx, GLenum target, GLsizei levels, GLenum internalformat, GLsizei width);
 void mglTexStorage2D(GLMContext ctx, GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height);
@@ -940,7 +940,7 @@ void mglGetObjectPtrLabel(GLMContext ctx, const void *ptr, GLsizei bufSize, GLsi
 void mglGetPointerv(GLMContext ctx, GLenum pname, void **params);
 void mglBufferStorage(GLMContext ctx, GLenum target, GLsizeiptr size, const void *data, GLbitfield flags);
 void mglClearTexImage(GLMContext ctx, GLuint texture, GLint level, GLenum format, GLenum type, const void *data);
-void mglClearTexSubImage(GLMContext ctx, GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *data);
+void mglClearTexSubImage(GLMContext ctx, GLuint texture, GLuint level, GLuint xoffset, GLuint yoffset, GLuint zoffset, GLuint width, GLuint height, GLsizei depth, GLenum format, GLenum type, const void *data);
 void mglBindBuffersBase(GLMContext ctx, GLenum target, GLuint first, GLsizei count, const GLuint *buffers);
 void mglBindBuffersRange(GLMContext ctx, GLenum target, GLuint first, GLsizei count, const GLuint *buffers, const GLintptr *offsets, const GLsizeiptr *sizes);
 void mglBindTextures(GLMContext ctx, GLuint first, GLsizei count, const GLuint *textures);

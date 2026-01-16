@@ -64,7 +64,7 @@ static Renderbuffer *getRenderbuffer(GLMContext ctx, GLuint renderbuffer)
     return ptr;
 }
 
-static int isRenderBuffer(GLMContext ctx, GLuint renderbuffer)
+static GLboolean isRenderBuffer(GLMContext ctx, GLuint renderbuffer)
 {
     Renderbuffer *ptr;
 
@@ -133,7 +133,7 @@ static Framebuffer *getFramebuffer(GLMContext ctx, GLuint framebuffer)
     return ptr;
 }
 
-static int isFramebuffer(GLMContext ctx, GLuint framebuffer)
+static GLboolean isFramebuffer(GLMContext ctx, GLuint framebuffer)
 {
     Framebuffer *ptr;
 
@@ -230,6 +230,9 @@ void mglDeleteFramebuffers(GLMContext ctx, GLsizei n, const GLuint *framebuffers
     STATE(dirty_bits) |= DIRTY_FBO;
 }
 
+// debug code below
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
 GLenum  mglCheckFramebufferStatus(GLMContext ctx, GLenum target)
 {
     Framebuffer *fbo;
@@ -252,7 +255,7 @@ GLenum  mglCheckFramebufferStatus(GLMContext ctx, GLenum target)
     width = tex->faces[0].levels[level].width;
     height = tex->faces[0].levels[level].height;
 
-    for(int i=1; i<STATE(max_color_attachments);i++)
+    for(GLuint i=1; i<STATE(max_color_attachments);i++)
     {
         if (fbo->color_attachments[i].textarget == GL_RENDERBUFFER)
         {
@@ -275,6 +278,8 @@ GLenum  mglCheckFramebufferStatus(GLMContext ctx, GLenum target)
 
     return GL_FRAMEBUFFER_COMPLETE;
 }
+#pragma GCC diagnostic pop
+
 
 #pragma mark Renderbuffer calls
 GLboolean mglIsRenderbuffer(GLMContext ctx, GLuint renderbuffer)
@@ -435,7 +440,7 @@ bool isCubeMapTarget(GLMContext ctx, GLuint textarget)
             (textarget <= GL_TEXTURE_CUBE_MAP_NEGATIVE_Z));
 }
 
-void framebufferTexture(GLMContext ctx, GLenum target, GLenum attachment_type, GLenum attachment, GLenum textarget, GLuint texture, GLint level, GLint layer)
+void framebufferTexture(GLMContext ctx, GLenum target, GLenum attachment_type, GLenum attachment, GLenum textarget, GLuint texture, GLuint level, GLuint layer)
 {
     Framebuffer *fbo;
     Texture *tex;
@@ -520,7 +525,7 @@ void framebufferTexture(GLMContext ctx, GLenum target, GLenum attachment_type, G
 
         // A texture may legally be attached before it has storage allocated; that should
         // make the FBO incomplete, not raise GL_INVALID_VALUE.
-        if (tex->mipmap_levels != 0 && level >= (GLint)tex->mipmap_levels)
+        if (tex->mipmap_levels != 0 && level >= tex->mipmap_levels)
         {
             STATE(error) = GL_INVALID_VALUE;
             return;
@@ -893,6 +898,7 @@ void mglFramebufferParameteri(GLMContext ctx, GLenum target, GLenum pname, GLint
             fbo = STATE(readbuffer);
             break;
         default:
+            fbo = NULL; // get rid of warning
             ERROR_RETURN(GL_INVALID_ENUM);
     }
     

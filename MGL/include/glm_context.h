@@ -180,7 +180,7 @@ typedef struct {
 
 typedef struct BufferData_t {
     GLuint          dirty_bits;
-    size_t          buffer_size;
+    GLsizeiptr      buffer_size;
     vm_address_t    buffer_data;
     void            *mtl_data;
 } BufferData;
@@ -220,8 +220,6 @@ typedef struct TextureParameter_t {
     GLenum  depth_stencil_mode;
     GLuint  base_level;
     GLfloat border_color[4];
-    GLint   border_color_i[4];
-    GLuint   border_color_ui[4];
     GLenum  compare_func;
     GLenum  compare_mode;
     GLfloat lod_bias;
@@ -326,13 +324,13 @@ typedef struct BufferBinding_t {
 
 typedef struct VertexAttrib_t {
     Buffer  *buffer;
-    GLuint  size;
+    GLsizei  size;
     GLenum  type;
     GLuint  normalized;
-    GLuint  stride;
+    GLsizei  stride;
     GLuint  divisor;
     GLintptr  relativeoffset;
-    GLuint  buffer_bindingindex;
+    GLsizei  buffer_bindingindex;
 } VertexAttrib;
 
 typedef struct VertexElementArray_t {
@@ -495,12 +493,12 @@ typedef struct GLSLState_t {
 typedef struct PixelStore_t {
     GLboolean   swap_bytes;
     GLboolean   lsb_first;
-    GLint row_length;
-    GLint image_height;
-    GLint skip_rows;
-    GLint skip_pixels;
-    GLint skip_images;
-    GLint alignment;
+    GLuint row_length;
+    GLuint image_height;
+    GLuint skip_rows;
+    GLuint skip_pixels;
+    GLuint skip_images;
+    GLuint alignment;
 } PixelStore;
 
 
@@ -744,7 +742,7 @@ GLMContext MGLgetCurrentContext(void);
 void MGLget(GLMContext ctx, GLenum param, GLuint *data);
 bool pixelConvertToInternalFormat(GLMContext ctx, GLenum internalformat, GLenum format, GLenum type, const void *src, void *dst, size_t len);
 
-bool createTextureLevel(GLMContext ctx, Texture *tex, GLuint face, GLint level, GLboolean is_array, GLint internalformat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, void *pixels, GLboolean proxy);
+bool createTextureLevel(GLMContext ctx, Texture *tex, GLuint face, GLuint level, GLboolean is_array, GLuint internalformat, GLuint width, GLuint height, GLuint depth, GLenum format, GLenum type, void *pixels, GLboolean proxy);
 
 
 #ifdef __cplusplus

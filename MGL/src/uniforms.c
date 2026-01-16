@@ -405,7 +405,7 @@ void _name_##Transpose (const _name_ *matrix, _transposed_name_ *result) { \
     if (transpose) { \
         const _src_type_ *src = (const _src_type_ *)value; \
         /* CRITICAL SECURITY FIX: Prevent integer overflow in uniform matrix allocation */ \
-        if (count > SIZE_MAX / sizeof(_dst_type_)) { \
+        if ((size_t)count > SIZE_MAX / sizeof(_dst_type_)) { \
             fprintf(stderr, "MGL SECURITY ERROR: Uniform matrix count %d would cause allocation overflow\n", count); \
             STATE(error) = GL_OUT_OF_MEMORY; \
             return; \
@@ -417,7 +417,7 @@ void _name_##Transpose (const _name_ *matrix, _transposed_name_ *result) { \
             STATE(error) = GL_OUT_OF_MEMORY; \
             return; \
         } \
-        for (int i = 0; i < count; i++) { \
+        for (size_t i = 0; i < (size_t)count; i++) { \
             _transpose_func_(&src[i], &dst[i]); \
         } \
         mglUniform(ctx, location, (void *)dst, count * sizeof(_dst_type_)); \

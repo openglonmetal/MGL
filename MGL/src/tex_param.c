@@ -24,17 +24,22 @@ extern GLuint textureIndexFromTarget(GLMContext ctx, GLenum target);
 extern Texture *currentTexture(GLMContext ctx, GLuint index);
 Texture *getTex(GLMContext ctx, GLuint name, GLenum target);
 
+enum {
+    kSetParamI,
+    kSetParamF
+};
+
 #pragma mark set params
-bool setTexParmi(GLMContext ctx, TextureParameter *tex_params, GLenum pname, const GLint *param)
+GLboolean setTexParmui(GLMContext ctx, TextureParameter *tex_params, GLenum pname, GLuint param)
 {
     switch(pname)
     {
         case GL_DEPTH_STENCIL_TEXTURE_MODE:
-            switch(*param)
+            switch(param)
             {
                 case GL_DEPTH_COMPONENT:
                 case GL_STENCIL_INDEX:
-                    tex_params->depth_stencil_mode = *param;
+                    tex_params->depth_stencil_mode = (GLenum)param;
                     break;
 
                 default:
@@ -43,12 +48,12 @@ bool setTexParmi(GLMContext ctx, TextureParameter *tex_params, GLenum pname, con
             break;
 
         case GL_TEXTURE_BASE_LEVEL:
-            tex_params->base_level = *param;
+            tex_params->base_level = (GLuint)param;
             // need to compare this against something...
             break;
 
         case GL_TEXTURE_COMPARE_FUNC:
-            switch(*param)
+            switch(param)
             {
                 case GL_LEQUAL:
                 case GL_GEQUAL:
@@ -58,7 +63,7 @@ bool setTexParmi(GLMContext ctx, TextureParameter *tex_params, GLenum pname, con
                 case GL_NOTEQUAL:
                 case GL_ALWAYS:
                 case GL_NEVER:
-                    tex_params->compare_func = *param;
+                    tex_params->compare_func = (GLenum)param;
                     break;
 
                 default:
@@ -67,11 +72,11 @@ bool setTexParmi(GLMContext ctx, TextureParameter *tex_params, GLenum pname, con
             break;
 
         case GL_TEXTURE_COMPARE_MODE:
-            switch(*param)
+            switch(param)
             {
                 case GL_COMPARE_REF_TO_TEXTURE:
                 case GL_NONE:
-                    tex_params->compare_mode = *param;
+                    tex_params->compare_mode = (GLenum)param;
                     break;
 
                 default:
@@ -80,7 +85,7 @@ bool setTexParmi(GLMContext ctx, TextureParameter *tex_params, GLenum pname, con
             break;
 
         case GL_TEXTURE_MIN_FILTER:
-            switch(*param)
+            switch(param)
             {
                 case GL_NEAREST:
                 case GL_LINEAR:
@@ -88,7 +93,7 @@ bool setTexParmi(GLMContext ctx, TextureParameter *tex_params, GLenum pname, con
                 case GL_LINEAR_MIPMAP_NEAREST:
                 case GL_NEAREST_MIPMAP_LINEAR:
                 case GL_LINEAR_MIPMAP_LINEAR:
-                    tex_params->min_filter = *param;
+                    tex_params->min_filter = (GLenum)param;
                     break;
 
                 default:
@@ -97,11 +102,11 @@ bool setTexParmi(GLMContext ctx, TextureParameter *tex_params, GLenum pname, con
             break;
 
         case GL_TEXTURE_MAG_FILTER:
-            switch(*param)
+            switch(param)
             {
                 case GL_NEAREST:
                 case GL_LINEAR:
-                    tex_params->mag_filter = *param;
+                    tex_params->mag_filter = (GLenum)param;
                     break;
 
                 default:
@@ -110,43 +115,43 @@ bool setTexParmi(GLMContext ctx, TextureParameter *tex_params, GLenum pname, con
             break;
 
         case GL_TEXTURE_MIN_LOD:
-            tex_params->min_lod = *param;
+            tex_params->min_lod = param;
             break;
 
         case GL_TEXTURE_MAX_LOD:
-            tex_params->max_lod = *param;
+            tex_params->max_lod = param;
             break;
 
         case GL_TEXTURE_MAX_LEVEL:
-            tex_params->max_level = *param;
+            tex_params->max_level = (GLuint)param;
             break;
 
         case GL_TEXTURE_SWIZZLE_R:
-            tex_params->swizzle_r = *param;
+            tex_params->swizzle_r = (GLenum)param;
             break;
 
         case GL_TEXTURE_SWIZZLE_G:
-            tex_params->swizzle_g = *param;
+            tex_params->swizzle_g = (GLenum)param;
             break;
 
         case GL_TEXTURE_SWIZZLE_B:
-            tex_params->swizzle_b = *param;
+            tex_params->swizzle_b = (GLenum)param;
             break;
 
         case GL_TEXTURE_SWIZZLE_A:
-            tex_params->swizzle_a = *param;
+            tex_params->swizzle_a = (GLenum)param;
             break;
 
         case GL_TEXTURE_WRAP_S:
-            tex_params->wrap_s = *param;
+            tex_params->wrap_s = (GLenum)param;
             break;
 
         case GL_TEXTURE_WRAP_T:
-            tex_params->wrap_t = *param;
+            tex_params->wrap_t = (GLenum)param;
             break;
 
         case GL_TEXTURE_WRAP_R:
-            tex_params->wrap_r = *param;
+            tex_params->wrap_r = (GLenum)param;
             break;
 
         default:
@@ -173,10 +178,10 @@ bool setTexParamsi(GLMContext ctx, TextureParameter *tex_params, GLenum pname, c
              (params[3] != GL_ALPHA))
             {
                 tex_params->swizzled = true;
-                tex_params->swizzle_r = params[0];
-                tex_params->swizzle_g = params[1];
-                tex_params->swizzle_b = params[2];
-                tex_params->swizzle_a = params[3];
+                tex_params->swizzle_r = (GLenum)params[0];
+                tex_params->swizzle_g = (GLenum)params[1];
+                tex_params->swizzle_b = (GLenum)params[2];
+                tex_params->swizzle_a = (GLenum)params[3];
             }
             else
             {
@@ -198,7 +203,7 @@ bool setTexParamsIiv(GLMContext ctx, TextureParameter *tex_params, GLenum pname,
     {
         case GL_TEXTURE_BORDER_COLOR:
             for(int i=0; i<4; i++)
-                tex_params->border_color_i[i] = params[i];
+                tex_params->border_color[i] = (GLuint)params[i];
             break;
 
         default:
@@ -215,7 +220,7 @@ bool setTexParamsIuiv(GLMContext ctx, TextureParameter *tex_params, GLenum pname
     {
         case GL_TEXTURE_BORDER_COLOR:
             for(int i=0; i<4; i++)
-                tex_params->border_color_ui[i] = params[i];
+                tex_params->border_color[i] = (GLuint)params[i];
             break;
 
         default:
@@ -226,16 +231,16 @@ bool setTexParamsIuiv(GLMContext ctx, TextureParameter *tex_params, GLenum pname
     return true;
 }
 
-bool setTexParmf(GLMContext ctx, TextureParameter *tex_params, GLenum pname, const GLfloat *param)
+bool setTexParmf(GLMContext ctx, TextureParameter *tex_params, GLenum pname, GLfloat param)
 {
     switch(pname)
     {
         case GL_TEXTURE_LOD_BIAS:
-            tex_params->lod_bias = *param;
+            tex_params->lod_bias = param;
             break;
 
         case GL_TEXTURE_MAX_ANISOTROPY:
-            tex_params->max_anisotropy = *param;
+            tex_params->max_anisotropy = param;
             break;
 
         default:
@@ -256,10 +261,10 @@ bool setTexParamsf(GLMContext ctx, TextureParameter *tex_params, GLenum pname, c
             break;
 
         case GL_TEXTURE_SWIZZLE_RGBA:
-            tex_params->swizzle_r = (GLint)params[0];
-            tex_params->swizzle_g = (GLint)params[1];
-            tex_params->swizzle_b = (GLint)params[2];
-            tex_params->swizzle_a = (GLint)params[3];
+            tex_params->swizzle_r = (GLenum)params[0];
+            tex_params->swizzle_g = (GLenum)params[1];
+            tex_params->swizzle_b = (GLenum)params[2];
+            tex_params->swizzle_a = (GLenum)params[3];
             break;
 
         default:
@@ -271,7 +276,7 @@ bool setTexParamsf(GLMContext ctx, TextureParameter *tex_params, GLenum pname, c
 }
 
 #pragma mark get params
-static bool getTexParmi(GLMContext ctx, TextureParameter *tex_params, const GLenum pname, GLint *ret)
+static bool getTexParmi(GLMContext ctx, TextureParameter *tex_params, const GLenum pname, GLuint *ret)
 {
     switch(pname)
     {
@@ -302,11 +307,11 @@ static bool getTexParmi(GLMContext ctx, TextureParameter *tex_params, const GLen
             break;
 
         case GL_TEXTURE_MIN_LOD:
-            *ret = tex_params->min_lod;
+            *ret = (GLenum)tex_params->min_lod;
             break;
 
         case GL_TEXTURE_MAX_LOD:
-            *ret = tex_params->max_lod;
+            *ret = (GLenum)tex_params->max_lod;
             break;
 
         case GL_TEXTURE_MAX_LEVEL:
@@ -453,31 +458,31 @@ static bool getTexParmf(GLMContext ctx, TextureParameter *tex_params, GLenum pna
     return true;
 }
 
-bool setParam(GLMContext ctx, TextureParameter *tex_params, GLenum pname, GLint iparam, GLfloat fparam)
+bool setParam(GLMContext ctx, TextureParameter *tex_params, GLenum pname, GLuint iparam, GLfloat fparam)
 {
     if (iparam)
     {
-        if (setTexParmi(ctx, tex_params, pname, &iparam))
+        if (setTexParmui(ctx, tex_params, pname, iparam))
             return true;
 
-        fparam = (float)iparam;
-        if (setTexParmf(ctx, tex_params, pname, &fparam))
+        fparam = (GLfloat)iparam;
+        if (setTexParmf(ctx, tex_params, pname, fparam))
             return true;
     }
     else
     {
-        if (setTexParmf(ctx, tex_params, pname, &fparam))
+        if (setTexParmf(ctx, tex_params, pname, fparam))
             return true;
 
-        iparam = (GLint)fparam;
-        if (setTexParmi(ctx, tex_params, pname, &iparam))
+        iparam = (GLuint)fparam;
+        if (setTexParmui(ctx, tex_params, pname, iparam))
             return true;
     }
 
     return false;
 }
 
-bool getParam(GLMContext ctx, TextureParameter *tex_params, GLenum pname, GLint *iparam, GLfloat *fparam)
+bool getParam(GLMContext ctx, TextureParameter *tex_params, GLenum pname, GLuint *iparam, GLfloat *fparam)
 {
     if (iparam)
     {
@@ -536,24 +541,20 @@ void mglTexParameterfv(GLMContext ctx, GLenum target, GLenum pname, const GLfloa
     }
 }
 
-void mglTexParameteri(GLMContext ctx, GLenum target, GLenum pname, GLint param)
+void mglTexParameteri(GLMContext ctx, GLenum target, GLenum pname, GLuint param)
 {
-    GLfloat fparam = 0.0;
-
     Texture *tex;
 
     tex = getTex(ctx, 0, target);
 
     ERROR_CHECK_RETURN(tex, GL_INVALID_OPERATION);
 
-    if (setParam(ctx, &tex->params, pname, param, fparam))
+    if (setParam(ctx, &tex->params, pname, param, 0))
         return;
 }
 
 void mglTexParameteriv(GLMContext ctx, GLenum target, GLenum pname, const GLint *params)
 {
-    GLfloat fparam = 0.0;
-
     Texture *tex;
 
     tex = getTex(ctx, 0, target);
@@ -568,7 +569,7 @@ void mglTexParameteriv(GLMContext ctx, GLenum target, GLenum pname, const GLint 
         return;
     }
 
-    if (setParam(ctx, &tex->params, pname, *params, fparam))
+    if (setParam(ctx, &tex->params, pname, (GLuint)*params, 0))
         return;
 
     assert(0);
@@ -590,15 +591,14 @@ void mglTexParameterIiv(GLMContext ctx, GLenum target, GLenum pname, const GLint
     }
 
     // more than one param... try setTexParamsi
-    if (setTexParamsi(ctx, &tex->params, pname, params))
+    if (setTexParamsIiv(ctx, &tex->params, pname, params))
     {
         tex->dirty_bits |= DIRTY_TEX_PARAM;
 
         return;
     }
 
-    GLfloat fparam = 0.0;
-    if (setParam(ctx, &tex->params, pname, *params, fparam))
+    if (setParam(ctx, &tex->params, pname, (GLuint)*params, 0))
         return;
 
     assert(0);
@@ -627,8 +627,7 @@ void mglTexParameterIuiv(GLMContext ctx, GLenum target, GLenum pname, const GLui
         return;
     }
 
-    GLfloat fparam = 0.0;
-    if (setParam(ctx, &tex->params, pname, *params, fparam))
+    if (setParam(ctx, &tex->params, pname, *params, 0.0f))
         return;
 
     assert(0);
@@ -642,7 +641,7 @@ void mglTextureParameterf(GLMContext ctx, GLuint texture, GLenum pname, GLfloat 
 
     ERROR_CHECK_RETURN(tex, GL_INVALID_OPERATION);
 
-    if(setTexParmf(ctx, &tex->params, pname, &param))
+    if(setTexParmf(ctx, &tex->params, pname, param))
     {
         tex->dirty_bits |= DIRTY_TEX_PARAM;
     }
@@ -656,13 +655,13 @@ void mglTextureParameterfv(GLMContext ctx, GLuint texture, GLenum pname, const G
 
     ERROR_CHECK_RETURN(tex, GL_INVALID_OPERATION);
 
-    if(setTexParmf(ctx, &tex->params, pname, param))
+    if(setTexParmf(ctx, &tex->params, pname, *param))
     {
         tex->dirty_bits |= DIRTY_TEX_PARAM;
     }
 }
 
-void mglTextureParameteri(GLMContext ctx, GLuint texture, GLenum pname, GLint param)
+void mglTextureParameteri(GLMContext ctx, GLuint texture, GLenum pname, const GLuint param)
 {
     Texture *tex;
 
@@ -670,7 +669,7 @@ void mglTextureParameteri(GLMContext ctx, GLuint texture, GLenum pname, GLint pa
 
     ERROR_CHECK_RETURN(tex, GL_INVALID_OPERATION);
 
-    if(setTexParmi(ctx, &tex->params, pname, &param))
+    if(setTexParmui(ctx, &tex->params, pname, param))
     {
         tex->dirty_bits |= DIRTY_TEX_PARAM;
     }
@@ -684,7 +683,7 @@ void mglTextureParameteriv(GLMContext ctx, GLuint texture, GLenum pname, const G
 
     ERROR_CHECK_RETURN(tex, GL_INVALID_OPERATION);
 
-    if(setTexParmi(ctx, &tex->params, pname, param))
+    if(setTexParmui(ctx, &tex->params, pname, (GLuint)*param))
     {
         tex->dirty_bits |= DIRTY_TEX_PARAM;
     }
@@ -698,7 +697,7 @@ void mglTextureParameterIiv(GLMContext ctx, GLuint texture, GLenum pname, const 
 
     ERROR_CHECK_RETURN(tex, GL_INVALID_OPERATION);
 
-    if (setTexParamsIiv(ctx, &tex->params, pname, params))
+    if (setTexParamsIiv(ctx, &tex->params, pname, (GLint *)params))
     {
         tex->dirty_bits |= DIRTY_TEX_PARAM;
 
@@ -713,8 +712,7 @@ void mglTextureParameterIiv(GLMContext ctx, GLuint texture, GLenum pname, const 
         return;
     }
 
-    GLfloat fparam = 0.0;
-    if (setParam(ctx, &tex->params, pname, *params, fparam))
+    if (setParam(ctx, &tex->params, pname, (GLuint)*params, 0))
     {
         tex->dirty_bits |= DIRTY_TEX_PARAM;
     }
@@ -759,7 +757,7 @@ void mglGetTexParameterfv(GLMContext ctx, GLenum target, GLenum pname, GLfloat *
 
     ERROR_CHECK_RETURN(tex, GL_INVALID_OPERATION);
 
-    GLint iparam;
+    GLuint iparam;
     iparam = 0;
 
     if(getParam(ctx, &tex->params, pname, &iparam, params))
@@ -782,11 +780,11 @@ void mglGetTexParameteriv(GLMContext ctx, GLenum target, GLenum pname, GLint *pa
     GLfloat fparam;
     fparam = 0.0;
 
-    if(getParam(ctx, &tex->params, pname, params, &fparam))
+    if(getParam(ctx, &tex->params, pname, (GLuint *)params, &fparam))
     {
-        if (fparam)
+        if (fparam > 0.0)
         {
-            *params = (float)fparam;
+            *params = (GLint)fparam;
         }
     }
 }

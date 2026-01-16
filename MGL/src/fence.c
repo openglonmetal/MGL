@@ -86,7 +86,7 @@ GLboolean mglIsSync(GLMContext ctx, GLsync sync)
         return false;
     }
 
-    return isSync(ctx, sync);
+    return (GLboolean)isSync(ctx, sync);
 }
 
 void mglDeleteSync(GLMContext ctx, GLsync sync)
@@ -172,20 +172,31 @@ void mglGetSynciv(GLMContext ctx, GLsync sync, GLenum pname, GLsizei count, GLsi
     }
 
     // CRITICAL FIX: Add parameter validation with graceful handling
-    if (!count || count < 0) {
+    if (!count || count < 0)
+    {
         fprintf(stderr, "MGL ERROR: Invalid count %d in get sync iv\n", count);
         return;
     }
-    if (!length) {
+    
+    if (!length)
+    {
         fprintf(stderr, "MGL ERROR: NULL length pointer in get sync iv\n");
         return;
     }
-    if (!values) {
+    
+    if (!values)
+    {
         fprintf(stderr, "MGL ERROR: NULL values pointer in get sync iv\n");
         return;
     }
 
-    if (*length < count * sizeof(GLuint))
+    if ((size_t)(count * sizeof(GLuint) > SIZE_MAX))
+    {
+        fprintf(stderr, "MGL ERROR: integer overflow of size\n");
+        return;
+    }
+    
+    if (*length < (GLsizei)(count * sizeof(GLuint)))
     {
         // CRITICAL FIX: Handle insufficient buffer size gracefully
         fprintf(stderr, "MGL ERROR: Insufficient buffer size %d for %d values in get sync iv\n", *length, count);

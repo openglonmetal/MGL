@@ -178,14 +178,14 @@ void glEnable(GLenum cap)
     ctx->dispatch.enable(ctx, cap);
 }
 
-void glFinish()
+void glFinish(void)
 {
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.finish(ctx);
 }
 
-void glFlush()
+void glFlush(void)
 {
     GLMContext ctx = GET_CONTEXT();
 
@@ -269,7 +269,7 @@ void glGetDoublev(GLenum pname, GLdouble *data)
     ctx->dispatch.get_doublev(ctx, pname, data);
 }
 
-GLenum  glGetError()
+GLenum  glGetError(void)
 {
     GLMContext ctx = GET_CONTEXT();
 
@@ -360,7 +360,7 @@ void glNewList(GLuint list, GLenum mode)
     ctx->dispatch.new_list(ctx, list, mode);
 }
 
-void glEndList()
+void glEndList(void)
 {
     GLMContext ctx = GET_CONTEXT();
 
@@ -654,7 +654,7 @@ void glEdgeFlagv(const GLboolean *flag)
     ctx->dispatch.edge_flagv(ctx, flag);
 }
 
-void glEnd()
+void glEnd(void)
 {
     GLMContext ctx = GET_CONTEXT();
 
@@ -1641,7 +1641,7 @@ GLint  glRenderMode(GLenum mode)
     return ctx->dispatch.render_mode(ctx, mode);
 }
 
-void glInitNames()
+void glInitNames(void)
 {
     GLMContext ctx = GET_CONTEXT();
 
@@ -1662,7 +1662,7 @@ void glPassThrough(GLfloat token)
     ctx->dispatch.pass_through(ctx, token);
 }
 
-void glPopName()
+void glPopName(void)
 {
     GLMContext ctx = GET_CONTEXT();
 
@@ -1704,7 +1704,7 @@ void glAccum(GLenum op, GLfloat value)
     ctx->dispatch.accum(ctx, op, value);
 }
 
-void glPopAttrib()
+void glPopAttrib(void)
 {
     GLMContext ctx = GET_CONTEXT();
 
@@ -2054,7 +2054,7 @@ void glFrustum(GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLd
     ctx->dispatch.frustum(ctx, left, right, bottom, top, zNear, zFar);
 }
 
-void glLoadIdentity()
+void glLoadIdentity(void)
 {
     GLMContext ctx = GET_CONTEXT();
 
@@ -2103,14 +2103,14 @@ void glOrtho(GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdou
     ctx->dispatch.ortho(ctx, left, right, bottom, top, zNear, zFar);
 }
 
-void glPopMatrix()
+void glPopMatrix(void)
 {
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.pop_matrix(ctx);
 }
 
-void glPushMatrix()
+void glPushMatrix(void)
 {
     GLMContext ctx = GET_CONTEXT();
 
@@ -2354,7 +2354,7 @@ void glIndexubv(const GLubyte *c)
     ctx->dispatch.indexubv(ctx, c);
 }
 
-void glPopClientAttrib()
+void glPopClientAttrib(void)
 {
     GLMContext ctx = GET_CONTEXT();
 
@@ -3236,7 +3236,7 @@ void glCompileShader(GLuint shader)
     ctx->dispatch.compile_shader(ctx, shader);
 }
 
-GLuint  glCreateProgram()
+GLuint  glCreateProgram(void)
 {
     GLMContext ctx = GET_CONTEXT();
 
@@ -3922,7 +3922,7 @@ void glBeginTransformFeedback(GLenum primitiveMode)
     ctx->dispatch.begin_transform_feedback(ctx, primitiveMode);
 }
 
-void glEndTransformFeedback()
+void glEndTransformFeedback(void)
 {
     GLMContext ctx = GET_CONTEXT();
 
@@ -3971,7 +3971,7 @@ void glBeginConditionalRender(GLuint id, GLenum mode)
     ctx->dispatch.begin_conditional_render(ctx, id, mode);
 }
 
-void glEndConditionalRender()
+void glEndConditionalRender(void)
 {
     GLMContext ctx = GET_CONTEXT();
 
@@ -5357,14 +5357,14 @@ GLboolean  glIsTransformFeedback(GLuint id)
     return ctx->dispatch.is_transform_feedback(ctx, id);
 }
 
-void glPauseTransformFeedback()
+void glPauseTransformFeedback(void)
 {
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.pause_transform_feedback(ctx);
 }
 
-void glResumeTransformFeedback()
+void glResumeTransformFeedback(void)
 {
     GLMContext ctx = GET_CONTEXT();
 
@@ -5406,7 +5406,7 @@ void glGetQueryIndexediv(GLenum target, GLuint index, GLenum pname, GLint *param
     ctx->dispatch.get_query_indexediv(ctx, target, index, pname, params);
 }
 
-void glReleaseShaderCompiler()
+void glReleaseShaderCompiler(void)
 {
     GLMContext ctx = GET_CONTEXT();
 
@@ -6372,7 +6372,7 @@ void glPushDebugGroup(GLenum source, GLuint id, GLsizei length, const GLchar *me
     ctx->dispatch.push_debug_group(ctx, source, id, length, message);
 }
 
-void glPopDebugGroup()
+void glPopDebugGroup(void)
 {
     GLMContext ctx = GET_CONTEXT();
 
@@ -7177,7 +7177,7 @@ void glGetCompressedTextureSubImage(GLuint texture, GLint level, GLint xoffset, 
     ctx->dispatch.get_compressed_texture_sub_image(ctx, texture, level, xoffset, yoffset, zoffset, width, height, depth, bufSize, pixels);
 }
 
-GLenum  glGetGraphicsResetStatus()
+GLenum  glGetGraphicsResetStatus(void)
 {
     GLMContext ctx = GET_CONTEXT();
 
@@ -7317,7 +7317,7 @@ void glGetnMinmax(GLenum target, GLboolean reset, GLenum format, GLenum type, GL
     ctx->dispatch.getn_minmax(ctx, target, reset, format, type, bufSize, values);
 }
 
-void glTextureBarrier()
+void glTextureBarrier(void)
 {
     GLMContext ctx = GET_CONTEXT();
 

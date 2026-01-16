@@ -370,7 +370,7 @@ bool clearBufferData(GLMContext ctx, Buffer *ptr, GLenum internalformat, GLintpt
     GLubyte *dst;
     dst = (GLubyte *)data + offset;
 
-    for(int i=0; i<pixel_count; i++)
+    for(GLuint i=0; i<pixel_count; i++)
     {
         memcpy(dst, data, pixel_size);
         dst += pixel_size;

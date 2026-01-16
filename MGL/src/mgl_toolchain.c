@@ -72,7 +72,8 @@ static void mgl_init_input(glslang_input_t *input,
     input->client = GLSLANG_CLIENT_OPENGL;
     input->client_version = GLSLANG_TARGET_OPENGL_450;
     input->target_language = GLSLANG_TARGET_SPV;
-    input->target_language_version = GLSLANG_TARGET_SPV_1_0;
+    // according to khronos GLSLANG_TARGET_OPENGL_450 client maps to spirv 1_6
+    input->target_language_version = GLSLANG_TARGET_SPV_1_6;
 
     /* Detect and upgrade GLSL version in source code
      * GLSL 1.40 (OpenGL 3.1) shaders from virglrenderer need upgrading to 3.30
@@ -124,8 +125,8 @@ static void mgl_init_input(glslang_input_t *input,
                  */
                 char version_buf[64];
                 snprintf(version_buf, sizeof(version_buf), "#version %d core", glsl_version);
-                size_t old_len = newline - version_line;
-                size_t new_len = strlen(version_buf);
+                ptrdiff_t old_len = newline - version_line;
+                ptrdiff_t new_len = (ptrdiff_t)strlen(version_buf);
 
                 if (new_len <= old_len) {
                     /* Simple replacement - pad with spaces */
