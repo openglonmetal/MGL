@@ -7,3 +7,4 @@ git clone https://github.com/KhronosGroup/SPIRV-Headers.git --depth 1
 cd ../..
 git clone https://github.com/lxfontes/ezxml.git --depth 1
 git clone https://github.com/KhronosGroup/glslang.git --depth 1
+git clone git@github.com:glfw/glfw.git

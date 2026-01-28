@@ -28,6 +28,8 @@
 extern "C" {
 #endif
 
+#define BIG_ALLOC (128 * 1024 * 1024)
+
 // CRITICAL SAFETY MACROS - Replace unsafe assert() calls
 // These provide production-safe validation instead of crashes
 
@@ -168,7 +170,7 @@ extern "C" {
     } while(0)
 
 // Safe buffer size access with validation (for void functions)
-#define MGL_GET_BUFFER_SIZE_SAFE_VOID(ptr, size_var, function_name) \
+#define MGL_GET_BUFFER_SIZE_SAFE_VOID(_ctx_, ptr, size_var, function_name) \
     do { \
         MGL_VALIDATE_BUFFER_POINTER_VOID((ptr), (function_name)); \
         \
@@ -180,7 +182,7 @@ extern "C" {
         } \
         \
         /* Check for suspiciously large buffer sizes */ \
-        if ((ptr)->size > 0x10000000) { \
+        if ((ptr)->size > _ctx_->max_os_alloc_size) { \
             fprintf(stderr, "MGL BUFFER WARNING: %s - Suspiciously large buffer size %ld at %s:%d\n", \
                     (function_name), (long)((ptr)->size), __FILE__, __LINE__); \
         } \

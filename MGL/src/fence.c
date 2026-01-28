@@ -28,7 +28,8 @@ Sync *newSync(GLMContext ctx)
 
     ptr = (Sync *)malloc(sizeof(Sync));
     // CRITICAL SECURITY FIX: Check malloc result instead of using assert()
-    if (!ptr) {
+    if (!ptr)
+    {            
         fprintf(stderr, "MGL SECURITY ERROR: Failed to allocate memory for Sync\n");
         return NULL;
     }
@@ -60,15 +61,14 @@ GLsync mglFenceSync(GLMContext ctx, GLenum condition, GLbitfield flags)
         default:
             // CRITICAL FIX: Handle unknown fence conditions gracefully instead of crashing
             fprintf(stderr, "MGL ERROR: Unknown fence sync condition 0x%x, defaulting to GPU_COMMANDS_COMPLETE\n", condition);
-            condition = GL_SYNC_GPU_COMMANDS_COMPLETE;
             break;
     }
 
     // must be zero
-    if (flags != 0) {
+    if (flags != 0)
+    {            
         // CRITICAL FIX: Handle invalid flags gracefully instead of crashing
         fprintf(stderr, "MGL ERROR: Fence sync flags must be zero, got 0x%x, continuing with zero\n", flags);
-        flags = 0;
     }
 
     ptr = newSync(ctx);
@@ -103,7 +103,8 @@ void mglDeleteSync(GLMContext ctx, GLsync sync)
         ctx->mtl_funcs.mtlWaitForSync(ctx, sync);
 
         // should be null - but handle gracefully if not
-        if (sync->mtl_event != NULL) {
+        if (sync->mtl_event != NULL)
+        {            
             fprintf(stderr, "MGL WARNING: sync->mtl_event should be NULL after wait, but is %p\n", sync->mtl_event);
         }
     }
@@ -148,7 +149,8 @@ void mglWaitSync(GLMContext ctx, GLsync sync, GLbitfield flags, GLuint64 timeout
         return;
     }
 
-    if (timeout != GL_TIMEOUT_IGNORED) {
+    if (timeout != GL_TIMEOUT_IGNORED)
+    {            
         // CRITICAL FIX: Handle invalid timeout gracefully instead of crashing
         fprintf(stderr, "MGL ERROR: Server wait sync timeout must be GL_TIMEOUT_IGNORED, got 0x%llx\n", timeout);
         // Continue with GL_TIMEOUT_IGNORED behavior
@@ -157,7 +159,8 @@ void mglWaitSync(GLMContext ctx, GLsync sync, GLbitfield flags, GLuint64 timeout
     ctx->mtl_funcs.mtlWaitForSync(ctx, sync);
 
     // Handle gracefully if event is not null after wait
-    if (sync->mtl_event != NULL) {
+    if (sync->mtl_event != NULL)
+    {            
         fprintf(stderr, "MGL WARNING: sync->mtl_event should be NULL after server wait, but is %p\n", sync->mtl_event);
     }
 }

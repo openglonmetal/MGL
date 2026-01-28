@@ -346,7 +346,10 @@ void mglDrawElementsInstanced(GLMContext ctx, GLenum mode, GLsizei count, GLenum
         return;
     }
 
-    if (!check_element_type(type)) { ERROR_RETURN(GL_INVALID_VALUE); return; }
+    if (!check_element_type(type))
+    {
+        ERROR_RETURN(GL_INVALID_VALUE);
+    }
 
     ERROR_CHECK_RETURN(instancecount >= 0, GL_INVALID_VALUE);
 
@@ -361,7 +364,10 @@ void mglDrawElementsInstanced(GLMContext ctx, GLenum mode, GLsizei count, GLenum
         return;
     }
 
-    if (!validate_program(ctx)) { ERROR_RETURN(GL_INVALID_OPERATION); return; }
+    if (!validate_program(ctx))
+    {
+        ERROR_RETURN(GL_INVALID_OPERATION);
+    }
 
     ctx->mtl_funcs.mtlDrawElementsInstanced(ctx, mode, count, type, indices, instancecount);
 }

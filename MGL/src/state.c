@@ -315,7 +315,7 @@ void mglColorMask(GLMContext ctx, GLboolean red, GLboolean green, GLboolean blue
 {
     if (red == false || green == false  || blue == false  || alpha == false)
     {
-        for(int i=0; i<MAX_COLOR_ATTACHMENTS; i++)
+        for(GLuint i=0; i<MAX_COLOR_ATTACHMENTS; i++)
         {
             STATE(caps.use_color_mask[i]) = true;
 
@@ -328,7 +328,7 @@ void mglColorMask(GLMContext ctx, GLboolean red, GLboolean green, GLboolean blue
     }
     else
     {
-        for(int i=0; i<MAX_COLOR_ATTACHMENTS; i++)
+        for(GLuint i=0; i<MAX_COLOR_ATTACHMENTS; i++)
         {
             STATE(caps.use_color_mask[i]) = false;
         }
@@ -636,7 +636,7 @@ void mglBlendEquation(GLMContext ctx, GLenum mode)
             ERROR_RETURN(GL_INVALID_ENUM);
     }
 
-    for(int i=0; i<MAX_COLOR_ATTACHMENTS; i++)
+    for(GLuint i=0; i<MAX_COLOR_ATTACHMENTS; i++)
     {
         ctx->state.var.blend_equation_rgb[i] = mode;
         ctx->state.var.blend_equation_alpha[i] = mode;
@@ -750,7 +750,7 @@ void mglBlendFunc(GLMContext ctx, GLenum sfactor, GLenum dfactor)
             ERROR_RETURN(GL_INVALID_ENUM);
     }
 
-    for(int i=0; i<MAX_COLOR_ATTACHMENTS; i++)
+    for(GLuint i=0; i<MAX_COLOR_ATTACHMENTS; i++)
     {
         ctx->state.var.blend_src_rgb[i] = sfactor;
         ctx->state.var.blend_src_alpha[i] = sfactor;

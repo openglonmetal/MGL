@@ -41,7 +41,7 @@ case kBool: RET_BOOL(ctx->state.var.__VALUE__);   \
 
 // set count values based on type
 #define RET_TYPE_VAR_COUNT(__TYPE__, __VALUE__, __COUNT__) \
-for(int i=0, counts[]={1,4,4,8};i<__COUNT__; data+=counts[__TYPE__], i++) \
+for(GLuint i=0, counts[]={1,4,4,8};i<__COUNT__; data+=counts[__TYPE__], i++) \
     switch(type) {  \
         case kBool: RET_BOOL(ctx->state.var.__VALUE__[i])    \
         case kInt: RET_INT(ctx->state.var.__VALUE__[i])    \
@@ -60,7 +60,7 @@ switch(type) {  \
 
 // set count values based on type
 #define RET_TYPE_COUNT(__TYPE__, __VALUE__, __COUNT__) \
-for(int i=0, counts[]={1,4,4,8};i<__COUNT__; data+=counts[__TYPE__], i++) \
+for(GLuint i=0, counts[]={1,4,4,8};i<__COUNT__; data+=counts[__TYPE__], i++) \
     switch(type) {  \
         case kBool: RET_BOOL(ctx->state.__VALUE__[i])    \
         case kInt: RET_INT(ctx->state.__VALUE__[i])    \
@@ -371,26 +371,28 @@ static void mglGet(GLMContext ctx, GLenum pname, GLuint type, void *data)
 
 void mglGetBooleanv(GLMContext ctx, GLenum pname, GLboolean *data)
 {
+    RETURN_ON_FAILURE(data != NULL);
+
     mglGet(ctx, pname, kBool, (void *)data);
 }
 
 void mglGetDoublev(GLMContext ctx, GLenum pname, GLdouble *data)
 {
-    assert(data);
+    RETURN_ON_FAILURE(data != NULL);
 
     mglGet(ctx, pname, kDouble, (void *)data);
 }
 
 void mglGetFloatv(GLMContext ctx, GLenum pname, GLfloat *data)
 {
-    assert(data);
+    RETURN_ON_FAILURE(data != NULL);
 
     mglGet(ctx, pname, kFloat, (void *)data);
 }
 
 void mglGetIntegerv(GLMContext ctx, GLenum pname, GLint *data)
 {
-    assert(data);
+    RETURN_ON_FAILURE(data != NULL);
 
     mglGet(ctx, pname, kInt, (void *)data);
 }

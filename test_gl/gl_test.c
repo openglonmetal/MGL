@@ -68,7 +68,7 @@ GLuint compileGLSLProgram(GLenum shader_count, ...)
 
     GLuint shader_program = glCreateProgram();
 
-    for(int i=0; i<shader_count; i++)
+    for(GLuint i=0; i<shader_count; i++)
     {
         type = va_arg(argp, GLuint);
         src = va_arg(argp, const char *);

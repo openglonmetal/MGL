@@ -22,6 +22,8 @@
 
 #include "glm_context.h"
 
+extern GLuint bufferIndexFromTarget(GLMContext ctx, GLenum target);
+
 Buffer *findBuffer(GLMContext ctx, GLuint buffer);
 
 GLsizei typeSize(GLenum type)
@@ -78,7 +80,7 @@ VertexArray *newVAO(GLMContext ctx, GLuint vao)
 
     ptr->name = vao;
 
-    for(int i=0; i<MAX_ATTRIBS; i++)
+    for(GLuint i=0; i<MAX_ATTRIBS; i++)
     {
         ptr->attrib[i].size = 4;
         ptr->attrib[i].type = GL_FLOAT;
@@ -95,7 +97,7 @@ VertexArray *getVAO(GLMContext ctx, GLuint vao)
 {
     VertexArray *ptr;
 
-    ptr = (VertexArray *)searchHashTable(&STATE(vao_table), vao);
+    ptr = (VertexArray *)getKeyData(&STATE(vao_table), vao);
 
     if (!ptr)
     {
@@ -109,14 +111,7 @@ VertexArray *getVAO(GLMContext ctx, GLuint vao)
 
 int isVAO(GLMContext ctx, GLuint vao)
 {
-    VertexArray *ptr;
-
-    ptr = (VertexArray *)searchHashTable(&STATE(vao_table), vao);
-
-    if (ptr)
-        return 1;
-
-    return 0;
+    return isValidKey(&STATE(vao_table), vao);
 }
 
 void mglGenVertexArrays(GLMContext ctx, GLsizei n, GLuint *arrays)
@@ -163,7 +158,7 @@ void mglDeleteVertexArrays(GLMContext ctx, GLsizei n, const GLuint *arrays)
         {
             VertexArray *ptr;
 
-            ptr = (VertexArray *)searchHashTable(&STATE(vao_table), vao);
+            ptr = (VertexArray *)getKeyData(&STATE(vao_table), vao);
 
             if (ptr)
             {
@@ -187,7 +182,7 @@ GLboolean mglIsVertexArray(GLMContext ctx, GLuint array)
     return (GLboolean)isVAO(ctx, array);
 }
 
-void mglGetVertexAttribdv(GLMContext ctx, GLuint index, GLenum pname, GLdouble *params)
+static bool getVertexAttribdv(GLMContext ctx, GLuint index, GLenum pname, GLdouble *params)
 {
     VertexArray *vao;
 
@@ -239,44 +234,52 @@ void mglGetVertexAttribdv(GLMContext ctx, GLuint index, GLenum pname, GLdouble *
 
         case GL_VERTEX_ATTRIB_ARRAY_INTEGER:
         case GL_VERTEX_ATTRIB_ARRAY_DIVISOR:
-            ERROR_RETURN(GL_INVALID_ENUM); // unsupported for now
-            *params = 0;
+            ERROR_RETURN_VALUE(GL_INVALID_ENUM, false); // unsupported for now
             break;
 
         case GL_CURRENT_VERTEX_ATTRIB:
-            ERROR_RETURN(GL_INVALID_ENUM); // unsupported for now, probably never
-            *params = 0;
+            ERROR_RETURN_VALUE(GL_INVALID_ENUM, false); // unsupported for now
             break;
 
         default:
-            ERROR_RETURN(GL_INVALID_ENUM);
+            ERROR_RETURN_VALUE(GL_INVALID_ENUM, false); // unsupported for now
     }
+    
+    return true;
+}
+
+void mglGetVertexAttribdv(GLMContext ctx, GLuint index, GLenum pname, GLdouble *params)
+{
+    getVertexAttribdv(ctx, index, pname, params);
 }
 
 void mglGetVertexAttribiv(GLMContext ctx, GLuint index, GLenum pname, GLint *params)
 {
     double dparams[4];
-
+    
     if (pname != GL_CURRENT_VERTEX_ATTRIB)
     {
         ERROR_CHECK_RETURN(ctx->state.vao, GL_INVALID_OPERATION);
     }
-
+    
     ERROR_CHECK_RETURN(index < MAX_ATTRIBS, GL_INVALID_VALUE);
-
+    
     if (params == NULL)
         return;
-
-    mglGetVertexAttribdv(ctx, index, pname, dparams);
-
-    if (pname == GL_CURRENT_VERTEX_ATTRIB)
+    
+    switch(pname)
     {
-        for(int i=0; i<4; i++)
-            params[i] = (GLint)dparams[i];
-    }
-    else
-    {
-        *params = (GLint)dparams[0];
+        case GL_VERTEX_ATTRIB_ARRAY_INTEGER:
+        case GL_VERTEX_ATTRIB_ARRAY_DIVISOR:
+        case GL_CURRENT_VERTEX_ATTRIB:
+            ERROR_RETURN(GL_INVALID_ENUM); // unsupported for now
+            break;
+            
+        default:
+            if (getVertexAttribdv(ctx, index, pname, dparams))
+            {
+                *params = (GLint)dparams[0];
+            }
     }
 }
 
@@ -294,14 +297,7 @@ void mglGetVertexAttribfv(GLMContext ctx, GLuint index, GLenum pname, GLfloat *p
     if (params == NULL)
         return;
 
-    mglGetVertexAttribdv(ctx, index, pname, dparams);
-
-    if (pname == GL_CURRENT_VERTEX_ATTRIB)
-    {
-        for(int i=0; i<4; i++)
-            params[i] = (GLfloat)dparams[i];
-    }
-    else
+    if (getVertexAttribdv(ctx, index, pname, dparams))
     {
         *params = (GLfloat)dparams[0];
     }
@@ -536,7 +532,7 @@ void mglCreateVertexArrays(GLMContext ctx, GLsizei n, GLuint *arrays)
 
     mglGenVertexArrays(ctx, n, arrays);
 
-    for(int i=0; i<n; i++)
+    for(GLsizei i=0; i<n; i++)
     {
         VertexArray *ptr;
 
@@ -570,6 +566,15 @@ void mglVertexArrayElementBuffer(GLMContext ctx, GLuint vaobj, GLuint buffer)
     ERROR_CHECK_RETURN(buf_ptr, GL_INVALID_VALUE);
 
     ptr->element_array.buffer = buf_ptr;
+
+    GLuint index;
+    index = bufferIndexFromTarget(ctx, GL_ELEMENT_ARRAY_BUFFER);
+
+    if (STATE(buffers[index]) != buf_ptr)
+    {
+        STATE(buffers[index]) = buf_ptr;
+        STATE(dirty_bits) |= DIRTY_BUFFER;
+    }
 
     buf_ptr->data.dirty_bits |= DIRTY_BUFFER;
     ptr->dirty_bits |= DIRTY_FBO_BINDING;

@@ -261,8 +261,10 @@ GLuint sizeForFormatType(GLenum format, GLenum type)
 {
     // Handle type=0 case (used for sized internal formats)
     // The format parameter is actually the internal format in this case
-    if (type == 0) {
-        switch (format) {
+    if (type == 0)
+    {            
+        switch (format)
+        {            
             // Alpha formats (1 component)
             case 0x803c: // GL_ALPHA8
             case 0x8040: // GL_LUMINANCE8
@@ -1876,7 +1878,8 @@ MTLPixelFormat mtlFormatForGLInternalFormat(GLenum internal_format)
             return MTLPixelFormatRGBA16Unorm;    // working format
 
         case GL_COMPRESSED_RGB:
-            if (__builtin_available(macOS 11.0, *)) {
+            if (__builtin_available(macOS 11.0, *))
+            {
                 return MTLPixelFormatETC2_RGB8;
             } else {
                 // Fallback on earlier versions
@@ -1884,7 +1887,8 @@ MTLPixelFormat mtlFormatForGLInternalFormat(GLenum internal_format)
             }
 
         case GL_COMPRESSED_RGBA:
-            if (__builtin_available(macOS 11.0, *)) {
+            if (__builtin_available(macOS 11.0, *))
+            {            
                 return MTLPixelFormatEAC_RGBA8;
             } else {
                 // Fallback on earlier versions
@@ -1914,7 +1918,8 @@ MTLPixelFormat mtlFormatForGLInternalFormat(GLenum internal_format)
             return MTLPixelFormatRGBA8Unorm_sRGB;
 
         case GL_COMPRESSED_SRGB:
-            if (__builtin_available(macOS 11.0, *)) {
+            if (__builtin_available(macOS 11.0, *))
+            {            
                 return MTLPixelFormatETC2_RGB8_sRGB;
             } else {
                 return MTLPixelFormatInvalid;
@@ -1924,14 +1929,16 @@ MTLPixelFormat mtlFormatForGLInternalFormat(GLenum internal_format)
             return MTLPixelFormatInvalid;
 
         case GL_COMPRESSED_RED:
-            if (__builtin_available(macOS 11.0, *)) {
+            if (__builtin_available(macOS 11.0, *))
+            {            
                 return MTLPixelFormatEAC_R11Unorm;
             } else {
                 return MTLPixelFormatInvalid;
             }
 
         case GL_COMPRESSED_RG:
-            if (__builtin_available(macOS 11.0, *)) {
+            if (__builtin_available(macOS 11.0, *))
+            {            
                 return MTLPixelFormatEAC_RG11Unorm;
             } else {
                 return MTLPixelFormatInvalid;
@@ -2021,14 +2028,16 @@ MTLPixelFormat mtlFormatForGLInternalFormat(GLenum internal_format)
             return MTLPixelFormatInvalid;
 
         case GL_COMPRESSED_RG_RGTC2:
-            if (__builtin_available(macOS 11.0, *)) {
+            if (__builtin_available(macOS 11.0, *))
+            {            
                 return MTLPixelFormatEAC_R11Unorm;
             } else {
                 return MTLPixelFormatInvalid;
             }
 
         case GL_COMPRESSED_SIGNED_RG_RGTC2:
-            if (__builtin_available(macOS 11.0, *)) {
+            if (__builtin_available(macOS 11.0, *))
+            {            
                 return MTLPixelFormatEAC_R11Snorm;
             } else {
                 // Fallback on earlier versions
@@ -2184,7 +2193,8 @@ MTLPixelFormat mtlFormatForGLInternalFormat(GLenum internal_format)
             return MTLPixelFormatBC6H_RGBUfloat;
 
         case GL_COMPRESSED_RGB8_ETC2:
-            if (__builtin_available(macOS 11.0, *)) {
+            if (__builtin_available(macOS 11.0, *))
+            {            
                 return MTLPixelFormatETC2_RGB8;
             } else {
                 // Fallback on earlier versions
@@ -2192,7 +2202,8 @@ MTLPixelFormat mtlFormatForGLInternalFormat(GLenum internal_format)
             }
 
         case GL_COMPRESSED_SRGB8_ETC2:
-            if (__builtin_available(macOS 11.0, *)) {
+            if (__builtin_available(macOS 11.0, *))
+            {            
                 return MTLPixelFormatETC2_RGB8_sRGB;
             } else {
                 // Fallback on earlier versions
@@ -2200,7 +2211,8 @@ MTLPixelFormat mtlFormatForGLInternalFormat(GLenum internal_format)
             }
 
         case GL_COMPRESSED_RGB8_PUNCHTHROUGH_ALPHA1_ETC2:
-            if (__builtin_available(macOS 11.0, *)) {
+            if (__builtin_available(macOS 11.0, *))
+            {            
                 return MTLPixelFormatETC2_RGB8A1;
             } else {
                 // Fallback on earlier versions
@@ -2208,7 +2220,8 @@ MTLPixelFormat mtlFormatForGLInternalFormat(GLenum internal_format)
             }
 
         case GL_COMPRESSED_SRGB8_PUNCHTHROUGH_ALPHA1_ETC2:
-            if (__builtin_available(macOS 11.0, *)) {
+            if (__builtin_available(macOS 11.0, *))
+            {            
                 return MTLPixelFormatETC2_RGB8A1_sRGB;
             } else {
                 // Fallback on earlier versions
@@ -2216,7 +2229,8 @@ MTLPixelFormat mtlFormatForGLInternalFormat(GLenum internal_format)
             }
 
         case GL_COMPRESSED_RGBA8_ETC2_EAC:
-            if (__builtin_available(macOS 11.0, *)) {
+            if (__builtin_available(macOS 11.0, *))
+            {
                 return MTLPixelFormatEAC_RGBA8;
             } else {
                 // Fallback on earlier versions
@@ -2224,7 +2238,8 @@ MTLPixelFormat mtlFormatForGLInternalFormat(GLenum internal_format)
             }
 
         case GL_COMPRESSED_SRGB8_ALPHA8_ETC2_EAC:
-            if (__builtin_available(macOS 11.0, *)) {
+            if (__builtin_available(macOS 11.0, *))
+            {            
                 return MTLPixelFormatEAC_RGBA8_sRGB;
             } else {
                 // Fallback on earlier versions
@@ -2232,7 +2247,8 @@ MTLPixelFormat mtlFormatForGLInternalFormat(GLenum internal_format)
             }
 
         case GL_COMPRESSED_R11_EAC:
-            if (__builtin_available(macOS 11.0, *)) {
+            if (__builtin_available(macOS 11.0, *))
+            {
                 return MTLPixelFormatEAC_R11Unorm;
             } else {
                 // Fallback on earlier versions
@@ -2240,7 +2256,8 @@ MTLPixelFormat mtlFormatForGLInternalFormat(GLenum internal_format)
             }
 
         case GL_COMPRESSED_SIGNED_R11_EAC:
-            if (__builtin_available(macOS 11.0, *)) {
+            if (__builtin_available(macOS 11.0, *))
+            {            
                 return MTLPixelFormatEAC_R11Snorm;
             } else {
                 // Fallback on earlier versions
@@ -2248,7 +2265,8 @@ MTLPixelFormat mtlFormatForGLInternalFormat(GLenum internal_format)
             }
 
         case GL_COMPRESSED_RG11_EAC:
-            if (__builtin_available(macOS 11.0, *)) {
+            if (__builtin_available(macOS 11.0, *))
+            {            
                 return MTLPixelFormatEAC_RG11Unorm;
             } else {
                 // Fallback on earlier versions
@@ -2256,7 +2274,8 @@ MTLPixelFormat mtlFormatForGLInternalFormat(GLenum internal_format)
             }
 
         case GL_COMPRESSED_SIGNED_RG11_EAC:
-            if (__builtin_available(macOS 11.0, *)) {
+            if (__builtin_available(macOS 11.0, *))
+            {            
                 return MTLPixelFormatEAC_RG11Snorm;
             } else {
                 // Fallback on earlier versions
@@ -2326,15 +2345,22 @@ MTLPixelFormat mtlFormatForGLInternalFormat(GLenum internal_format)
             // Unknown formats - likely Mesa/Gallium internal format enums or capability probes
             // Return Invalid to indicate format not supported (don't use fallback for probes)
             // Only warn for formats that look like real GL formats (not obvious enum values)
-            if (internal_format >= 0x1 && internal_format <= 0x2000) {
+            if (internal_format >= 0x1 && internal_format <= 0x2000)
+            {            
                 // Low values might be legacy GL formats - warn about these
                 static unsigned warned_formats[64] = {0};
                 static int warned_count = 0;
                 int already_warned = 0;
-                for (int i = 0; i < warned_count && i < 64; i++) {
-                    if (warned_formats[i] == internal_format) { already_warned = 1; break; }
+                for (int i = 0; i < warned_count && i < 64; i++)
+                {            
+                    if (warned_formats[i] == internal_format)
+                    {
+                        already_warned = 1;
+                        break;
+                    }
                 }
-                if (!already_warned && warned_count < 64) {
+                if (!already_warned && warned_count < 64)
+                {            
                     warned_formats[warned_count++] = internal_format;
                     fprintf(stderr, "MGL WARNING: mtlFormatForGLInternalFormat unknown format 0x%x\n", internal_format);
                 }
@@ -2439,7 +2465,8 @@ MTLPixelFormat mtlPixelFormatForGLFormatType(GLenum gl_format, GLenum gl_type)
             return 0;
 
         case GL_UNSIGNED_SHORT_5_6_5:
-            if (__builtin_available(macOS 11.0, *)) {
+            if (__builtin_available(macOS 11.0, *))
+            {            
                 return MTLPixelFormatB5G6R5Unorm;
             } else {
                 // Fallback on earlier versions
@@ -2447,7 +2474,8 @@ MTLPixelFormat mtlPixelFormatForGLFormatType(GLenum gl_format, GLenum gl_type)
             }
 
         case GL_UNSIGNED_SHORT_5_6_5_REV:
-            if (__builtin_available(macOS 11.0, *)) {
+            if (__builtin_available(macOS 11.0, *))
+            {            
                 return MTLPixelFormatA1BGR5Unorm;
             } else {
                 // Fallback on earlier versions

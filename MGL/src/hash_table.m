@@ -40,6 +40,7 @@ void initHashTable(HashTable *ptr, GLuint size)
 
     len = sizeof(HashObj) * size;
 
+    ptr->free_keys = NULL;
     ptr->current_name = 1;
     ptr->size = size;
     ptr->keys = (HashObj *)malloc(len);
@@ -48,18 +49,115 @@ void initHashTable(HashTable *ptr, GLuint size)
     bzero(ptr->keys, len);
 }
 
-GLuint getNewName(HashTable *table)
+bool resizeHashTableToFitName(HashTable *table, GLuint name)
 {
-    return table->current_name++;
+    // CRITICAL SECURITY FIX: Prevent integer overflow in hash table resizing
+    // some calls allow the user to specify a name...
+    while(table->size <= name)
+    {
+        size_t old_size = table->size;
+
+        // CRITICAL: Check for integer overflow before multiplication
+        if (old_size > UINT_MAX / 2)
+        {
+            // SECURITY: Hash table size would overflow, use maximum safe size
+            fprintf(stderr, "MGL SECURITY ERROR: Hash table size would overflow, capping at maximum safe size\n");
+        
+            // We could return an error here, but for now we'll cap at UINT_MAX to prevent overflow
+            // This might limit functionality but prevents critical security vulnerability
+            if (old_size == UINT_MAX)
+            {
+                break; // Can't grow any further
+            }
+            table->size = UINT_MAX;
+        }
+        else
+        {
+            table->size = old_size * 2; // Safe multiplication
+        }
+
+        // CRITICAL: Check for overflow in size calculation before malloc
+        if (table->size > SIZE_MAX / sizeof(HashObj))
+        {
+            fprintf(stderr, "MGL SECURITY ERROR: Hash table allocation would overflow size_t, preventing\n");
+            // Reset to old size to prevent crash
+            table->size = old_size;
+        
+            return false; // Exit function safely
+        }
+
+        table->keys = (HashObj *)realloc(table->keys, table->size * sizeof(HashObj));
+        if (!table->keys)
+        {
+            // CRITICAL: Handle allocation failure to prevent crash
+            fprintf(stderr, "MGL SECURITY ERROR: Hash table allocation failed\n");
+            table->size = old_size; // Restore old size
+
+            return false;
+        }
+
+        // Initialize new entries
+        for (size_t i = old_size; i < table->size; i++)
+        {
+            table->keys[i].valid = false;
+            table->keys[i].data = NULL;
+        }
+    }
+    
+    return true;
 }
 
-void *searchHashTable(HashTable *table, GLuint name)
+GLuint getNewName(HashTable *table)
+{
+    if (table->free_keys)
+    {
+        HashObj *obj;
+        
+        obj = table->free_keys;
+        
+        table->free_keys = table->free_keys->next;
+        
+        obj->valid = true;
+        return obj->name;
+    }
+        
+    GLuint name;
+    
+    name = table->current_name++;
+    
+    // we could walk over the edge of the table.. make sure we resize it
+    if (table->current_name >= table->size)
+    {
+        // resize the table to keep allocating names
+        if (resizeHashTableToFitName(table, table->current_name) == false)
+        {
+            return 0;
+        }
+    }
+
+    table->keys[name].name = name;
+    table->keys[name].valid = true;
+    
+    return name;
+}
+
+bool isValidKey(HashTable *table, GLuint name)
+{
+    if (name >= table->size)
+    {
+        return false;
+    }
+    
+    return table->keys[name].valid;
+}
+
+void *getKeyData(HashTable *table, GLuint name)
 {
     assert(table);
     
     if (name >= table->size)
     {
-        fprintf(stderr, "MGL: searchHashTable - name %u exceeds table size %zu, returning NULL\n", name, table->size);
+        fprintf(stderr, "MGL: getKeyData - name %u exceeds table size %zu, returning NULL\n", name, table->size);
         return NULL;
     }
 
@@ -74,53 +172,15 @@ void insertHashElement(HashTable *table, GLuint name, void *data)
     {
         assert(table->keys[name].data == NULL);
 
+        table->keys[name].valid = true;
         table->keys[name].data = data;
 
         return;
     }
 
-    // CRITICAL SECURITY FIX: Prevent integer overflow in hash table resizing
-    // some calls allow the user to specify a name...
-    while(table->size <= name)
-    {
-        size_t old_size = table->size;
 
-        // CRITICAL: Check for integer overflow before multiplication
-        if (old_size > UINT_MAX / 2) {
-            // SECURITY: Hash table size would overflow, use maximum safe size
-            fprintf(stderr, "MGL SECURITY ERROR: Hash table size would overflow, capping at maximum safe size\n");
-            // We could return an error here, but for now we'll cap at UINT_MAX to prevent overflow
-            // This might limit functionality but prevents critical security vulnerability
-            if (old_size == UINT_MAX) {
-                break; // Can't grow any further
-            }
-            table->size = UINT_MAX;
-        } else {
-            table->size = old_size * 2; // Safe multiplication
-        }
 
-        // CRITICAL: Check for overflow in size calculation before malloc
-        if (table->size > SIZE_MAX / sizeof(HashObj)) {
-            fprintf(stderr, "MGL SECURITY ERROR: Hash table allocation would overflow size_t, preventing\n");
-            // Reset to old size to prevent crash
-            table->size = old_size;
-            return; // Exit function safely
-        }
-
-        table->keys = (HashObj *)realloc(table->keys, table->size * sizeof(HashObj));
-        if (!table->keys) {
-            // CRITICAL: Handle allocation failure to prevent crash
-            fprintf(stderr, "MGL SECURITY ERROR: Hash table allocation failed\n");
-            table->size = old_size; // Restore old size
-            return;
-        }
-
-        // Initialize new entries
-        for (size_t i = old_size; i < table->size; i++) {
-            table->keys[i].data = NULL;
-        }
-    }
-
+    table->keys[name].valid = true;
     table->keys[name].data = data;
 }
 
@@ -128,67 +188,16 @@ void deleteHashElement(HashTable *table, GLuint name)
 {
     assert(table);
 
-    if (name >= table->size) {
+    if (name >= table->size)
+    {
         fprintf(stderr, "MGL: deleteHashElement - name %u exceeds table size %zu\n", name, table->size);
         return;
     }
 
-    void *obj_data = table->keys[name].data;
-
-    // Perform Metal cleanup for different object types
-    if (obj_data) {
-        extern GLMContext _ctx;
-
-        // Check if this is a shader object
-        if (table == &_ctx->state.shader_table) {
-            // Shader-specific Metal cleanup
-            Shader *shader = (Shader *)obj_data;
-            if (shader->mtl_data.function || shader->mtl_data.library) {
-                fprintf(stderr, "MGL: Metal cleanup for shader object %u\n", name);
-                // In ARC mode, we just need to set the pointers to nil
-                // The memory will be automatically released
-                shader->mtl_data.function = NULL;
-                shader->mtl_data.library = NULL;
-            }
-        }
-        // Check if this is a program object
-        else if (table == &_ctx->state.program_table) {
-            // Program-specific Metal cleanup
-            Program *program = (Program *)obj_data;
-            if (program->mtl_data) {
-                fprintf(stderr, "MGL: Metal cleanup for program object %u\n", name);
-                // In ARC mode, we just need to set the pointer to nil
-                // The memory will be automatically released
-                program->mtl_data = NULL;
-            }
-        }
-        // Check if this is a texture object
-        else if (table == &_ctx->state.texture_table) {
-            // Texture-specific Metal cleanup
-            Texture *texture = (Texture *)obj_data;
-            if (texture->mtl_data) {
-                fprintf(stderr, "MGL: Metal cleanup for texture object %u\n", name);
-                // In ARC mode, we just need to set the pointer to nil
-                // The memory will be automatically released
-                texture->mtl_data = NULL;
-            }
-        }
-        // Check if this is a buffer object
-        else if (table == &_ctx->state.buffer_table) {
-            // Buffer-specific Metal cleanup
-            Buffer *buffer = (Buffer *)obj_data;
-            if (buffer->data.mtl_data) {
-                fprintf(stderr, "MGL: Metal cleanup for buffer object %u\n", name);
-                // In ARC mode, we just need to set the pointer to nil
-                // The memory will be automatically released
-                buffer->data.mtl_data = NULL;
-            }
-        }
-        else {
-            // Generic cleanup for unknown object types
-            fprintf(stderr, "MGL: deleteHashElement called for object %u (Metal cleanup implemented)\n", name);
-        }
-    }
-
+    table->keys[name].valid = false;
     table->keys[name].data = NULL;
+    
+    // add to free keys list
+    table->keys[name].next = table->free_keys;
+    table->free_keys = &table->keys[name];
 }

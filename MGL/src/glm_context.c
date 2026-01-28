@@ -18,11 +18,16 @@
  *
  */
 
-
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
+#include <sys/types.h>
+#include <sys/sysctl.h>
 
+#include <mach/mach_vm.h>
+#include <mach/mach_init.h>
+#include <mach/vm_map.h>
+#include <limits.h>
 #include <stdint.h>
 
 #include <assert.h>
@@ -44,8 +49,10 @@ extern void* CppCreateMGLRendererHeadless(void *glm_ctx);
  * Headless = offscreen rendering, QEMU blits the framebuffer to screen.
  */
 __attribute__((constructor))
-static void mgl_auto_init(void) {
-    if (_ctx == NULL) {
+static void mgl_auto_init(void)
+{
+    if (_ctx == NULL)
+    {
         _ctx = createGLMContext(GL_RGBA, GL_UNSIGNED_BYTE,
                                GL_DEPTH_COMPONENT24, GL_UNSIGNED_INT,
                                GL_STENCIL_INDEX8, GL_UNSIGNED_BYTE);
@@ -55,18 +62,61 @@ static void mgl_auto_init(void) {
 }
 
 /* Lazy-initialize MGL context on first GL API call if auto-init didn't run */
-void mgl_lazy_init(void) {
+void mgl_lazy_init(void)
+{
     // If `_ctx` ever gets corrupted (e.g. memory stomp), it can become a small
     // non-NULL value and crash immediately on dereference. Detect and recover.
-    if (_ctx != NULL && (uintptr_t)_ctx < 0x10000u) {
+    if (_ctx != NULL && (uintptr_t)_ctx < 0x10000u)
+    {
         fprintf(stderr, "MGL ERROR: current context pointer looks corrupted (%p); reinitializing\n", (void *)_ctx);
         _ctx = NULL;
     }
 
-    if (_ctx == NULL) {
+    if (_ctx == NULL)
+    {
         mgl_auto_init();
     }
 }
+
+size_t get_max_memory_alloc(void)
+{
+    size_t max_size = 0;
+    size_t len = sizeof(max_size);
+    
+    // Get the maximum allocatable memory, this is the amount of actual physical memory
+    sysctlbyname("hw.memsize", &max_size, &len, NULL, 0);
+
+    // actually check how much can be allocated...
+    kern_return_t err;
+    size_t alloc_size;
+    vm_address_t alloc_data;
+
+    // start with 32 MB
+    alloc_size = 32 * 1024 * 1024;
+
+    while(alloc_size < max_size)
+    {
+        // Allocate directly from VM
+        err = vm_allocate((vm_map_t) mach_task_self(),
+                          (vm_address_t*) &alloc_data,
+                          alloc_size,
+                          VM_FLAGS_ANYWHERE);
+        if (err)
+        {
+            // this is the last known good alloc
+            return alloc_size >> 1;
+        }
+        
+        vm_deallocate((vm_map_t) mach_task_self(),
+                      (vm_address_t) alloc_data,
+                      alloc_size);
+        
+        alloc_size <<= 1;
+    }
+    
+    return max_size;
+}
+
 
 GLMContext mglGetContext(void)
 {
@@ -189,7 +239,7 @@ GLMContext createGLMContext(GLenum format, GLenum type,
     STATE(viewport[2]) = 1024;  // Default width - should be updated when window is bound
     STATE(viewport[3]) = 768;   // Default height - should be updated when window is bound
 
-    for(int i=0; i<MAX_COLOR_ATTACHMENTS; i++)
+    for(GLuint i=0; i<MAX_COLOR_ATTACHMENTS; i++)
     {
         STATE(var.blend_src_rgb[i]) = GL_ONE;
         STATE(var.blend_src_alpha[i]) = GL_ONE;
@@ -215,7 +265,7 @@ GLMContext createGLMContext(GLenum format, GLenum type,
     STATE(var.stencil_pass_depth_fail) = GL_KEEP;
     STATE(var.stencil_pass_depth_pass) = GL_KEEP;
 
-    for(int i=0; i<MAX_CLIP_DISTANCES; i++)
+    for(GLuint i=0; i<MAX_CLIP_DISTANCES; i++)
     {
         STATE(caps.clip_distances[i]) = false;
     }
@@ -246,11 +296,11 @@ GLMContext createGLMContext(GLenum format, GLenum type,
     STATE(var.max_compute_work_group_size[1]) = 1024;
     STATE(var.max_compute_work_group_size[2]) = 256;
 
-    for(int attachment=0; attachment<MAX_COLOR_ATTACHMENTS; attachment++)
+    for(GLuint attachment=0; attachment<MAX_COLOR_ATTACHMENTS; attachment++)
     {
         STATE(caps.use_color_mask[attachment]) = false;
 
-        for(int i=0; i<4; i++)
+        for(GLuint i=0; i<4; i++)
             STATE(var.color_writemask[attachment][i]) = GL_TRUE;
     }
 
@@ -269,13 +319,17 @@ GLMContext createGLMContext(GLenum format, GLenum type,
     initHashTable(&STATE(renderbuffer_table), 32);
     initHashTable(&STATE(framebuffer_table), 32);
     initHashTable(&STATE(sampler_table), 32);
-    
+    initHashTable(&STATE(program_pipeline_table), 32);
+
     init_dispatch(ctx);
 
     ctx->assert_on_error = GL_TRUE;
     ctx->error_func = error_func;
 
     ctx->temp_element_buffer = NULL;
+    
+    // to check on max allocations
+    ctx->max_os_alloc_size = get_max_memory_alloc();
     
     err = glslang_initialize_process();
     assert(err);
@@ -340,24 +394,28 @@ void destroyGLMContext(GLMContext ctx)
     // Clean up critical hash tables to prevent memory corruption
 
     // 1. Basic cleanup of programs and shaders (major memory leaks)
-    if (ctx->state.program_table.keys) {
+    if (ctx->state.program_table.keys)
+    {            
         free(ctx->state.program_table.keys);
         ctx->state.program_table.keys = NULL;
     }
 
-    if (ctx->state.shader_table.keys) {
+    if (ctx->state.shader_table.keys)
+    {            
         free(ctx->state.shader_table.keys);
         ctx->state.shader_table.keys = NULL;
     }
 
     // 2. Basic cleanup of textures (major memory leaks)
-    if (ctx->state.texture_table.keys) {
+    if (ctx->state.texture_table.keys)
+    {            
         free(ctx->state.texture_table.keys);
         ctx->state.texture_table.keys = NULL;
     }
 
     // 3. Basic cleanup of buffers (major memory leaks)
-    if (ctx->state.buffer_table.keys) {
+    if (ctx->state.buffer_table.keys)
+    {            
         free(ctx->state.buffer_table.keys);
         ctx->state.buffer_table.keys = NULL;
     }
@@ -365,24 +423,28 @@ void destroyGLMContext(GLMContext ctx)
     // CRITICAL FIX: Basic cleanup for remaining hash tables to prevent major memory leaks
     // These tables are also critical and would cause memory corruption if not cleaned
 
-    if (ctx->state.renderbuffer_table.keys) {
+    if (ctx->state.renderbuffer_table.keys)
+    {            
         free(ctx->state.renderbuffer_table.keys);
         ctx->state.renderbuffer_table.keys = NULL;
     }
 
-    if (ctx->state.framebuffer_table.keys) {
+    if (ctx->state.framebuffer_table.keys)
+    {            
         free(ctx->state.framebuffer_table.keys);
         ctx->state.framebuffer_table.keys = NULL;
     }
 
     // 5. Clean up vertex arrays (VAO table)
-    if (ctx->state.vao_table.keys) {
+    if (ctx->state.vao_table.keys)
+    {            
         free(ctx->state.vao_table.keys);
         ctx->state.vao_table.keys = NULL;
     }
 
     // 6. Clean up samplers
-    if (ctx->state.sampler_table.keys) {
+    if (ctx->state.sampler_table.keys)
+    {            
         free(ctx->state.sampler_table.keys);
         ctx->state.sampler_table.keys = NULL;
     }
@@ -397,7 +459,8 @@ void destroyGLMContext(GLMContext ctx)
 __attribute__((destructor))
 static void mgl_auto_cleanup(void)
 {
-    if (_ctx != NULL) {
+    if (_ctx != NULL)
+    {            
         fprintf(stderr, "MGL INFO: Auto-cleanup - destroying GLMContext\n");
 
         // Signal cleanup to any in-flight operations

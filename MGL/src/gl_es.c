@@ -2216,12 +2216,14 @@ void glVertexBindingDivisor(GLuint bindingindex, GLuint divisor)
 	ctx->dispatch.vertex_binding_divisor(ctx, bindingindex, divisor);
 }
 
+#ifdef MGL_GL_ES
 void glBlendBarrier()
 {
 	GLMContext ctx = GET_CONTEXT();
 
 	ctx->dispatch.blend_barrier(ctx);
 }
+#endif
 
 void glCopyImageSubData(GLuint srcName, GLenum srcTarget, GLint srcLevel, GLint srcX, GLint srcY, GLint srcZ, GLuint dstName, GLenum dstTarget, GLint dstLevel, GLint dstX, GLint dstY, GLint dstZ, GLsizei srcWidth, GLsizei srcHeight, GLsizei srcDepth)
 {
@@ -2391,12 +2393,14 @@ void glFramebufferTexture(GLenum target, GLenum attachment, GLuint texture, GLin
 	ctx->dispatch.framebuffer_texture(ctx, target, attachment, texture, level);
 }
 
+#ifdef MGL_GL_ES
 void glPrimitiveBoundingBox(GLfloat minX, GLfloat minY, GLfloat minZ, GLfloat minW, GLfloat maxX, GLfloat maxY, GLfloat maxZ, GLfloat maxW)
 {
 	GLMContext ctx = GET_CONTEXT();
 
 	ctx->dispatch.primitive_bounding_box(ctx, minX, minY, minZ, minW, maxX, maxY, maxZ, maxW);
 }
+#endif
 
 GLenum  glGetGraphicsResetStatus()
 {

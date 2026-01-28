@@ -167,7 +167,7 @@ bool setTexParamsi(GLMContext ctx, TextureParameter *tex_params, GLenum pname, c
     switch(pname)
     {
         case GL_TEXTURE_BORDER_COLOR:
-            for(int i=0; i<4; i++)
+            for(GLuint i=0; i<4; i++)
                 tex_params->border_color[i] = (GLint)params[i];
             break;
 
@@ -202,7 +202,7 @@ bool setTexParamsIiv(GLMContext ctx, TextureParameter *tex_params, GLenum pname,
     switch(pname)
     {
         case GL_TEXTURE_BORDER_COLOR:
-            for(int i=0; i<4; i++)
+            for(GLuint i=0; i<4; i++)
                 tex_params->border_color[i] = (GLuint)params[i];
             break;
 
@@ -219,7 +219,7 @@ bool setTexParamsIuiv(GLMContext ctx, TextureParameter *tex_params, GLenum pname
     switch(pname)
     {
         case GL_TEXTURE_BORDER_COLOR:
-            for(int i=0; i<4; i++)
+            for(GLuint i=0; i<4; i++)
                 tex_params->border_color[i] = (GLuint)params[i];
             break;
 
@@ -256,7 +256,7 @@ bool setTexParamsf(GLMContext ctx, TextureParameter *tex_params, GLenum pname, c
     switch(pname)
     {
         case GL_TEXTURE_BORDER_COLOR:
-            for(int i=0; i<4; i++)
+            for(GLuint i=0; i<4; i++)
                 tex_params->border_color[i] = params[i];
             break;
 
@@ -278,6 +278,9 @@ bool setTexParamsf(GLMContext ctx, TextureParameter *tex_params, GLenum pname, c
 #pragma mark get params
 static bool getTexParmi(GLMContext ctx, TextureParameter *tex_params, const GLenum pname, GLuint *ret)
 {
+    assert(tex_params);
+    assert(ret);
+    
     switch(pname)
     {
         case GL_DEPTH_STENCIL_TEXTURE_MODE:
@@ -360,7 +363,7 @@ static bool getTexParamsi(GLMContext ctx, TextureParameter *tex_params, GLenum p
     switch(pname)
     {
         case GL_TEXTURE_BORDER_COLOR:
-            for(int i=0; i<4; i++)
+            for(GLuint i=0; i<4; i++)
                 ret[i] = tex_params->border_color[i];
             break;
 
@@ -384,7 +387,7 @@ static bool getTexParamsIiv(GLMContext ctx, TextureParameter *tex_params, GLenum
     switch(pname)
     {
         case GL_TEXTURE_BORDER_COLOR:
-            for(int i=0; i<4; i++)
+            for(GLuint i=0; i<4; i++)
                 ret[i] = tex_params->border_color_i[i];
             break;
 
@@ -401,7 +404,7 @@ static bool getTexParamsIuiv(GLMContext ctx, TextureParameter *tex_params, GLenu
     switch(pname)
     {
         case GL_TEXTURE_BORDER_COLOR:
-            for(int i=0; i<4; i++)
+            for(GLuint i=0; i<4; i++)
                 ret[i] = tex_params->border_color_ui[i];
             break;
 
@@ -418,7 +421,7 @@ static bool getTexParamsf(GLMContext ctx, TextureParameter *tex_params, GLenum p
     switch(pname)
     {
         case GL_TEXTURE_BORDER_COLOR:
-            for(int i=0; i<4; i++)
+            for(GLuint i=0; i<4; i++)
                 ret[i] = tex_params->border_color[i];
             break;
 

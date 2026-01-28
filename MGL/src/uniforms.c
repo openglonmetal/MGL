@@ -34,7 +34,7 @@ GLint  mglGetUniformLocation(GLMContext ctx, GLuint program, const GLchar *name)
 {
     if (isProgram(ctx, program) == GL_FALSE)
     {
-        ERROR_RETURN(GL_INVALID_OPERATION); // also may be GL_INVALID_VALUE ????
+        ERROR_RETURN_VALUE(GL_INVALID_VALUE, -1); // its in the hash table so its a program
 
         return -1;
     }
@@ -42,11 +42,16 @@ GLint  mglGetUniformLocation(GLMContext ctx, GLuint program, const GLchar *name)
     Program *ptr;
 
     ptr = getProgram(ctx, program);
-    assert(program);
+    if (ptr == NULL)
+    {
+        ERROR_RETURN_VALUE(GL_INVALID_OPERATION, -1); // GL_INVALID_OPERATION is generated if program is not a program object.
+
+        return -1;
+    }
 
     if (ptr->linked_glsl_program == NULL)
     {
-        ERROR_RETURN(GL_INVALID_OPERATION);
+        ERROR_RETURN_VALUE(GL_INVALID_OPERATION, -1); // GL_INVALID_OPERATION is generated if program has not been successfully linked.
 
         return -1;
     }
@@ -122,7 +127,7 @@ GLuint  mglGetUniformBlockIndex(GLMContext ctx, GLuint program, const GLchar *un
 
     if (ptr->linked_glsl_program == NULL)
     {
-        ERROR_RETURN(GL_INVALID_OPERATION);
+        ERROR_RETURN_VALUE(GL_INVALID_OPERATION, -1);
 
         return -1;
     }
@@ -175,18 +180,18 @@ bool checkUniformParams(GLMContext ctx, GLint location)
 {
     Program* ptr = ctx->state.program;
     
-    ERROR_CHECK_RETURN_VALUE(ptr, GL_INVALID_OPERATION, false)
+    ERROR_CHECK_RETURN_FALSE(ptr, GL_INVALID_OPERATION)
 
-    ERROR_CHECK_RETURN_VALUE(location >= 0, GL_INVALID_OPERATION, false)
+    ERROR_CHECK_RETURN_FALSE(location >= 0, GL_INVALID_OPERATION)
         
-    ERROR_CHECK_RETURN_VALUE(location < MAX_BINDABLE_BUFFERS, GL_INVALID_OPERATION, false)
+    ERROR_CHECK_RETURN_FALSE(location < MAX_BINDABLE_BUFFERS, GL_INVALID_OPERATION)
 
     return true;
 }
 
 void mglUniform(GLMContext ctx, GLint location, void *ptr, GLsizei size)
 {
-    assert(checkUniformParams(ctx, location));
+    RETURN_ON_FAILURE(checkUniformParams(ctx, location));
     
     Buffer *buf = ctx->state.buffer_base[_UNIFORM_CONSTANT].buffers[location].buf;
     
@@ -407,15 +412,13 @@ void _name_##Transpose (const _name_ *matrix, _transposed_name_ *result) { \
         /* CRITICAL SECURITY FIX: Prevent integer overflow in uniform matrix allocation */ \
         if ((size_t)count > SIZE_MAX / sizeof(_dst_type_)) { \
             fprintf(stderr, "MGL SECURITY ERROR: Uniform matrix count %d would cause allocation overflow\n", count); \
-            STATE(error) = GL_OUT_OF_MEMORY; \
-            return; \
+            ERROR_RETURN(GL_OUT_OF_MEMORY); \
         } \
         size_t alloc_size = count * sizeof(_dst_type_); \
         _dst_type_ *dst = (_dst_type_ *)malloc(alloc_size); \
         if (!dst) { \
             fprintf(stderr, "MGL SECURITY ERROR: Failed to allocate %zu bytes for uniform matrix\n", alloc_size); \
-            STATE(error) = GL_OUT_OF_MEMORY; \
-            return; \
+            ERROR_RETURN(GL_OUT_OF_MEMORY); \
         } \
         for (size_t i = 0; i < (size_t)count; i++) { \
             _transpose_func_(&src[i], &dst[i]); \

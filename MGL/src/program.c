@@ -23,6 +23,9 @@
 #include <CoreFoundation/CoreFoundation.h>
 #include <glslang_c_interface.h>
 #include <glslang_c_shader_types.h>
+
+#include <stdatomic.h>
+
 #include "spirv-tools/libspirv.h"
 #include "spirv_cross_c.h"
 #include "spirv.h"
@@ -47,7 +50,12 @@ ProgramPipeline *newProgramPipeline(GLMContext ctx, GLuint pipeline)
 
 ProgramPipeline *findProgramPipeline(GLMContext ctx, GLuint pipeline)
 {
-    return (ProgramPipeline *)searchHashTable(&STATE(program_pipeline_table), pipeline);
+    if (isValidKey(&STATE(program_pipeline_table), pipeline))
+    {
+        return (ProgramPipeline *)getKeyData(&STATE(program_pipeline_table), pipeline);
+    }
+    
+    return NULL;
 }
 
 ProgramPipeline *getProgramPipeline(GLMContext ctx, GLuint pipeline)
@@ -83,7 +91,7 @@ TransformFeedback *newTransformFeedback(GLMContext ctx, GLuint name)
 
 TransformFeedback *findTransformFeedback(GLMContext ctx, GLuint name)
 {
-    return (TransformFeedback *)searchHashTable(&STATE(transform_feedback_table), name);
+    return (TransformFeedback *)getKeyData(&STATE(transform_feedback_table), name);
 }
 
 TransformFeedback *getTransformFeedback(GLMContext ctx, GLuint name)
@@ -117,7 +125,7 @@ Program *getProgram(GLMContext ctx, GLuint program)
 {
     Program *ptr;
 
-    ptr = (Program *)searchHashTable(&STATE(program_table), program);
+    ptr = (Program *)getKeyData(&STATE(program_table), program);
 
     if (!ptr)
     {
@@ -131,23 +139,17 @@ Program *getProgram(GLMContext ctx, GLuint program)
 
 int isProgram(GLMContext ctx, GLuint program)
 {
-    Program *ptr;
-
-    ptr = (Program *)searchHashTable(&STATE(program_table), program);
-
-    if (ptr)
-        return 1;
-
-    return 0;
+    return isValidKey(&STATE(program_table), program);
 }
 
 Program *findProgram(GLMContext ctx, GLuint program)
 {
-    Program *ptr;
-
-    ptr = (Program *)searchHashTable(&STATE(program_table), program);
-
-    return ptr;
+    if (isValidKey(&STATE(program_table), program))
+    {
+        return (Program *)getKeyData(&STATE(program_table), program);
+    }
+    
+    return NULL;
 }
 
 GLuint mglCreateProgram(GLMContext ctx)
@@ -171,36 +173,44 @@ void mglFreeProgram(GLMContext ctx, Program *ptr)
     if (ptr->mtl_data)
     {
         ctx->mtl_funcs.mtlDeleteMTLObj(ctx, ptr->mtl_data);
+        
+        ptr->mtl_data = NULL;
     }
 
-    for(int i=0; i<_MAX_SHADER_TYPES; i++)
+    for(GLuint i=0; i<_MAX_SHADER_TYPES; i++)
     {
         // CRITICAL FIX: Add NULL checks before all free/release operations to prevent double-frees
-        if (ptr->spirv[i].ir) {
+        if (ptr->spirv[i].ir)
+        {            
             free(ptr->spirv[i].ir);
             ptr->spirv[i].ir = NULL;
         }
-        if (ptr->spirv[i].msl_str) {
+        if (ptr->spirv[i].msl_str)
+        {            
             free(ptr->spirv[i].msl_str);
             ptr->spirv[i].msl_str = NULL;
         }
-        if (ptr->spirv[i].entry_point) {
+        if (ptr->spirv[i].entry_point)
+        {            
             free(ptr->spirv[i].entry_point);
             ptr->spirv[i].entry_point = NULL;
         }
-        if (ptr->spirv[i].mtl_function) {
+        if (ptr->spirv[i].mtl_function)
+        {            
             CFRelease(ptr->spirv[i].mtl_function);
             ptr->spirv[i].mtl_function = NULL;
         }
-        if (ptr->spirv[i].mtl_library) {
+        if (ptr->spirv[i].mtl_library)
+        {            
             CFRelease(ptr->spirv[i].mtl_library);
             ptr->spirv[i].mtl_library = NULL;
         }
         
-        for(int j=0; j<_MAX_SPIRV_RES; j++)
+        for(GLuint j=0; j<_MAX_SPIRV_RES; j++)
         {
             // CRITICAL FIX: Add NULL checks and clear pointers to prevent double-frees
-            if (ptr->spirv_resources_list[i][j].list) {
+            if (ptr->spirv_resources_list[i][j].list)
+            {            
                 free(ptr->spirv_resources_list[i][j].list);
                 ptr->spirv_resources_list[i][j].list = NULL;
             }
@@ -209,11 +219,8 @@ void mglFreeProgram(GLMContext ctx, Program *ptr)
         if (ptr->shader_slots[i])
         {
             Shader *sptr = ptr->shader_slots[i];
-            sptr->refcount--;
-            if (sptr->refcount == 0 && sptr->delete_status)
-            {
-                mglFreeShader(ctx, sptr);
-            }
+
+            mglFreeShader(ctx, sptr);
         }
     }
 
@@ -224,24 +231,23 @@ void mglDeleteProgram(GLMContext ctx, GLuint program)
 {
     Program *ptr;
 
-    ptr = findProgram(ctx, program);
-
-    if (!ptr)
+    // do nothing for program == 0
+    if (program)
     {
-        // // CRITICAL FIX: Handle error gracefully instead of crashing
-        fprintf(stderr, "MGL ERROR: Critical error in program.c at line %d\n", __LINE__);
-        STATE(error) = GL_INVALID_OPERATION; // Silent ignore if not found? OpenGL says GL_INVALID_VALUE usually, but delete is often silent for 0.
-        // But if program != 0 and not found, it's GL_INVALID_VALUE.
-        return;
-    }
+        ptr = findProgram(ctx, program);
+        
+        if (!ptr)
+        {
+            // // CRITICAL FIX: Handle error gracefully instead of crashing
+            fprintf(stderr, "MGL ERROR: Critical error in program.c at line %d\n", __LINE__);
 
-    deleteHashElement(&STATE(program_table), program);
-    
-    ptr->delete_status = GL_TRUE;
-    
-    if (ptr->refcount == 0)
-    {
+            // return invalid value per spec
+            ERROR_RETURN(GL_INVALID_VALUE);
+        }
+        
         mglFreeProgram(ctx, ptr);
+
+        deleteHashElement(&STATE(program_table), program);
     }
 }
 
@@ -265,8 +271,7 @@ void mglAttachShader(GLMContext ctx, GLuint program, GLuint shader)
     {
         // CRITICAL FIX: Handle missing shader gracefully instead of crashing
         fprintf(stderr, "MGL ERROR: Shader %u not found in attach shader\n", shader);
-        STATE(error) = GL_INVALID_VALUE;
-        return;
+        ERROR_RETURN(GL_INVALID_VALUE);
     }
 
     pptr = findProgram(ctx, program);
@@ -275,7 +280,7 @@ void mglAttachShader(GLMContext ctx, GLuint program, GLuint shader)
     {
         // CRITICAL FIX: Handle error gracefully instead of crashing
         fprintf(stderr, "MGL ERROR: Critical error in program.c at line %d\n", __LINE__);
-        STATE(error) = GL_INVALID_OPERATION;
+        ERROR_RETURN(GL_INVALID_OPERATION);
 
         return;
     }
@@ -283,7 +288,6 @@ void mglAttachShader(GLMContext ctx, GLuint program, GLuint shader)
     index = sptr->glm_type;
 
     pptr->shader_slots[index] = sptr;
-    sptr->refcount++;
     pptr->dirty_bits |= DIRTY_PROGRAM;
 }
 
@@ -298,8 +302,7 @@ void mglDetachShader(GLMContext ctx, GLuint program, GLuint shader)
     {
         // CRITICAL FIX: Handle error gracefully instead of crashing
         fprintf(stderr, "MGL ERROR: Critical error in program.c at line %d\n", __LINE__);
-        STATE(error) = GL_INVALID_OPERATION;
-        return;
+        ERROR_RETURN(GL_INVALID_OPERATION);
     }
 
     sptr = findShader(ctx, shader);
@@ -307,8 +310,10 @@ void mglDetachShader(GLMContext ctx, GLuint program, GLuint shader)
     if (!sptr)
     {
         // If not found in hash table, check if it is attached to the program
-        for (int i=0; i<_MAX_SHADER_TYPES; i++) {
-            if (pptr->shader_slots[i] && pptr->shader_slots[i]->name == shader) {
+        for (int i=0; i<_MAX_SHADER_TYPES; i++)
+        {
+            if (pptr->shader_slots[i] && pptr->shader_slots[i]->name == shader)
+            {
                 sptr = pptr->shader_slots[i];
                 break;
             }
@@ -319,8 +324,7 @@ void mglDetachShader(GLMContext ctx, GLuint program, GLuint shader)
     {
         // CRITICAL FIX: Handle error gracefully instead of crashing
         fprintf(stderr, "MGL ERROR: Critical error in program.c at line %d\n", __LINE__);
-        STATE(error) = GL_INVALID_OPERATION;
-        return;
+        ERROR_RETURN(GL_INVALID_OPERATION);
     }
 
     index = sptr->glm_type;
@@ -331,12 +335,7 @@ void mglDetachShader(GLMContext ctx, GLuint program, GLuint shader)
     }
 
     pptr->shader_slots[index] = NULL;
-    sptr->refcount--;
-    
-    if (sptr->refcount == 0 && sptr->delete_status)
-    {
-        mglFreeShader(ctx, sptr);
-    }
+    mglFreeShader(ctx, sptr);
     
     pptr->dirty_bits |= DIRTY_PROGRAM;
 }
@@ -355,10 +354,10 @@ static_assert(_GEOMETRY_SHADER == GLSLANG_STAGE_GEOMETRY, "_GEOMETRY_SHADER == G
 static_assert(_FRAGMENT_SHADER == GLSLANG_STAGE_FRAGMENT, "_FRAGMENT_SHADER == GLSLANG_STAGE_FRAGMENT failed");
 static_assert(_COMPUTE_SHADER == GLSLANG_STAGE_COMPUTE, "_COMPUTE_SHADER == GLSLANG_STAGE_COMPUTE failed");
 
-void addShadersToProgram(GLMContext ctx, Program *pptr, glslang_program_t *glsl_program)
+bool addShadersToProgram(GLMContext ctx, Program *pptr, glslang_program_t *glsl_program)
 {
     // add shaders
-    for(int i=0;i<_MAX_SHADER_TYPES; i++)
+    for(GLuint i=0;i<_MAX_SHADER_TYPES; i++)
     {
         Shader *ptr;
 
@@ -367,11 +366,14 @@ void addShadersToProgram(GLMContext ctx, Program *pptr, glslang_program_t *glsl_
         if(ptr)
         {
             // should have glsl shader here
-            assert(ptr->compiled_glsl_shader);
+            if(ptr->compiled_glsl_shader == NULL)
+                return false;
 
             glslang_program_add_shader(glsl_program, ptr->compiled_glsl_shader);
         }
     }
+    
+    return true;
 }
 
 char *parseSPIRVShaderToMetal(GLMContext ctx, Program *ptr, int stage)
@@ -411,35 +413,40 @@ char *parseSPIRVShaderToMetal(GLMContext ctx, Program *ptr, int stage)
     spvc_context_create_compiler(context, SPVC_BACKEND_MSL, ir, SPVC_CAPTURE_MODE_TAKE_OWNERSHIP, &compiler_msl);
     assert(compiler_msl);
     // ERROR_CHECK_RETURN(spvc_compiler_msl_add_discrete_descriptor_set(compiler_msl, 3) == SPVC_SUCCESS, GL_INVALID_OPERATION);
-    if (spvc_compiler_msl_add_discrete_descriptor_set(compiler_msl, 3) != SPVC_SUCCESS) {
+    if (spvc_compiler_msl_add_discrete_descriptor_set(compiler_msl, 3) != SPVC_SUCCESS)
+    {            
         fprintf(stderr, "MGL Error: spvc_compiler_msl_add_discrete_descriptor_set failed\n");
-        ERROR_RETURN(GL_INVALID_OPERATION);
+        ERROR_RETURN_VALUE(GL_INVALID_OPERATION, NULL);
     }
 
     // Modify options.
     // ERROR_CHECK_RETURN(spvc_compiler_create_compiler_options(compiler_msl, &options) == SPVC_SUCCESS, GL_INVALID_OPERATION);
-    if (spvc_compiler_create_compiler_options(compiler_msl, &options) != SPVC_SUCCESS) {
+    if (spvc_compiler_create_compiler_options(compiler_msl, &options) != SPVC_SUCCESS)
+    {            
         fprintf(stderr, "MGL Error: spvc_compiler_create_compiler_options failed\n");
-        ERROR_RETURN(GL_INVALID_OPERATION);
+        ERROR_RETURN_VALUE(GL_INVALID_OPERATION, NULL);
     }
 
     // ERROR_CHECK_RETURN(spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_MSL_ARGUMENT_BUFFERS, SPVC_FALSE) == SPVC_SUCCESS, GL_INVALID_OPERATION);
-    if (spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_MSL_ARGUMENT_BUFFERS, SPVC_FALSE) != SPVC_SUCCESS) {
+    if (spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_MSL_ARGUMENT_BUFFERS, SPVC_FALSE) != SPVC_SUCCESS)
+    {            
         fprintf(stderr, "MGL Error: spvc_compiler_options_set_bool(SPVC_COMPILER_OPTION_MSL_ARGUMENT_BUFFERS) failed\n");
-        ERROR_RETURN(GL_INVALID_OPERATION);
+        ERROR_RETURN_VALUE(GL_INVALID_OPERATION, NULL);
     }
 
     // ERROR_CHECK_RETURN(spvc_compiler_options_set_uint(options, SPVC_COMPILER_OPTION_MSL_VERSION, SPVC_MAKE_MSL_VERSION(3,1,0)) == SPVC_SUCCESS, GL_INVALID_OPERATION);
-    if (spvc_compiler_options_set_uint(options, SPVC_COMPILER_OPTION_MSL_VERSION, SPVC_MAKE_MSL_VERSION(3,1,0)) != SPVC_SUCCESS) {
+    if (spvc_compiler_options_set_uint(options, SPVC_COMPILER_OPTION_MSL_VERSION, SPVC_MAKE_MSL_VERSION(3,1,0)) != SPVC_SUCCESS)
+    {            
         fprintf(stderr, "MGL Error: spvc_compiler_options_set_uint(SPVC_COMPILER_OPTION_MSL_VERSION) failed\n");
-        ERROR_RETURN(GL_INVALID_OPERATION);
+        ERROR_RETURN_VALUE(GL_INVALID_OPERATION, NULL);
     }
 
     //ERROR_CHECK_RETURN(spvc_compiler_options_set_uint(options, SPVC_COMPILER_OPTION_GLSL_VERSION, 4.5) == SPVC_SUCCESS, GL_INVALID_OPERATION);
     // ERROR_CHECK_RETURN(spvc_compiler_install_compiler_options(compiler_msl, options) == SPVC_SUCCESS, GL_INVALID_OPERATION);
-    if (spvc_compiler_install_compiler_options(compiler_msl, options) != SPVC_SUCCESS) {
+    if (spvc_compiler_install_compiler_options(compiler_msl, options) != SPVC_SUCCESS)
+    {            
         fprintf(stderr, "MGL Error: spvc_compiler_install_compiler_options failed\n");
-        ERROR_RETURN(GL_INVALID_OPERATION);
+        ERROR_RETURN_VALUE(GL_INVALID_OPERATION, NULL);
     }
 
     
@@ -459,8 +466,8 @@ char *parseSPIRVShaderToMetal(GLMContext ctx, Program *ptr, int stage)
         case _COMPUTE_SHADER: model = SpvExecutionModelGLCompute; break;
         default: // CRITICAL FIX: Handle error gracefully instead of crashing
             fprintf(stderr, "MGL ERROR: Critical error in program.c at line %d\n", __LINE__);
-            STATE(error) = GL_INVALID_OPERATION;
-            return NULL;
+
+            ERROR_RETURN_VALUE(GL_INVALID_VALUE, NULL);
     }
 
     switch(stage)
@@ -473,7 +480,8 @@ char *parseSPIRVShaderToMetal(GLMContext ctx, Program *ptr, int stage)
         case _COMPUTE_SHADER: snprintf(entry_point, sizeof(entry_point), "compute_%d",name); break;
         default: // CRITICAL FIX: Handle error gracefully instead of crashing
         fprintf(stderr, "MGL ERROR: Critical error in program.c at line %d\n", __LINE__);
-        STATE(error) = GL_INVALID_OPERATION;
+
+        ERROR_RETURN_VALUE(GL_INVALID_VALUE, NULL);
     }
 
     const char *cleansed_entry_point;
@@ -523,16 +531,18 @@ char *parseSPIRVShaderToMetal(GLMContext ctx, Program *ptr, int stage)
 
         // CRITICAL SECURITY FIX: Prevent integer overflow in resource allocation
         // Check if count * sizeof(SpirvResource) would overflow size_t
-        if (count > SIZE_MAX / sizeof(SpirvResource)) {
+        if (count > SIZE_MAX / sizeof(SpirvResource))
+        {            
             fprintf(stderr, "MGL SECURITY ERROR: Resource count %zu would cause allocation overflow\n", count);
-            ERROR_RETURN(GL_OUT_OF_MEMORY);
+            ERROR_RETURN_VALUE(GL_OUT_OF_MEMORY, NULL);
         }
 
         size_t alloc_size = count * sizeof(SpirvResource);
         ptr->spirv_resources_list[stage][res_type].list = (SpirvResource *)malloc(alloc_size);
-        if (!ptr->spirv_resources_list[stage][res_type].list) {
+        if (!ptr->spirv_resources_list[stage][res_type].list)
+        {            
             fprintf(stderr, "MGL SECURITY ERROR: Failed to allocate %zu bytes for resource list\n", alloc_size);
-            ERROR_RETURN(GL_OUT_OF_MEMORY);
+            ERROR_RETURN_VALUE(GL_OUT_OF_MEMORY, NULL);
         }
 
         for (i = 0; i < count; i++)
@@ -608,28 +618,34 @@ bool linkAndCompileProgramToMetal(GLMContext ctx, Program *pptr, int stage)
     int err;
 
     /* Safety check: ensure we have a shader for this stage */
-    if (!pptr->shader_slots[stage]) {
+    if (!pptr->shader_slots[stage])
+    {            
         return false;
     }
 
     // Clean up old resources
-    if (pptr->spirv[stage].ir) {
+    if (pptr->spirv[stage].ir)
+    {            
         free(pptr->spirv[stage].ir);
         pptr->spirv[stage].ir = NULL;
     }
-    if (pptr->spirv[stage].msl_str) {
+    if (pptr->spirv[stage].msl_str)
+    {            
         free(pptr->spirv[stage].msl_str);
         pptr->spirv[stage].msl_str = NULL;
     }
-    if (pptr->spirv[stage].entry_point) {
+    if (pptr->spirv[stage].entry_point)
+    {            
         free(pptr->spirv[stage].entry_point);
         pptr->spirv[stage].entry_point = NULL;
     }
-    if (pptr->spirv[stage].mtl_function) {
+    if (pptr->spirv[stage].mtl_function)
+    {            
         CFRelease(pptr->spirv[stage].mtl_function);
         pptr->spirv[stage].mtl_function = NULL;
     }
-    if (pptr->spirv[stage].mtl_library) {
+    if (pptr->spirv[stage].mtl_library)
+    {            
         CFRelease(pptr->spirv[stage].mtl_library);
         pptr->spirv[stage].mtl_library = NULL;
     }
@@ -641,7 +657,10 @@ bool linkAndCompileProgramToMetal(GLMContext ctx, Program *pptr, int stage)
 
     // shaders to glsl program
     fprintf(stderr, "MGL DEBUG: Adding shaders to program\n");
-    addShadersToProgram(ctx, pptr, glsl_program);
+    if (addShadersToProgram(ctx, pptr, glsl_program) == false)
+    {
+        return false;
+    }
     fprintf(stderr, "MGL DEBUG: Shaders added\n");
 
     // link
@@ -656,7 +675,7 @@ bool linkAndCompileProgramToMetal(GLMContext ctx, Program *pptr, int stage)
         fprintf(stderr, "MGL Error: glslang_program_get_info_log:\n%s\n", glslang_program_get_info_log(glsl_program));
         fprintf(stderr, "MGL Error: glslang_program_get_info_debug_log:\n%s\n", glslang_program_get_info_debug_log(glsl_program));
 
-        ERROR_RETURN(GL_INVALID_OPERATION);
+        ERROR_RETURN_VALUE(GL_INVALID_OPERATION, false);
     }
 
     // generate SPIVR
@@ -668,7 +687,7 @@ bool linkAndCompileProgramToMetal(GLMContext ctx, Program *pptr, int stage)
     {
         DEBUG_PRINT("%s\n", glslang_program_SPIRV_get_messages(glsl_program));
 
-        ERROR_RETURN(GL_INVALID_OPERATION);
+        ERROR_RETURN_VALUE(GL_INVALID_OPERATION, false);
     }
 
     // save SPIRV code
@@ -678,16 +697,18 @@ bool linkAndCompileProgramToMetal(GLMContext ctx, Program *pptr, int stage)
 
     // CRITICAL SECURITY FIX: Prevent integer overflow in SPIRV allocation
     // Check if size * sizeof(unsigned) would overflow size_t
-    if (pptr->spirv[stage].size > SIZE_MAX / sizeof(unsigned)) {
+    if (pptr->spirv[stage].size > SIZE_MAX / sizeof(unsigned))
+    {            
         fprintf(stderr, "MGL SECURITY ERROR: SPIRV size %zu would cause allocation overflow\n", pptr->spirv[stage].size);
-        ERROR_RETURN(GL_OUT_OF_MEMORY);
+        ERROR_RETURN_VALUE(GL_OUT_OF_MEMORY, false);
     }
 
     size_t alloc_size = pptr->spirv[stage].size * sizeof(unsigned);
     pptr->spirv[stage].ir = (unsigned int *)malloc(alloc_size);
-    if (!pptr->spirv[stage].ir) {
+    if (!pptr->spirv[stage].ir)
+    {            
         fprintf(stderr, "MGL SECURITY ERROR: Failed to allocate %zu bytes for SPIRV\n", alloc_size);
-        ERROR_RETURN(GL_OUT_OF_MEMORY);
+        ERROR_RETURN_VALUE(GL_OUT_OF_MEMORY, false);
     }
     fprintf(stderr, "MGL DEBUG: Getting SPIRV IR\n");
     glslang_program_SPIRV_get(glsl_program, pptr->spirv[stage].ir);
@@ -698,9 +719,10 @@ bool linkAndCompileProgramToMetal(GLMContext ctx, Program *pptr, int stage)
     pptr->spirv[stage].msl_str = parseSPIRVShaderToMetal(ctx, pptr, stage);
     fprintf(stderr, "MGL DEBUG: SPIRV parsed to Metal\n");
     // ERROR_CHECK_RETURN(pptr->spirv[stage].msl_str, GL_INVALID_OPERATION);
-    if (pptr->spirv[stage].msl_str == NULL) {
+    if (pptr->spirv[stage].msl_str == NULL)
+    {            
         fprintf(stderr, "MGL Error: parseSPIRVShaderToMetal failed for stage %d\n", stage);
-        ERROR_RETURN(GL_INVALID_OPERATION);
+        ERROR_RETURN_VALUE(GL_INVALID_OPERATION, false);
     }
 
     pptr->linked_glsl_program = glsl_program;
@@ -737,7 +759,8 @@ void mglLinkProgram(GLMContext ctx, GLuint program)
     }
 
     /* Only call mtlBindProgram if Metal functions are initialized */
-    if (ctx->mtl_funcs.mtlBindProgram) {
+    if (ctx->mtl_funcs.mtlBindProgram)
+    {            
         ctx->mtl_funcs.mtlBindProgram(ctx, pptr);
     } else {
         fprintf(stderr, "WARNING: Metal functions not initialized, skipping mtlBindProgram\n");
@@ -758,10 +781,10 @@ void mglUseProgram(GLMContext ctx, GLuint program)
         {
             fprintf(stderr, "MGL Error: mglUseProgram program %u not found\n", program);
             // CRITICAL FIX: Handle error gracefully instead of crashing
-        fprintf(stderr, "MGL ERROR: Critical error in program.c at line %d\n", __LINE__);
-        STATE(error) = GL_INVALID_OPERATION;
+            fprintf(stderr, "MGL ERROR: Critical error in program.c at line %d\n", __LINE__);
 
-            return;
+            // return invalid value per spec
+            ERROR_RETURN(GL_INVALID_VALUE);
         }
 
         ERROR_CHECK_RETURN(pptr->linked_glsl_program, GL_INVALID_OPERATION);
@@ -773,26 +796,19 @@ void mglUseProgram(GLMContext ctx, GLuint program)
 
     if (ctx->state.program != pptr)
     {
-        if (ctx->state.program)
-        {
-            ctx->state.program->refcount--;
-            if (ctx->state.program->refcount == 0 && ctx->state.program->delete_status)
-            {
-                mglFreeProgram(ctx, ctx->state.program);
-            }
-        }
-
         ctx->state.program = pptr;
 
         if (ctx->state.program)
         {
-            ctx->state.program->refcount++;
             // Only mark dirty when binding a valid program
             // Don't mark dirty when unbinding (pptr=NULL) to preserve existing pipeline
             ctx->state.dirty_bits |= DIRTY_PROGRAM;
         }
         // When unbinding (pptr=NULL), don't mark dirty - keep existing pipeline state
     }
+    
+    // so glGet works
+    ctx->state.var.current_program = program;
 }
 
 void mglBindAttribLocation(GLMContext ctx, GLuint program, GLuint index, const GLchar *name)
@@ -800,7 +816,7 @@ void mglBindAttribLocation(GLMContext ctx, GLuint program, GLuint index, const G
     // Unimplemented function
     // CRITICAL FIX: Handle error gracefully instead of crashing
         fprintf(stderr, "MGL ERROR: Critical error in program.c at line %d\n", __LINE__);
-        STATE(error) = GL_INVALID_OPERATION;
+    ERROR_RETURN(GL_INVALID_OPERATION);
 }
 
 void mglGetActiveAttrib(GLMContext ctx, GLuint program, GLuint index, GLsizei bufSize, GLsizei *length, GLint *size, GLenum *type, GLchar *name)
@@ -808,7 +824,7 @@ void mglGetActiveAttrib(GLMContext ctx, GLuint program, GLuint index, GLsizei bu
     // Unimplemented function
     // CRITICAL FIX: Handle error gracefully instead of crashing
         fprintf(stderr, "MGL ERROR: Critical error in program.c at line %d\n", __LINE__);
-        STATE(error) = GL_INVALID_OPERATION;
+    ERROR_RETURN(GL_INVALID_OPERATION);
 }
 
 void mglGetActiveUniform(GLMContext ctx, GLuint program, GLuint index, GLsizei bufSize, GLsizei *length, GLint *size, GLenum *type, GLchar *name)
@@ -816,7 +832,7 @@ void mglGetActiveUniform(GLMContext ctx, GLuint program, GLuint index, GLsizei b
     // Unimplemented function
     // CRITICAL FIX: Handle error gracefully instead of crashing
         fprintf(stderr, "MGL ERROR: Critical error in program.c at line %d\n", __LINE__);
-        STATE(error) = GL_INVALID_OPERATION;
+    ERROR_RETURN(GL_INVALID_OPERATION);
 }
 
 void mglGetAttachedShaders(GLMContext ctx, GLuint program, GLsizei maxCount, GLsizei *count, GLuint *shaders)
@@ -824,14 +840,14 @@ void mglGetAttachedShaders(GLMContext ctx, GLuint program, GLsizei maxCount, GLs
     // Unimplemented function
     // CRITICAL FIX: Handle error gracefully instead of crashing
         fprintf(stderr, "MGL ERROR: Critical error in program.c at line %d\n", __LINE__);
-        STATE(error) = GL_INVALID_OPERATION;
+    ERROR_RETURN(GL_INVALID_OPERATION);
 }
 
-GLint  mglGetAttribLocation(GLMContext ctx, GLuint program, const GLchar *name)
+GLint mglGetAttribLocation(GLMContext ctx, GLuint program, const GLchar *name)
 {
 	if (isProgram(ctx, program) == GL_FALSE)
 	{
-		ERROR_RETURN(GL_INVALID_OPERATION); // also may be GL_INVALID_VALUE ????
+        ERROR_RETURN_VALUE(GL_INVALID_OPERATION, -1); // also may be GL_INVALID_VALUE ????
 
 		return -1;
 	}
@@ -843,7 +859,7 @@ GLint  mglGetAttribLocation(GLMContext ctx, GLuint program, const GLchar *name)
 
 	if (ptr->linked_glsl_program == NULL)
 	{
-		ERROR_RETURN(GL_INVALID_OPERATION);
+        ERROR_RETURN_VALUE(GL_INVALID_OPERATION, -1);
 
 		return -1;
 	}
@@ -877,7 +893,8 @@ void mglGetProgramiv(GLMContext ctx, GLuint program, GLenum pname, GLint *params
     Program *pptr = findProgram(ctx, program);
     ERROR_CHECK_RETURN(pptr, GL_INVALID_VALUE);
     
-    switch (pname) {
+    switch (pname)
+    {            
         case GL_LINK_STATUS:
             /* If we got here after mglLinkProgram, linking succeeded */
             *params = GL_TRUE;
@@ -894,7 +911,8 @@ void mglGetProgramiv(GLMContext ctx, GLuint program, GLenum pname, GLint *params
         case GL_ATTACHED_SHADERS:
             {
                 int count = 0;
-                for (int i = 0; i < _MAX_SHADER_TYPES; i++) {
+                for (int i = 0; i < _MAX_SHADER_TYPES; i++)
+                {            
                     if (pptr->shader_slots[i]) count++;
                 }
                 *params = count;
@@ -908,7 +926,8 @@ void mglGetProgramiv(GLMContext ctx, GLuint program, GLenum pname, GLint *params
             *params = 0;
             break;
         case GL_COMPUTE_WORK_GROUP_SIZE:
-            if (pptr->shader_slots[_COMPUTE_SHADER]) {
+            if (pptr->shader_slots[_COMPUTE_SHADER])
+            {
                 /* Return local workgroup size for compute shaders */
                 params[0] = pptr->local_workgroup_size.x;
                 params[1] = pptr->local_workgroup_size.y;
@@ -930,9 +949,11 @@ void mglGetProgramInfoLog(GLMContext ctx, GLuint program, GLsizei bufSize, GLsiz
     ERROR_CHECK_RETURN(pptr, GL_INVALID_VALUE);
     
     /* For now, always return an empty info log */
-    if (bufSize > 0 && infoLog) {
+    if (bufSize > 0 && infoLog)
+    {            
         infoLog[0] = '\0';
-        if (length) {
+        if (length)
+        {            
             *length = 0;
         }
     }
@@ -998,8 +1019,7 @@ void mglUseProgramStages(GLMContext ctx, GLuint pipeline, GLbitfield stages, GLu
     ProgramPipeline *pipe_ptr = findProgramPipeline(ctx, pipeline);
     if (!pipe_ptr)
     {
-        STATE(error) = GL_INVALID_OPERATION;
-        return;
+        ERROR_RETURN(GL_INVALID_OPERATION);
     }
     
     Program *prog_ptr = NULL;
@@ -1008,8 +1028,7 @@ void mglUseProgramStages(GLMContext ctx, GLuint pipeline, GLbitfield stages, GLu
         prog_ptr = findProgram(ctx, program);
         if (!prog_ptr)
         {
-            STATE(error) = GL_INVALID_VALUE;
-            return;
+            ERROR_RETURN(GL_INVALID_OPERATION);
         }
     }
     

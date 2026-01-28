@@ -72,7 +72,7 @@ Sampler *getSampler(GLMContext ctx, GLuint sampler)
 {
     Sampler *ptr;
 
-    ptr = (Sampler *)searchHashTable(&STATE(sampler_table), sampler);
+    ptr = (Sampler *)getKeyData(&STATE(sampler_table), sampler);
 
     if (!ptr)
     {
@@ -86,23 +86,17 @@ Sampler *getSampler(GLMContext ctx, GLuint sampler)
 
 bool isSampler(GLMContext ctx, GLuint sampler)
 {
-    Sampler *ptr;
-
-    ptr = (Sampler *)searchHashTable(&STATE(sampler_table), sampler);
-
-    if (ptr)
-        return true;
-
-    return false;
+    return isValidKey(&STATE(sampler_table), sampler);
 }
 
 Sampler *findSampler(GLMContext ctx, GLuint sampler)
 {
-    Sampler *ptr;
-
-    ptr = (Sampler *)searchHashTable(&STATE(sampler_table), sampler);
-
-    return ptr;
+    if (isValidKey(&STATE(sampler_table), sampler))
+    {
+        return (Sampler *)getKeyData(&STATE(sampler_table), sampler);
+    }
+    
+    return NULL;
 }
 
 GLboolean mglIsSampler(GLMContext ctx, GLuint sampler)
@@ -166,7 +160,7 @@ void mglDeleteSamplers(GLMContext ctx, GLsizei count, const GLuint *samplers)
             assert(ptr);
 
             // remove any references to this sampler
-            for(int i=0; i<TEXTURE_UNITS; i++)
+            for(GLuint i=0; i<TEXTURE_UNITS; i++)
             {
                 if (ctx->state.texture_samplers[i] == ptr)
                 {
@@ -179,7 +173,11 @@ void mglDeleteSamplers(GLMContext ctx, GLsizei count, const GLuint *samplers)
             if (ptr->mtl_data)
             {
                 ctx->mtl_funcs.mtlDeleteMTLObj(ctx, ptr->mtl_data);
+                
+                ptr->mtl_data = NULL;
             }
+
+            deleteHashElement(&STATE(sampler_table), sampler);
 
             free(ptr);
         }

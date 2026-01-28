@@ -61,9 +61,11 @@
 #define VAO_STATE(_val_)   ctx->state.vao->_val_
 #define VAO_ATTRIB_STATE(_index_) ctx->state.vao->attrib[_index_]
 
-#define ERROR_RETURN(_type_) ctx->error_func(ctx, __FUNCTION__, _type_)
-#define ERROR_RETURN_VALUE(_type_, _val_) ctx->error_func(ctx, __FUNCTION__, _type_); return _val_
-#define ERROR_CHECK_RETURN(_expr_, _type_) if ((_expr_) == false) {ctx->error_func(ctx, __FUNCTION__, _type_);}
+#define ERROR_RETURN(_type_) {ctx->error_func(ctx, __FUNCTION__, _type_); return; };
+#define ERROR_RETURN_FALSE(_type_) {ctx->error_func(ctx, __FUNCTION__, _type_); return false;}
+#define ERROR_RETURN_VALUE(_type_, _val_) {ctx->error_func(ctx, __FUNCTION__, _type_); return _val_;}
+#define ERROR_CHECK_RETURN(_expr_, _type_) if ((_expr_) == false) {ctx->error_func(ctx, __FUNCTION__, _type_); return;}
+#define ERROR_CHECK_RETURN_FALSE(_expr_, _type_) if ((_expr_) == false) {ctx->error_func(ctx, __FUNCTION__, _type_); return false;}
 #define ERROR_CHECK_RETURN_VALUE(_expr_, _type_, _val_) if ((_expr_) == false) {ctx->error_func(ctx, __FUNCTION__, _type_); return _val_;}
 
 enum {
@@ -196,9 +198,9 @@ typedef struct Buffer_t {
     GLenum usage;
     GLenum access;
     GLbitfield access_flags;
-    GLboolean immutable_storage; // GL_BUFFER_IMMUTABLE_STORAGE
+    GLboolean immutable_storage;    // GL_BUFFER_IMMUTABLE_STORAGE
     GLboolean mapped;
-    GLuint storage_flags; // GL_BUFFER_STORAGE_FLAGS
+    GLuint storage_flags;           // GL_BUFFER_STORAGE_FLAGS
     GLsizeiptr mapped_offset;
     GLsizeiptr mapped_length;
     BufferData data;
@@ -360,8 +362,6 @@ typedef struct Shader_t {
     glslang_shader_t *compiled_glsl_shader;
     const char *entry_point;
     char *log;
-    int refcount;
-    GLboolean delete_status;
     struct {
         void *function;
         void *library;
@@ -408,8 +408,6 @@ typedef struct BufferMapList_t {
 typedef struct Program_t {
     GLuint dirty_bits;
     GLuint name;
-    int refcount;
-    GLboolean delete_status;
     Shader *shader_slots[_MAX_SHADER_TYPES];
     glslang_program_t *linked_glsl_program;
     Spirv spirv[_MAX_SHADER_TYPES];
@@ -522,20 +520,20 @@ enum {
     dirtyAllBit = 31
 };
 
-#define DIRTY_VAO       (0x1 << dirtyVAO)
-#define DIRTY_STATE     (0x1 << dirtyState)
-#define DIRTY_BUFFER    (0x1 << dirtyBuffer)
-#define DIRTY_TEX       (0x1 << dirtyTexture)
-#define DIRTY_TEX_PARAM   (0x1 << dirtyTexParam)
-#define DIRTY_TEX_BINDING (0x1 << dirtyTexBinding)
-#define DIRTY_SAMPLER (0x1 << dirtySampler)
-#define DIRTY_SHADER    (0x1 << dirtyShader)
-#define DIRTY_PROGRAM   (0x1 << dirtyProgram)
-#define DIRTY_FBO       (0x1 << dirtyFBO)
+#define DIRTY_VAO           (0x1 << dirtyVAO)
+#define DIRTY_STATE         (0x1 << dirtyState)
+#define DIRTY_BUFFER        (0x1 << dirtyBuffer)
+#define DIRTY_TEX           (0x1 << dirtyTexture)
+#define DIRTY_TEX_PARAM     (0x1 << dirtyTexParam)
+#define DIRTY_TEX_BINDING   (0x1 << dirtyTexBinding)
+#define DIRTY_SAMPLER       (0x1 << dirtySampler)
+#define DIRTY_SHADER        (0x1 << dirtyShader)
+#define DIRTY_PROGRAM       (0x1 << dirtyProgram)
+#define DIRTY_FBO           (0x1 << dirtyFBO)
 #define DIRTY_DRAWABLE      (0x1 << dirtyDrawable)
-#define DIRTY_RENDER_STATE  (0x1 << dirtyRenderState)
-#define DIRTY_ALPHA_STATE   (0x1 << dirtyAlphaState)
-#define DIRTY_IMAGE_UNIT_STATE   (0x1 << dirtyImageUnit)
+#define DIRTY_RENDER_STATE      (0x1 << dirtyRenderState)
+#define DIRTY_ALPHA_STATE       (0x1 << dirtyAlphaState)
+#define DIRTY_IMAGE_UNIT_STATE  (0x1 << dirtyImageUnit)
 #define DIRTY_BUFFER_BASE_STATE   (0x1 << dirtyBufferBase)
 #define DIRTY_ALL_BIT   ((unsigned)0x1 << dirtyAllBit)    // so we know the dirty all was set.
 #define DIRTY_ALL       (0xFFFFFFFF)
@@ -711,6 +709,8 @@ typedef struct GLMContextRec_t {
     BufferData  *temp_element_buffer;
 
     void (* error_func)(GLMContext ctx, const char *func, GLenum type);
+    
+    GLsizeiptr max_os_alloc_size;
 } GLMContextRec;
 
 

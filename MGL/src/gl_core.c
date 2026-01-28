@@ -15,7 +15,7 @@
 extern GLMContext _ctx;
 extern void mgl_lazy_init(void);
 
-#define GET_CONTEXT()   (mgl_lazy_init(), _ctx)
+#define GET_CONTEXT()   (_ctx ? _ctx : (mgl_lazy_init(), _ctx))
 
 void glCullFace(GLenum mode)
 {

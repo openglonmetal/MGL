@@ -52,7 +52,7 @@ static Renderbuffer *getRenderbuffer(GLMContext ctx, GLuint renderbuffer)
 {
     Renderbuffer *ptr;
 
-    ptr = (Renderbuffer *)searchHashTable(&STATE(renderbuffer_table), renderbuffer);
+    ptr = (Renderbuffer *)getKeyData(&STATE(renderbuffer_table), renderbuffer);
 
     if (!ptr)
     {
@@ -66,23 +66,17 @@ static Renderbuffer *getRenderbuffer(GLMContext ctx, GLuint renderbuffer)
 
 static GLboolean isRenderBuffer(GLMContext ctx, GLuint renderbuffer)
 {
-    Renderbuffer *ptr;
-
-    ptr = (Renderbuffer *)searchHashTable(&STATE(renderbuffer_table), renderbuffer);
-
-    if (ptr)
-        return 1;
-
-    return 0;
+    return isValidKey(&STATE(renderbuffer_table), renderbuffer);
 }
 
 Renderbuffer *findRenderbuffer(GLMContext ctx, GLuint renderbuffer)
 {
-    Renderbuffer *ptr;
-
-    ptr = (Renderbuffer *)searchHashTable(&STATE(renderbuffer_table), renderbuffer);
-
-    return ptr;
+    if (isValidKey(&STATE(renderbuffer_table), renderbuffer))
+    {
+        return (Renderbuffer *)getKeyData(&STATE(renderbuffer_table), renderbuffer);
+    }
+    
+    return NULL;
 }
 
 Framebuffer *currentFBOForType(GLMContext ctx, GLenum target)
@@ -98,7 +92,9 @@ Framebuffer *currentFBOForType(GLMContext ctx, GLenum target)
             return ctx->state.readbuffer;
             break;
 
-        default: assert(0); break;
+        default:
+            return NULL;
+            break;
     }
 }
 
@@ -121,7 +117,7 @@ static Framebuffer *getFramebuffer(GLMContext ctx, GLuint framebuffer)
 {
     Framebuffer *ptr;
 
-    ptr = (Framebuffer *)searchHashTable(&STATE(framebuffer_table), framebuffer);
+    ptr = (Framebuffer *)getKeyData(&STATE(framebuffer_table), framebuffer);
 
     if (!ptr)
     {
@@ -135,23 +131,17 @@ static Framebuffer *getFramebuffer(GLMContext ctx, GLuint framebuffer)
 
 static GLboolean isFramebuffer(GLMContext ctx, GLuint framebuffer)
 {
-    Framebuffer *ptr;
-
-    ptr = (Framebuffer *)searchHashTable(&STATE(framebuffer_table), framebuffer);
-
-    if (ptr)
-        return 1;
-
-    return 0;
+    return isValidKey(&STATE(framebuffer_table), framebuffer);
 }
 
 Framebuffer *findFrameBuffer(GLMContext ctx, GLuint framebuffer)
 {
-    Framebuffer *ptr;
-
-    ptr = (Framebuffer *)searchHashTable(&STATE(framebuffer_table), framebuffer);
-
-    return ptr;
+    if (isValidKey(&STATE(shader_table), framebuffer))
+    {
+        return (Framebuffer *)getKeyData(&STATE(framebuffer_table), framebuffer);
+    }
+    
+    return NULL;
 }
 
 #pragma mark Framebuffer calls
@@ -185,7 +175,8 @@ void mglBindFramebuffer(GLMContext ctx, GLenum target, GLuint framebuffer)
         fprintf(stderr, "MGL: glBindFramebuffer target=%x fbo=0 (default framebuffer)\n", target);
     }
 
-    switch(target) {
+    switch(target)
+    {            
         case GL_DRAW_FRAMEBUFFER:
             ctx->state.framebuffer = ptr;
             break;
@@ -447,11 +438,18 @@ void framebufferTexture(GLMContext ctx, GLenum target, GLenum attachment_type, G
     FBOAttachment *fbo_attachment_ptr;
 
     fbo = currentFBOForType(ctx, target);
+
+    if(fbo == NULL)
+    {
+        ERROR_RETURN(GL_INVALID_FRAMEBUFFER_OPERATION);
+    }
     
     // Log FBO texture attachments for large textures (framebuffer size)
-    if (texture != 0) {
+    if (texture != 0)
+    {            
         Texture *t = findTexture(ctx, texture);
-        if (t && t->width >= 640 && t->height >= 400) {
+        if (t && t->width >= 640 && t->height >= 400)
+        {            
             fprintf(stderr, "MGL DEBUG: FBO attach tex %u (%dx%d) to FBO %u attachment 0x%x\n",
                     texture, t->width, t->height, fbo ? fbo->name : 0, attachment);
         }
@@ -510,25 +508,20 @@ void framebufferTexture(GLMContext ctx, GLenum target, GLenum attachment_type, G
                         break;
                     }
                 }
-
-                STATE(error) = GL_INVALID_OPERATION;
-                return;
-
+                ERROR_RETURN(GL_INVALID_OPERATION);
                 break;
         }
 
         if (level < 0)
         {
-            STATE(error) = GL_INVALID_VALUE;
-            return;
+            ERROR_RETURN(GL_INVALID_VALUE);
         }
 
         // A texture may legally be attached before it has storage allocated; that should
         // make the FBO incomplete, not raise GL_INVALID_VALUE.
         if (tex->mipmap_levels != 0 && level >= tex->mipmap_levels)
         {
-            STATE(error) = GL_INVALID_VALUE;
-            return;
+            ERROR_RETURN(GL_INVALID_VALUE);
         }
 
         if (level > 0)
@@ -539,8 +532,8 @@ void framebufferTexture(GLMContext ctx, GLenum target, GLenum attachment_type, G
                 case GL_TEXTURE_RECTANGLE:
                 case GL_TEXTURE_2D_MULTISAMPLE:
                 case GL_TEXTURE_2D_MULTISAMPLE_ARRAY:
-                    STATE(error) = GL_INVALID_VALUE;
-                    return;
+                    ERROR_RETURN(GL_INVALID_VALUE);
+                    break;
 
                 // if textarget is GL_TEXTURE_3D, then level must be greater than or equal to zero and less than or equal to $log_2$ of the value of GL_MAX_3D_TEXTURE_SIZE.
                 case GL_TEXTURE_3D:
@@ -683,6 +676,11 @@ void mglFramebufferRenderbuffer(GLMContext ctx, GLenum target, GLenum attachment
 
     fbo = currentFBOForType(ctx, target);
 
+    if(fbo == NULL)
+    {
+        ERROR_RETURN(GL_INVALID_FRAMEBUFFER_OPERATION);
+    }
+    
     switch(attachment)
     {
         case GL_DEPTH_ATTACHMENT:
@@ -713,7 +711,11 @@ void mglFramebufferRenderbuffer(GLMContext ctx, GLenum target, GLenum attachment
     if (renderbuffer)
     {
         rbo = findRenderbuffer(ctx, renderbuffer);
-        (assert(rbo));
+        
+        if(rbo == NULL)
+        {
+            ERROR_RETURN(GL_INVALID_FRAMEBUFFER_OPERATION);
+        }
     }
     else
     {
@@ -726,7 +728,11 @@ void mglFramebufferRenderbuffer(GLMContext ctx, GLenum target, GLenum attachment
     fbo_attachment_ptr->texture = renderbuffer;
     fbo_attachment_ptr->level = 0;
     fbo_attachment_ptr->buf.rbo = rbo;
-    fbo_attachment_ptr->buf.rbo->is_draw_buffer = GL_FALSE;
+
+    if (rbo)
+    {
+        fbo_attachment_ptr->buf.rbo->is_draw_buffer = GL_FALSE;
+    }
 
     if (attachment == GL_DEPTH_STENCIL_ATTACHMENT)
     {
@@ -757,10 +763,20 @@ void getFramebufferAttachmentParameteriv(GLMContext ctx, GLuint framebuffer, GLe
         default:
             // target will be zero for mglGetNamedFramebufferAttachmentParameteriv
             fbo = findFrameBuffer(ctx, framebuffer);
-            assert(0);
+
+            if(fbo == NULL)
+            {
+                ERROR_RETURN(GL_INVALID_FRAMEBUFFER_OPERATION);
+            }
+            
             break;
     }
 
+    if(fbo == NULL)
+    {
+        ERROR_RETURN(GL_INVALID_FRAMEBUFFER_OPERATION);
+    }
+    
     if (fbo)
     {
         GLuint level __attribute__((unused));
@@ -889,7 +905,8 @@ void mglFramebufferParameteri(GLMContext ctx, GLenum target, GLenum pname, GLint
     Framebuffer *fbo;
     
     // Get the appropriate framebuffer based on target
-    switch(target) {
+    switch(target)
+    {            
         case GL_FRAMEBUFFER:
         case GL_DRAW_FRAMEBUFFER:
             fbo = STATE(framebuffer);
@@ -902,32 +919,38 @@ void mglFramebufferParameteri(GLMContext ctx, GLenum target, GLenum pname, GLint
             ERROR_RETURN(GL_INVALID_ENUM);
     }
     
-    if (!fbo) {
+    if (!fbo)
+    {            
         // Default framebuffer - these parameters don't apply
         ERROR_RETURN(GL_INVALID_OPERATION);
     }
     
-    switch(pname) {
+    switch(pname)
+    {            
         case GL_FRAMEBUFFER_DEFAULT_WIDTH:
-            if (param < 0) {
+            if (param < 0)
+            {            
                 ERROR_RETURN(GL_INVALID_VALUE);
             }
             fbo->default_width = param;
             break;
         case GL_FRAMEBUFFER_DEFAULT_HEIGHT:
-            if (param < 0) {
+            if (param < 0)
+            {            
                 ERROR_RETURN(GL_INVALID_VALUE);
             }
             fbo->default_height = param;
             break;
         case GL_FRAMEBUFFER_DEFAULT_LAYERS:
-            if (param < 0) {
+            if (param < 0)
+            {
                 ERROR_RETURN(GL_INVALID_VALUE);
             }
             fbo->default_layers = param;
             break;
         case GL_FRAMEBUFFER_DEFAULT_SAMPLES:
-            if (param < 0) {
+            if (param < 0)
+            {            
                 ERROR_RETURN(GL_INVALID_VALUE);
             }
             fbo->default_samples = param;

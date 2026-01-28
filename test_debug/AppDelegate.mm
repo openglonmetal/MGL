@@ -1,0 +1,61 @@
+//
+//  AppDelegate.m
+//  test_debug
+//
+//  Created by Michael Larson on 1/20/26.
+//
+
+#import "AppDelegate.h"
+
+@interface AppDelegate ()
+
+@property (strong) IBOutlet NSWindow *window;
+@end
+
+@implementation AppDelegate
+
+- (void)applicationDidFinishLaunching:(NSNotification *)aNotification
+{
+    assert(_window);
+    
+    NSRect frame;
+    MGLTestView *view;
+    
+    frame = [[_window contentView] frame];
+    
+    view = [[MGLTestView alloc] initWithFrame: frame];
+    [view setWantsLayer:YES];
+    assert(view);
+    
+    [_window setContentView: view];
+    [_window makeFirstResponder: view];
+    [_window setDelegate: self];
+    [_window setTitle: @"Test MGL Corearb"];
+    [_window setAcceptsMouseMovedEvents: YES];
+    [_window setRestorable: NO];
+    
+    GLMContext glm_ctx = createGLMContext(GL_RGBA, GL_UNSIGNED_BYTE, GL_DEPTH_COMPONENT, GL_FLOAT, 0, 0);
+    assert (glm_ctx);
+    
+    MGLRenderer *renderer = [[MGLRenderer alloc] init];
+    assert (renderer);
+    
+    [renderer createMGLRendererAndBindToContext: glm_ctx view: view];
+    
+    MGLsetCurrentContext(glm_ctx);
+    
+    [view setNeedsDisplay: YES];
+}
+
+
+- (void)applicationWillTerminate:(NSNotification *)aNotification {
+    // Insert code here to tear down your application
+}
+
+
+- (BOOL)applicationSupportsSecureRestorableState:(NSApplication *)app {
+    return YES;
+}
+
+
+@end

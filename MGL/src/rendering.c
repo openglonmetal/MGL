@@ -70,7 +70,8 @@ void mglClearBufferfv(GLMContext ctx, GLenum buffer, GLint drawbuffer, const GLf
     Framebuffer * fbo = ctx->state.framebuffer;
     FBOAttachment * fboa;
 
-    switch (buffer) {
+    switch (buffer)
+    {            
         case GL_COLOR:
             fboa = &fbo->color_attachments[drawbuffer];
             fboa->clear_bitmask |= GL_COLOR_BUFFER_BIT;
@@ -101,7 +102,8 @@ void mglClearBufferfi(GLMContext ctx, GLenum buffer, GLint drawbuffer, GLfloat d
     Framebuffer * fbo = ctx->state.framebuffer;
     FBOAttachment * fboa;
 
-    switch (buffer) {
+    switch (buffer)
+    {            
         case GL_DEPTH_STENCIL:
             fboa = &fbo->depth;
             fboa->clear_bitmask |= GL_DEPTH_BUFFER_BIT;
@@ -131,7 +133,8 @@ void mglFlush(GLMContext ctx)
 
 void mglDrawBuffers(GLMContext ctx, GLsizei n, const GLenum *bufs)
 {
-    for (GLsizei i=0; i<n; ++i) {
+    for (GLsizei i=0; i<n; ++i)
+    {            
         mglDrawBuffer(ctx, bufs[i]);
     }
 }
@@ -225,7 +228,8 @@ void mglReadBuffer(GLMContext ctx, GLenum buf)
 void mglPixelStorei(GLMContext ctx, GLenum pname, GLint param)
 {
     // ERROR_CHECK_RETURN(param >= 0, GL_INVALID_VALUE);
-    if (param < 0) {
+    if (param < 0)
+    {            
         fprintf(stderr, "MGL Error: mglPixelStorei: param < 0 (%d) for pname 0x%x\n", param, pname);
         ERROR_RETURN(GL_INVALID_VALUE);
     }
@@ -334,19 +338,22 @@ void mglReadPixels(GLMContext ctx, GLint x, GLint y, GLsizei width, GLsizei heig
 
     pixel_size = sizeForFormatType(format, type);
     // ERROR_CHECK_RETURN(pixel_size != 0, GL_INVALID_ENUM);
-    if (pixel_size == 0) {
+    if (pixel_size == 0)
+    {            
         fprintf(stderr, "MGL Error: mglReadPixels: invalid format/type combination (format=0x%x type=0x%x)\n", format, type);
         ERROR_RETURN(GL_INVALID_ENUM);
     }
 
     // ERROR_CHECK_RETURN(width > 0, GL_INVALID_ENUM);
-    if (width < 0) {
+    if (width < 0)
+    {            
         fprintf(stderr, "MGL Error: mglReadPixels: width < 0 (%d)\n", width);
         ERROR_RETURN(GL_INVALID_VALUE);
     }
 
     // ERROR_CHECK_RETURN(height > 0, GL_INVALID_ENUM);
-    if (height < 0) {
+    if (height < 0)
+    {            
         fprintf(stderr, "MGL Error: mglReadPixels: height < 0 (%d)\n", height);
         ERROR_RETURN(GL_INVALID_VALUE);
     }
@@ -418,7 +425,8 @@ void mglReadPixels(GLMContext ctx, GLint x, GLint y, GLsizei width, GLsizei heig
         case GL_UNSIGNED_SHORT_5_6_5:
         case GL_UNSIGNED_SHORT_5_6_5_REV:
             // ERROR_CHECK_RETURN(format == GL_RGB || format == GL_BGR, GL_INVALID_OPERATION);
-            if (!(format == GL_RGB || format == GL_BGR)) {
+            if (!(format == GL_RGB || format == GL_BGR))
+            {            
                 fprintf(stderr, "MGL Error: mglReadPixels: invalid format for type (format=0x%x type=0x%x)\n", format, type);
                 ERROR_RETURN(GL_INVALID_OPERATION);
             }
@@ -433,7 +441,8 @@ void mglReadPixels(GLMContext ctx, GLint x, GLint y, GLsizei width, GLsizei heig
         case GL_UNSIGNED_INT_10_10_10_2:
         case GL_UNSIGNED_INT_2_10_10_10_REV:
             // ERROR_CHECK_RETURN(format == GL_RGBA || format == GL_BGRA, GL_INVALID_OPERATION);
-            if (!(format == GL_RGBA || format == GL_BGRA)) {
+            if (!(format == GL_RGBA || format == GL_BGRA))
+            {            
                 fprintf(stderr, "MGL Error: mglReadPixels: invalid format for type (format=0x%x type=0x%x)\n", format, type);
                 ERROR_RETURN(GL_INVALID_OPERATION);
             }
@@ -449,7 +458,8 @@ void mglReadPixels(GLMContext ctx, GLint x, GLint y, GLsizei width, GLsizei heig
         ptr = STATE(buffers[_PIXEL_PACK_BUFFER]);
 
         // ERROR_CHECK_RETURN(ptr->mapped == false, GL_INVALID_OPERATION);
-        if (ptr->mapped) {
+        if (ptr->mapped)
+        {            
             fprintf(stderr, "MGL Error: mglReadPixels: pixel pack buffer is mapped\n");
             ERROR_RETURN(GL_INVALID_OPERATION);
         }

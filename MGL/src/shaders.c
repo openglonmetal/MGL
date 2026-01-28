@@ -41,7 +41,8 @@ const char *getShaderTypeStr(GLuint type)
 
 GLuint glShaderTypeToGLMType(GLuint type)
 {
-    switch(type) {
+    switch(type)
+    {            
         case GL_VERTEX_SHADER: return _VERTEX_SHADER;
         case GL_FRAGMENT_SHADER: return _FRAGMENT_SHADER;
         case GL_GEOMETRY_SHADER: return _GEOMETRY_SHADER;
@@ -57,7 +58,8 @@ GLuint glShaderTypeToGLMType(GLuint type)
 
 glslang_stage_t getGLSLStage(GLuint type)
 {
-    switch(type) {
+    switch(type)
+    {            
         case GL_VERTEX_SHADER: return GLSLANG_STAGE_VERTEX;
         case GL_FRAGMENT_SHADER: return GLSLANG_STAGE_FRAGMENT;
         case GL_GEOMETRY_SHADER: return GLSLANG_STAGE_GEOMETRY;
@@ -90,13 +92,16 @@ void initGLSLInput(GLMContext ctx, GLuint type, const char *src, glslang_input_t
     int glsl_version = 330; /* Default to GLSL 3.30 - minimum for SPIR-V */
     int original_version = 330;
     const char *version_str = strstr(src, "#version");
-    if (version_str) {
+    if (version_str)
+    {            
         int scanned_version;
-        if (sscanf(version_str, "#version %d", &scanned_version) == 1) {
+        if (sscanf(version_str, "#version %d", &scanned_version) == 1)
+        {            
             original_version = scanned_version;
             glsl_version = scanned_version;
             /* Upgrade legacy GLSL versions to 330 minimum for SPIR-V */
-            if (glsl_version < 330) {
+            if (glsl_version < 330)
+            {            
                 glsl_version = 330;
             }
         }
@@ -109,10 +114,12 @@ void initGLSLInput(GLMContext ctx, GLuint type, const char *src, glslang_input_t
      * Note: glslang only exposes GLSLANG_TARGET_OPENGL_450, so we use that
      * as the SPIR-V target for all modern GLSL versions
      */
-    if (glsl_version < 330) {
+    if (glsl_version < 330)
+    {            
         /* Legacy GLSL - still target 450 for SPIR-V but shader will be upgraded */
         input->client_version = GLSLANG_TARGET_OPENGL_450;
-    } else if (glsl_version == 330) {
+    } else if (glsl_version == 330)
+    {            
         /* GLSL 3.30 shaders - target OpenGL 3.30 for SPIR-V */
         // input->client_version = 330;  /* Use numeric value directly */
         // well any thing but the allowed enums in glslang_target_client_version_t
@@ -130,28 +137,33 @@ void initGLSLInput(GLMContext ctx, GLuint type, const char *src, glslang_input_t
     static char *modified_src = NULL;
     static size_t modified_src_size = 0;
 
-    if (original_version < 330) {
+    if (original_version < 330)
+    {            
         fprintf(stderr, "[MGL] Upgrading GLSL shader from version %d to %d\n",
                 original_version, glsl_version);
 
         size_t src_len = strlen(src);
-        if (src_len + 100 > modified_src_size) {
+        if (src_len + 100 > modified_src_size)
+        {            
             modified_src_size = src_len + 100;
             free(modified_src);
             modified_src = (char *)malloc(modified_src_size);
         }
 
-        if (modified_src) {
+        if (modified_src)
+        {            
             strcpy(modified_src, src);
 
             /* Find and replace #version line */
             char *version_line = strstr(modified_src, "#version");
-            if (!version_line) {
+            if (!version_line)
+            {            
                 fprintf(stderr, "[MGL] WARNING: #version not found in source\n");
                 input->code = src;
             } else {
                 char *newline = strchr(version_line, '\n');
-                if (!newline) {
+                if (!newline)
+                {            
                     fprintf(stderr, "[MGL] WARNING: newline not found after #version\n");
                     input->code = src;
                 } else {
@@ -163,7 +175,8 @@ void initGLSLInput(GLMContext ctx, GLuint type, const char *src, glslang_input_t
                     fprintf(stderr, "[MGL] Old version line length: %zu, new: %zu\n", old_len, new_len);
                     fprintf(stderr, "[MGL] Old line: %.*s\n", (int)old_len, version_line);
 
-                    if (new_len <= old_len) {
+                    if (new_len <= old_len)
+    {            
                         /* Simple in-place replacement with space padding */
                         memset(version_line, ' ', old_len);
                         memcpy(version_line, version_buf, new_len);
@@ -207,7 +220,8 @@ Shader *newShader(GLMContext ctx, GLenum type, GLuint shader)
 
     ptr = (Shader *)malloc(sizeof(Shader));
     // CRITICAL SECURITY FIX: Check malloc result instead of using assert()
-    if (!ptr) {
+    if (!ptr)
+    {            
         fprintf(stderr, "MGL SECURITY ERROR: Failed to allocate memory for shader\n");
         STATE(error) = GL_OUT_OF_MEMORY;
         return NULL;
@@ -229,7 +243,7 @@ Shader *getShader(GLMContext ctx, GLenum type, GLuint shader)
 {
     Shader *ptr;
 
-    ptr = (Shader *)searchHashTable(&STATE(shader_table), shader);
+    ptr = (Shader *)getKeyData(&STATE(shader_table), shader);
 
     if (!ptr)
     {
@@ -243,23 +257,17 @@ Shader *getShader(GLMContext ctx, GLenum type, GLuint shader)
 
 GLboolean isShader(GLMContext ctx, GLuint shader)
 {
-    Shader *ptr;
-
-    ptr = (Shader *)searchHashTable(&STATE(shader_table), shader);
-
-    if (ptr)
-        return 1;
-
-    return 0;
+    return isValidKey(&STATE(shader_table), shader);
 }
 
 Shader *findShader(GLMContext ctx, GLuint shader)
 {
-    Shader *ptr;
-
-    ptr = (Shader *)searchHashTable(&STATE(shader_table), shader);
-
-    return ptr;
+    if (isValidKey(&STATE(shader_table), shader))
+    {
+        return (Shader *)getKeyData(&STATE(shader_table), shader);
+    }
+    
+    return NULL;
 }
 
 GLuint mglCreateShader(GLMContext ctx, GLenum type)
@@ -277,7 +285,7 @@ GLuint mglCreateShader(GLMContext ctx, GLenum type)
             break;
 
         default:
-            ERROR_RETURN(GL_INVALID_ENUM);
+            ERROR_RETURN_VALUE(GL_INVALID_ENUM, 0);
     }
 
     shader = getNewName(&STATE(shader_table));
@@ -294,10 +302,18 @@ void mglFreeShader(GLMContext ctx, Shader *ptr)
         glslang_shader_delete(ptr->compiled_glsl_shader);
     }
 
-    if (ptr->mtl_data.library)
+    if (ptr->mtl_data.function)
     {
         ctx->mtl_funcs.mtlDeleteMTLObj(ctx, ptr->mtl_data.function);
+        
+        ptr->mtl_data.function = NULL;
+    }
+    
+    if (ptr->mtl_data.library)
+    {
         ctx->mtl_funcs.mtlDeleteMTLObj(ctx, ptr->mtl_data.library);
+        
+        ptr->mtl_data.library = NULL;
     }
 
     free((void *)ptr->mtl_shader_type_name);
@@ -312,7 +328,8 @@ void mglDeleteShader(GLMContext ctx, GLuint shader)
     Shader *ptr;
 
     /* OpenGL spec: A value of 0 for shader will be silently ignored. */
-    if (shader == 0) {
+    if (shader == 0)
+    {            
         return;
     }
 
@@ -322,12 +339,7 @@ void mglDeleteShader(GLMContext ctx, GLuint shader)
 
     deleteHashElement(&STATE(shader_table), shader);
 
-    ptr->delete_status = GL_TRUE;
-
-    if (ptr->refcount == 0)
-    {
-        mglFreeShader(ctx, ptr);
-    }
+    mglFreeShader(ctx, ptr);
 }
 
 GLboolean mglIsShader(GLMContext ctx, GLuint shader)
@@ -335,7 +347,7 @@ GLboolean mglIsShader(GLMContext ctx, GLuint shader)
     return isShader(ctx, shader);
 }
 
-void mglShaderSource(GLMContext ctx, GLuint shader, GLsizei count, const GLchar *const*string, const GLint *length)
+void mglShaderSource(GLMContext ctx, GLuint shader, GLsizei count, const GLchar *const*string, const GLuint *length)
 {
     size_t len;
     GLchar *src;
@@ -352,45 +364,54 @@ void mglShaderSource(GLMContext ctx, GLuint shader, GLsizei count, const GLchar 
     {
         // compute storage requirement
         len = 0;
-        if (!length) {
-            for(int i=0; i<count; i++)
+        if (!length)
+        {
+            for(GLsizei i=0; i<count; i++)
             {
                 len += strlen(string[i]);
             }
         }
-        else {
-            for(int i=0; i<count; i++)
+        else
+        {
+            for(GLsizei i=0; i<count; i++)
             {
                 len += length[i];
             }
         }   
+        
         ERROR_CHECK_RETURN(len, GL_INVALID_VALUE);
 
         // allocate storage
         src = (GLchar *)malloc(len+1); // +1 for NULL
         ERROR_CHECK_RETURN(src, GL_OUT_OF_MEMORY);
 
-        if (!length) {        
+        if (!length)
+        {
             // string[i] are null-terminated
             *src = 0;
-            for(int i=0; i<count; ++i)
+            for(GLsizei i=0; i<count; ++i)
             {
                 strlcat(src, string[i], len+1);
             }
             assert(strlen(src) == len);
-        } else {
+        }
+        else
+        {
             // CRITICAL SECURITY FIX: Prevent buffer overflow in shader source concatenation
             // string[i] may not be null-terminated - we must validate bounds carefully
             size_t cum_len = 0;
-            for(int i=0; i<count; ++i)
+            for(GLsizei i=0; i<count; ++i)
             {
                 // CRITICAL: Check if adding this string would exceed buffer bounds
-                if (cum_len + length[i] > (size_t)len) {
+                if (cum_len + length[i] > (size_t)len)
+                {
                     // SECURITY: Truncate safely instead of overflowing buffer
                     fprintf(stderr, "MGL SECURITY ERROR: Shader source concatenation would overflow buffer, truncating safely\n");
+                    
                     // Copy only what fits
                     size_t safe_copy_len = ((size_t)len > cum_len) ? ((size_t)len - cum_len) : 0;
-                    if (safe_copy_len > 0) {
+                    if (safe_copy_len > 0)
+                    {
                         strncpy(&src[cum_len], string[i], safe_copy_len);
                     }
                     cum_len = len; // Force termination at end
@@ -398,7 +419,8 @@ void mglShaderSource(GLMContext ctx, GLuint shader, GLsizei count, const GLchar 
                 }
 
                 // CRITICAL: Validate source pointer and length before copy
-                if (!string[i]) {
+                if (!string[i])
+                {
                     fprintf(stderr, "MGL SECURITY ERROR: NULL string pointer in shader source concatenation\n");
                     continue; // Skip this string
                 }
@@ -406,6 +428,7 @@ void mglShaderSource(GLMContext ctx, GLuint shader, GLsizei count, const GLchar 
                 strncpy(&src[cum_len], string[i], length[i]);
                 cum_len += length[i];
             }
+            
             // CRITICAL: Ensure null termination regardless of truncation
             src[cum_len < (size_t)len ? cum_len : (size_t)len] = '\0';
         }
@@ -417,7 +440,12 @@ void mglShaderSource(GLMContext ctx, GLuint shader, GLsizei count, const GLchar 
         src = strdup(*string);
         len = strlen(src);
 
-        ERROR_CHECK_RETURN(len, GL_INVALID_VALUE);
+        if (len == 0)
+        {
+            free(src);
+
+            ERROR_RETURN(GL_INVALID_VALUE);
+        }
     }
 
     ptr->src_len = len;
@@ -447,10 +475,12 @@ void mglCompileShader(GLMContext ctx, GLuint shader)
         fprintf(stderr, "MGL ERROR: Failed to create GLSL shader for type 0x%x\n", ptr->type);
 
         // Set error state for the shader - only set log message
-        if (!ptr->log) {
+        if (!ptr->log)
+        {
             ptr->log = strdup("GLSL shader creation failed - insufficient memory or unsupported shader type");
         }
-        return;
+        
+        ERROR_RETURN(GL_INVALID_OPERATION);
     }
 
     if (ptr->log)
@@ -465,12 +495,14 @@ void mglCompileShader(GLMContext ctx, GLuint shader)
     /* Detect if this is a legacy GLSL shader that needs location auto-assignment */
     int shader_version = 330; /* Default */
     const char *version_str = strstr(ptr->src, "#version");
-    if (version_str) {
+    if (version_str)
+    {
         sscanf(version_str, "#version %d", &shader_version);
     }
 
     /* For GLSL < 330, auto-assign locations since old shaders don't have layout() qualifiers */
-    if (shader_version < 330) {
+    if (shader_version < 330)
+    {
         options |= GLSLANG_SHADER_AUTO_MAP_LOCATIONS;
         fprintf(stderr, "[MGL] Enabling auto-map locations for legacy GLSL %d shader\n", shader_version);
     }
@@ -552,7 +584,8 @@ void mglCompileShader(GLMContext ctx, GLuint shader)
         return;
     }
 
-    if (ptr->compiled_glsl_shader) {
+    if (ptr->compiled_glsl_shader)
+    {
         ptr->dirty_bits |= DIRTY_SHADER;
     }
 

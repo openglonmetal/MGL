@@ -23,22 +23,29 @@
 
 #include "glcorearb.h"
 
-typedef struct {
+typedef struct HashObj_t {
+    struct HashObj_t *next;
     GLuint name;
+    GLboolean valid;
     void *data;
 } HashObj;
 
 typedef struct {
     size_t size;
+    GLuint num_free_names;
     GLuint current_name;
     HashObj *keys;
+    HashObj *free_keys;
 } HashTable;
 
 HashTable *createHashTable(GLuint size);
 void initHashTable(HashTable *ptr, GLuint size);
 GLuint getNewName(HashTable *table);
+
 void insertHashElement(HashTable *table, GLuint name, void *data);
-void *searchHashTable(HashTable *table, GLuint name);
 void deleteHashElement(HashTable *table, GLuint name);
+
+bool isValidKey(HashTable *table, GLuint name);
+void *getKeyData(HashTable *table, GLuint name);
 
 #endif /* hash_table_h */

@@ -191,13 +191,15 @@ void mglCopyImageSubData(GLMContext ctx, GLuint srcName, GLenum srcTarget, GLint
 	Texture *srcTex = findTexture(ctx, srcName);
 	Texture *dstTex = findTexture(ctx, dstName);
 	
-	if (!srcTex || !dstTex) {
+	if (!srcTex || !dstTex)
+    {
 		fprintf(stderr, "MGL ERROR: CopyImageSubData - texture not found src=%p dst=%p\n",
 		        srcTex, dstTex);
 		return;
 	}
 	
-	if (!srcTex->mtl_data || !dstTex->mtl_data) {
+	if (!srcTex->mtl_data || !dstTex->mtl_data)
+    {            
 		fprintf(stderr, "MGL ERROR: CopyImageSubData - no Metal data src=%p dst=%p\n",
 		        srcTex->mtl_data, dstTex->mtl_data);
 		return;
@@ -236,7 +238,8 @@ GLuint  mglCreateShaderProgramv(GLMContext ctx, GLenum type, GLsizei count, cons
 	mglCompileShader(ctx, shader);
 	
 	GLuint program = mglCreateProgram(ctx);
-	if (!program) {
+	if (!program)
+    {            
 		mglDeleteShader(ctx, shader);
 		return 0;
 	}
@@ -315,6 +318,7 @@ void mglDeleteTransformFeedbacks(GLMContext ctx, GLsizei n, const GLuint *ids)
         {
             STATE(transform_feedback) = NULL;
         }
+        
         
         // Remove from hash table and free
         deleteHashElement(&STATE(transform_feedback_table), ids[i]);
@@ -519,7 +523,8 @@ GLenum  mglGetGraphicsResetStatus(GLMContext ctx)
 void mglGetMultisamplefv(GLMContext ctx, GLenum pname, GLuint index, GLfloat *val)
 {
 	// Get sample positions for multisample rendering
-	if (pname != GL_SAMPLE_POSITION) {
+	if (pname != GL_SAMPLE_POSITION)
+    {            
 		STATE(error) = GL_INVALID_ENUM;
 		return;
 	}
@@ -681,11 +686,13 @@ void mglGetShaderPrecisionFormat(GLMContext ctx, GLenum shadertype, GLenum preci
 	// Return shader precision format - full precision for all types
 	(void)shadertype;
 	(void)precisiontype;
-	if (range) {
+	if (range)
+    {            
 		range[0] = 127;
 		range[1] = 127;
 	}
-	if (precision) {
+	if (precision)
+    {            
 		*precision = 23;
 	}
 }
@@ -1244,7 +1251,8 @@ void mglProgramUniformMatrix4x3fv(GLMContext ctx, GLuint program, GLint location
 void mglProvokingVertex(GLMContext ctx, GLenum mode)
 {
 	// Set provoking vertex mode - no-op
-	if (mode != GL_FIRST_VERTEX_CONVENTION && mode != GL_LAST_VERTEX_CONVENTION) {
+	if (mode != GL_FIRST_VERTEX_CONVENTION && mode != GL_LAST_VERTEX_CONVENTION)
+    {            
 		STATE(error) = GL_INVALID_ENUM;
 		return;
 	}
@@ -1364,7 +1372,8 @@ void mglTexStorage2DMultisample(GLMContext ctx, GLenum target, GLsizei samples, 
             target, samples, internalformat, width, height);
     
     // Validate target
-    if (target != GL_TEXTURE_2D_MULTISAMPLE && target != GL_PROXY_TEXTURE_2D_MULTISAMPLE) {
+    if (target != GL_TEXTURE_2D_MULTISAMPLE && target != GL_PROXY_TEXTURE_2D_MULTISAMPLE)
+    {            
         fprintf(stderr, "MGL WARNING: mglTexStorage2DMultisample invalid target 0x%x\n", target);
         ctx->error_func(ctx, __FUNCTION__, GL_INVALID_ENUM);
         return;
