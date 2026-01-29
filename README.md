@@ -1,7 +1,7 @@
 # MGL
-# OpenGL 4.6 and ES 3.x on Metal
+# OpenGL 4.6 and 3.x on Metal
 
-This is a start for porting OpenGL 4.6 and ES 3.x on top of Metal, most of it is functional and has been tested. The tests are functional, not coverage tests so they test the functionality of a path not all the possible permutations.
+This is a start for porting OpenGL 4.6 and 3.x on top of Metal, most of it is functional and has been tested. The tests are functional, not coverage tests so they test the functionality of a path not all the possible permutations.
 
 ## So far the following parts of OpenGL work
 
